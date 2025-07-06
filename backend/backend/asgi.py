@@ -7,14 +7,14 @@ from channels.auth import AuthMiddlewareStack
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'backend.settings')
 django.setup()
 
-
-from chat.routing import websocket_urlpatterns 
+from chat.routing import websocket_urlpatterns as chat_websocket
+from instantbooking.routing import websocket_urlpatterns as booking_websocket
 
 application = ProtocolTypeRouter({
     "http": get_asgi_application(),
     "websocket": AuthMiddlewareStack(
         URLRouter(
-            websocket_urlpatterns
+            chat_websocket + booking_websocket
         )
     ),
 })

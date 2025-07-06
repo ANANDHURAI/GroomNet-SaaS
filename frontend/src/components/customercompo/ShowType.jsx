@@ -1,7 +1,20 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 function ShowType() {
+  const navigate = useNavigate();
+
+  const handleInstantBooking = () => {
+
+    sessionStorage.setItem('bookingType', 'INSTANT_BOOKING')
+    navigate('/customer/categoryes');
+  };
+
+  const handleScheduleBooking = () => {
+    sessionStorage.setItem('bookingType', 'SCHEDULE_BOOKING');
+    navigate('/customer/categoryes');
+  };
+
   return (
     <div className="flex flex-col items-center justify-center min-h-[40vh] bg-white p-8">
       <div className="text-center mb-12">
@@ -15,7 +28,10 @@ function ShowType() {
 
       <div className="flex flex-col md:flex-row gap-8 w-full max-w-4xl">
         <div className="flex-1 group">
-          <button className="w-full h-full bg-gradient-to-br from-purple-500 to-purple-700 hover:from-purple-600 hover:to-purple-800 text-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 p-8">
+          <button
+            onClick={handleInstantBooking}
+            className="w-full h-full bg-gradient-to-br from-purple-500 to-purple-700 hover:from-purple-600 hover:to-purple-800 text-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 p-8"
+          >
             <div className="flex flex-col items-center text-center">
               <div className="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center mb-6 group-hover:bg-opacity-30 transition-all duration-300">
                 <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -33,8 +49,8 @@ function ShowType() {
           </button>
         </div>
 
-        <Link to="/customer/categoryes" className="flex-1 group">
-          <div className="w-full h-full bg-gradient-to-br from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 p-8 cursor-pointer">
+        <div onClick={handleScheduleBooking} className="flex-1 group cursor-pointer">
+          <div className="w-full h-full bg-gradient-to-br from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 p-8">
             <div className="flex flex-col items-center text-center">
               <div className="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center mb-6 group-hover:bg-opacity-30 transition-all duration-300">
                 <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -50,7 +66,7 @@ function ShowType() {
               </div>
             </div>
           </div>
-        </Link>
+        </div>
       </div>
 
       <div className="mt-12 text-center">

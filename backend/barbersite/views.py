@@ -142,6 +142,18 @@ class BarberServiceViewSet(viewsets.ModelViewSet):
 
 
 
+from datetime import datetime, timedelta
+from django.db import transaction
+from django.db.models import ProtectedError
+from django.shortcuts import get_object_or_404
+from rest_framework import status, viewsets
+from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+import logging
+
+logger = logging.getLogger(__name__)
+
 class BarberSlotViewSet(viewsets.ViewSet):
     permission_classes = [IsAuthenticated]
 
@@ -152,7 +164,7 @@ class BarberSlotViewSet(viewsets.ViewSet):
         
         if date_filter:
             slots = slots.filter(date=date_filter)
-    
+
         slots = slots.order_by('date', 'start_time')
         
         serializer = BarberSlotSerializer(slots, many=True)
@@ -174,6 +186,15 @@ class BarberSlotViewSet(viewsets.ViewSet):
                 'error': 'All fields are required',
                 'required_fields': ['date', 'start_time', 'end_time']
             }, status=status.HTTP_400_BAD_REQUEST)
+
+
+        if end_time == "24:00:00":
+            end_time = "23:59:59"
+
+        # if start_time >= end_time:
+        #     return Response({
+        #         'error': 'Start time must be before end time.'
+        #     }, status=status.HTTP_400_BAD_REQUEST)
 
         if BarberSlot.objects.filter(
             barber=request.user, 
@@ -202,7 +223,7 @@ class BarberSlotViewSet(viewsets.ViewSet):
             return Response({
                 'error': f'Failed to create slot: {str(e)}'
             }, status=status.HTTP_400_BAD_REQUEST)
-        
+
     @action(detail=True, methods=['delete'], url_path='cancel')
     def cancel_slot(self, request, pk=None):
         try:
@@ -279,3 +300,5 @@ class BarberAppointments(APIView):
             })
 
         return Response(data)
+
+        

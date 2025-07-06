@@ -348,5 +348,5 @@ def payment_history_view(request):
         return Response({'history': history}, status=status.HTTP_200_OK)
 
     except Exception as e:
-        print(f"Error in payment_history_view: {str(e)}")  # For debugging
+        print(f"Error in payment_history_view: {str(e)}")
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

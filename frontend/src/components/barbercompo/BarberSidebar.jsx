@@ -4,7 +4,7 @@ import Logout from '../basics/Logout'
 
 function BarberSidebar() {
   return (
-    <div className="bg-gray-900 text-white w-64 min-h-screen p-6 fixed left-0 top-0 shadow-lg">
+    <div className="bg-gray-900 text-white w-64 h-screen p-6 fixed left-0 top-0 shadow-lg overflow-y-auto">
       <div className="mb-8">
         <Link to="/barber-dash">
           <h2 className="text-2xl font-bold text-blue-400 border-b border-gray-700 pb-4 hover:text-blue-600 transition">
@@ -15,13 +15,23 @@ function BarberSidebar() {
       
       <nav className="space-y-3">
         <Link 
-          to="/barber/dashboard" 
+          to="/barber-dash" 
           className="flex items-center px-4 py-3 text-gray-300 hover:text-white hover:bg-gray-800 rounded-lg transition-all duration-200 ease-in-out group"
         >
           <svg className="w-5 h-5 mr-3 group-hover:text-blue-400" fill="currentColor" viewBox="0 0 20 20">
             <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" />
           </svg>
           Dashboard
+        </Link>
+
+        <Link 
+          to="/instant-booking/" 
+          className="flex items-center px-4 py-3 text-gray-300 hover:text-white hover:bg-gray-800 rounded-lg transition-all duration-200 ease-in-out group"
+        >
+          <svg className="w-5 h-5 mr-3 group-hover:text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" />
+          </svg>
+          work
         </Link>
         
         <Link 
@@ -93,13 +103,9 @@ function BarberSidebar() {
           <span>My Profile</span>
         </Link>
 
-
         <div className="pt-4 mt-4 border-t border-purple-300/20">
           <Logout className="w-full bg-gradient-to-r from-red-500/80 to-red-600/80 hover:from-red-600/90 hover:to-red-700/90 text-white/90 hover:text-white border-0 backdrop-blur-sm" />
-        </div>
-
-
-        
+        </div>        
       </nav>
     </div>
   )

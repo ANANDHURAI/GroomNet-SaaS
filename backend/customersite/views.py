@@ -13,12 +13,11 @@ AddressSerializer,
 BookingCreateSerializer,
 )
 from adminsite.models import CategoryModel , ServiceModel
-from profileservice.models import UserProfile
 import logging
 from barbersite.models import BarberSlot, BarberService
 from django.contrib.auth.models import User
 from django.utils import timezone
-from profileservice.models import Address
+from profileservice.models import Address,UserProfile
 from profileservice.serializers import AddressSerializer
 from authservice.models import User
 from.models import Booking 
@@ -26,9 +25,10 @@ from rest_framework import status, generics
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from django.conf import settings
 logger = logging.getLogger(__name__)
 from django.utils import timezone
+from datetime import datetime
+import requests
 
 
 class Home(APIView):
@@ -49,67 +49,127 @@ class Home(APIView):
 
 class UserLocationUpdateView(APIView):
     permission_classes = [IsAuthenticated]
-
+    
     def post(self, request):
         try:
             latitude = request.data.get('latitude')
             longitude = request.data.get('longitude')
-            user_type = request.data.get('user_type')
-
+            
             if not latitude or not longitude:
-                return Response({
-                    'error': 'Latitude and longitude are required'
-                }, status=status.HTTP_400_BAD_REQUEST)
-
-            try:
-                lat = float(latitude)
-                lng = float(longitude)
-                
-                if not (-90 <= lat <= 90):
-                    return Response({
-                        'error': 'Invalid latitude. Must be between -90 and 90'
-                    }, status=status.HTTP_400_BAD_REQUEST)
-                
-                if not (-180 <= lng <= 180):
-                    return Response({
-                        'error': 'Invalid longitude. Must be between -180 and 180'
-                    }, status=status.HTTP_400_BAD_REQUEST)
-                    
-            except (ValueError, TypeError):
-                return Response({
-                    'error': 'Invalid latitude or longitude format'
-                }, status=status.HTTP_400_BAD_REQUEST)
-
-            profile, created = UserProfile.objects.get_or_create(
+                return Response(
+                    {'error': 'Latitude and longitude are required'}, 
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            user_profile, created = UserProfile.objects.get_or_create(
                 user=request.user,
                 defaults={
-                    'latitude': lat,
-                    'longitude': lng
+                    'latitude': float(latitude),
+                    'longitude': float(longitude)
                 }
             )
             
-          
             if not created:
-                profile.latitude = lat
-                profile.longitude = lng
-                profile.save(update_fields=['latitude', 'longitude'])
+                user_profile.latitude = float(latitude)
+                user_profile.longitude = float(longitude)
+                user_profile.save()
 
-            logger.info(f"Location updated for user {request.user.id}: ({lat}, {lng})")
-
-            return Response({
-                'message': 'Location updated successfully',
-                'latitude': lat,
-                'longitude': lng,
-                'user_type': request.user.user_type
-            }, status=status.HTTP_200_OK)
-
+            address_data = self.reverse_geocode(latitude, longitude)
+            
+            user_type = request.user.user_type
+            
+            if user_type == "barber":
+                return Response({
+                    'message': 'Successfully updated barber location! You can now receive bookings.',
+                    'user_type': user_type,
+                    'latitude': latitude,
+                    'longitude': longitude,
+                    **address_data
+                }, status=status.HTTP_200_OK)
+            elif user_type == "customer":
+                return Response({
+                    'message': 'Successfully updated customer location! You can now start booking nearby services.',
+                    'user_type': user_type,
+                    'latitude': latitude,
+                    'longitude': longitude,
+                    **address_data
+                }, status=status.HTTP_200_OK)
+            else:
+                return Response({
+                    'message': 'Location updated successfully',
+                    'user_type': user_type,
+                    'latitude': latitude,
+                    'longitude': longitude,
+                    **address_data
+                }, status=status.HTTP_200_OK)
+                
+        except ValueError:
+            return Response(
+                {'error': 'Invalid latitude or longitude values'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
         except Exception as e:
-            logger.error(f"Error updating location for user {request.user.id}: {str(e)}")
-            return Response({
-                'error': 'An error occurred while updating location'
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response(
+                {'error': f'An error occurred: {str(e)}'}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
     
-
+    def reverse_geocode(self, latitude, longitude):
+        try:
+            url = f"https://nominatim.openstreetmap.org/reverse"
+            params = {
+                'format': 'json',
+                'lat': latitude,
+                'lon': longitude,
+                'zoom': 18,
+                'addressdetails': 1
+            }
+            
+            headers = {
+                'User-Agent': 'GroomNet/1.0 (anandhurai@gmail.com)'
+            }
+            
+            response = requests.get(url, params=params, headers=headers, timeout=10)
+            
+            if response.status_code == 200:
+                data = response.json()
+                address = data.get('address', {})
+                
+                building = address.get('house_number', '') + ' ' + address.get('road', '')
+                street = address.get('suburb', '') or address.get('neighbourhood', '') or address.get('residential', '')
+                city = address.get('city', '') or address.get('town', '') or address.get('village', '')
+                district = address.get('state_district', '') or address.get('county', '')
+                state = address.get('state', '')
+                pincode = address.get('postcode', '')
+                
+                return {
+                    'building': building.strip() or 'Current Location',
+                    'street': street or 'Current Street',
+                    'city': city or 'Current City',
+                    'district': district or 'Current District',
+                    'state': state or 'Current State',
+                    'pincode': pincode or '000000'
+                }
+            else:
+                return self.get_default_address()
+                
+        except requests.RequestException as e:
+            print(f"Geocoding error: {e}")
+            return self.get_default_address()
+        except Exception as e:
+            print(f"Unexpected error in reverse geocoding: {e}")
+            return self.get_default_address()
+    
+    def get_default_address(self):
+        return {
+            'building': 'Current Location',
+            'street': 'Current Street',
+            'city': 'Current City',
+            'district': 'Current District',
+            'state': 'Current State',
+            'pincode': '000000'
+        }
+    
 
 class CategoryListView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
@@ -173,19 +233,28 @@ def available_dates(request):
 class AvailableSlotListView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = AvailableSlotSerializer
-    
+
     def get_queryset(self):
         barber_id = self.request.query_params.get('barber_id')
-        date = self.request.query_params.get('date')
+        date_str = self.request.query_params.get('date')
         
-        if not barber_id or not date:
+        if not barber_id or not date_str:
             return BarberSlot.objects.none()
-        
-        return BarberSlot.objects.filter(
+
+        date_obj = datetime.strptime(date_str, "%Y-%m-%d").date()
+        today = datetime.now().date()  
+        current_time = datetime.now().time()
+
+        queryset = BarberSlot.objects.filter(
             barber_id=barber_id,
-            date=date,
+            date=date_obj,
             is_booked=False
-        ).order_by('start_time')
+        )
+
+        if date_obj == today:
+            queryset = queryset.filter(start_time__gt=current_time)
+
+        return queryset.order_by('start_time')
 
 
 class AddressListCreateView(generics.ListCreateAPIView):
@@ -196,54 +265,75 @@ class AddressListCreateView(generics.ListCreateAPIView):
         return Address.objects.filter(user=self.request.user)
 
 
-
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def booking_summary(request):
     service_id = request.data.get('service_id')
+    address_id = request.data.get('address_id')
     barber_id = request.data.get('barber_id')
     slot_id = request.data.get('slot_id')
-    address_id = request.data.get('address_id')
-    
+
     try:
         service = ServiceModel.objects.get(id=service_id)
-        barber = User.objects.get(id=barber_id, user_type='barber')
-        slot = BarberSlot.objects.get(id=slot_id, is_booked=False)
         address = Address.objects.get(id=address_id, user=request.user)
-        
-        service_amount = float(service.price)
-        platform_fee = round(0.05 * service_amount, 2)
-        total_amount = round(service_amount + platform_fee, 2)
-        
+
         summary = {
             'service': {
                 'name': service.name,
                 'price': float(service.price),
-                'duration': service.duration_minutes
-            },
-            'barber': {
-                'name': barber.name,
-                'phone': barber.phone
-            },
-            'slot': {
-                'date': slot.date,
-                'start_time': slot.start_time,
-                'end_time': slot.end_time
+                'duration': service.duration_minutes,
             },
             'address': {
                 'full_address': f"{address.building}, {address.street}, {address.city}, {address.state} - {address.pincode}",
-                'mobile': address.mobile
-            },
+                'mobile': address.mobile,
+            }
+        }
+
+        if barber_id and slot_id:
+            print("📆 Schedule booking: Fetching barber and slot details")
+            try:
+                barber = User.objects.get(id=barber_id, user_type='barber')
+                slot = BarberSlot.objects.get(id=slot_id, is_booked=False)
+
+                summary['barber'] = {
+                    'name': barber.name,
+                    'phone': barber.phone,
+                }
+                summary['slot'] = {
+                    'date': slot.date,
+                    'start_time': slot.start_time,
+                    'end_time': slot.end_time,
+                }
+            except User.DoesNotExist:
+                print("❌ Barber not found")
+                return Response({"error": "Barber not found."}, status=404)
+            except BarberSlot.DoesNotExist:
+                print("❌ Slot not found or already booked")
+                return Response({"error": "Slot not found or already booked."}, status=404)
+        else:
+            print("⚡ Instant booking: Skipping barber and slot details")
+
+        service_amount = float(service.price)
+        platform_fee = round(0.05 * service_amount, 2)
+        total_amount = round(service_amount + platform_fee, 2)
+
+        summary.update({
             'service_amount': service_amount,
             'platform_fee': platform_fee,
-            'total_amount': total_amount
-        }
-        
-        print(f"Debug - API Response: {summary}")
+            'total_amount': total_amount,
+        })
+
+        print(f"✅ Returning booking summary: {summary}")
         return Response(summary)
-        
+
+    except ServiceModel.DoesNotExist:
+        print("❌ Service not found")
+        return Response({"error": "Service not found."}, status=404)
+    except Address.DoesNotExist:
+        print("❌ Address not found")
+        return Response({"error": "Address not found."}, status=404)
     except Exception as e:
-        print(f"Error in booking_summary: {str(e)}") 
+        print(f"❌ Unexpected error in booking_summary: {str(e)}")
         return Response({"error": str(e)}, status=400)
 
 
@@ -251,39 +341,34 @@ class BookingCreateView(generics.CreateAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = BookingCreateSerializer
 
+    def perform_create(self, serializer):
+        serializer.save()
+
     def create(self, request, *args, **kwargs):
-        serializer = BookingCreateSerializer(data=request.data, context={'request': request})
-        
-        if not serializer.is_valid():
-            logger.error(f"Booking validation failed: {serializer.errors}")
+        booking_type = request.data.get('booking_type') or request.session.get('booking_type')
+        if not booking_type:
             return Response(
-                {
-                    "detail": "Validation failed",
-                    "errors": serializer.errors
-                }, 
+                {"detail": "Booking type is missing."},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
-        try:
-            booking = serializer.save()
-            logger.info(f"Booking created successfully: {booking.id}")
-            
-            return Response(
-                {
-                    "detail": "Booking created successfully",
-                    "booking_id": booking.id,
-                    "success": True,
-                    "total_amount": float(booking.total_amount),
-                    "payment_method": request.data.get('payment_method')
-                },
-                status=status.HTTP_201_CREATED
-            )
-        except Exception as e:
-            logger.error(f"Error creating booking: {str(e)}")
-            return Response(
-                {"detail": "Failed to create booking", "error": str(e)}, 
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        booking = serializer.save()
+
+        logger.info(f"Booking created successfully: {booking.id}")
+
+        return Response(
+            {
+                "detail": "Booking created successfully",
+                "booking_id": booking.id,
+                "success": True,
+                "total_amount": float(booking.total_amount),
+                "payment_method": request.data.get('payment_method')
+            },
+            status=status.HTTP_201_CREATED
+        )
 
 
 class BookingSuccessView(APIView):
@@ -315,15 +400,31 @@ class BookingHistoryView(APIView):
     def get(self, request):
         bookings = Booking.objects.filter(customer=request.user).order_by('-created_at')
         data = []
+
         for b in bookings:
-            data.append({
+            booking_info = {
                 "id": b.id,
-                "service": b.service.name,
-                "barbername": b.barber.name,
-                "slottime": f"{b.slot.start_time} - {b.slot.end_time}",
-                "date": str(b.slot.date),
-                "booking_status": b.status
-            })
+                "service": b.service.name if b.service else "Unknown Service",
+                "booking_status": b.status,
+                "booking_type": b.booking_type,
+                "total_amount": float(b.total_amount),
+            }
+
+            if b.booking_type == "SCHEDULE_BOOKING":
+                booking_info.update({
+                    "barbername": b.barber.name if b.barber else "N/A",
+                    "slottime": f"{b.slot.start_time} - {b.slot.end_time}" if b.slot else "N/A",
+                    "date": str(b.slot.date) if b.slot else "N/A",
+                })
+            else:
+                booking_info.update({
+                    "barbername": "No barber assigned",
+                    "slottime": "N/A",
+                    "date": str(b.created_at.date()),
+                })
+
+            data.append(booking_info)
+
         return Response(data)
     
 class BookingDetailView(APIView):
@@ -352,56 +453,74 @@ class BookingDetailView(APIView):
             "booking_type": booking.booking_type,
         }
         return Response(data)
-    
-import requests
-class TravelStatusAPIView(APIView):
-    permission_classes = [IsAuthenticated]
 
-    def get(self, request, booking_id):
+
+
+from geopy.geocoders import Nominatim
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework import status
+from .models import Address
+from rest_framework.views import APIView
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def reverse_geocode(request):
+    try:
+        print("DEBUG: Starting reverse geocoding")
+        print(f"DEBUG: Request data: {request.data}")
+        print(f"DEBUG: User: {request.user.id} - {request.user.email}")
+        
+        latitude = request.data.get('latitude')
+        longitude = request.data.get('longitude')
+        
+        print(f"DEBUG: Geocoding coordinates - Lat: {latitude}, Lng: {longitude}")
+
+        if not latitude or not longitude:
+            print("DEBUG: Missing coordinates for geocoding")
+            return Response({'error': 'Latitude and longitude are required'}, status=400)
+
         try:
-            booking = Booking.objects.get(id=booking_id, customer=request.user)
-            barber_profile = UserProfile.objects.filter(user=booking.barber).first()
-            customer_profile = UserProfile.objects.filter(user=request.user).first()
+            geolocator = Nominatim(user_agent="groomnet")
+            print(f"DEBUG: Using Nominatim geocoder")
+            
+            location = geolocator.reverse(f"{latitude}, {longitude}", language='en')
+            print(f"DEBUG: Geocoding result: {location}")
+            
+            if not location:
+                print("DEBUG: No location found for coordinates")
+                return Response({'error': 'Could not fetch address'}, status=400)
 
-            if not barber_profile or not customer_profile:
-                return Response({'detail': 'Location not available'}, status=400)
+            address = location.raw.get('address', {})
+            print(f"DEBUG: Raw address data: {address}")
 
-            origin = f"{barber_profile.latitude},{barber_profile.longitude}"
-            destination = f"{customer_profile.latitude},{customer_profile.longitude}"
-            api_key = settings.GOOGLE_MAPS_API_KEY
-
-            url = (
-                f"https://maps.googleapis.com/maps/api/directions/json"
-                f"?origin={origin}&destination={destination}&key={api_key}"
-            )
-            response = requests.get(url)
-            data = response.json()
-
-            if data['status'] != 'OK':
-                return Response({'detail': 'Google API error'}, status=500)
-
-            leg = data['routes'][0]['legs'][0]
-            distance = leg['distance']['text']
-            duration = leg['duration']['text']
-            duration_seconds = leg['duration']['value']
-
-
-            if duration_seconds > 900:
-                travel_status = "Barber started"
-            elif 900 >= duration_seconds > 300:
-                travel_status = "On the way"
-            elif 300 >= duration_seconds > 60:
-                travel_status = "Almost near"
-            else:
-                travel_status = "Arrived"
-
+           
+            response_data = {
+                'building': address.get('house_number', '') or address.get('building', ''),
+                'street': address.get('road', '') or address.get('neighbourhood', '') or address.get('suburb', ''),
+                'city': (address.get('city') or 
+                        address.get('town') or 
+                        address.get('village') or 
+                        address.get('state_district') or 
+                        address.get('county', '')),
+                'district': address.get('county', '') or address.get('state_district', ''),
+                'state': address.get('state', ''),
+                'pincode': address.get('postcode', '')
+            }
+            
+            print(f"📤 DEBUG: Processed address data: {response_data}")
+            return Response(response_data, status=200)
+            
+        except Exception as geocoding_error:
+            print(f"❌ DEBUG: Geocoding error: {str(geocoding_error)}")
             return Response({
-                'eta': duration,
-                'distance': distance,
-                'travel_status': travel_status
-            })
-
-        except Booking.DoesNotExist:
-            return Response({'detail': 'Invalid booking ID'}, status=404)
-        except Exception as e:
-            return Response({'detail': str(e)}, status=500)
+                'error': 'Geocoding service error',
+                'details': str(geocoding_error)
+            }, status=500)
+            
+    except Exception as e:
+        print(f"❌ DEBUG: Unexpected error in reverse_geocode: {str(e)}")
+        return Response({
+            'error': 'An error occurred during geocoding'
+        }, status=500)

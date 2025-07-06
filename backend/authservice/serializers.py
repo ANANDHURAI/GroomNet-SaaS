@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import User
 from django.contrib.auth import authenticate
+from django.core.cache import cache
 
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -88,6 +89,9 @@ class ForgotPasswordSerializer(serializers.Serializer):
             raise serializers.ValidationError("Email not found.")
         return value
 
+class VerifyOTPSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    otp = serializers.CharField(max_length=4)
 
 class ResetPasswordSerializer(serializers.Serializer):
     email = serializers.EmailField()

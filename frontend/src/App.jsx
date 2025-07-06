@@ -46,6 +46,11 @@ import BookingStatus from './pages/customersite/BookingStatus'
 import CustomerChatPage from './pages/customersite/CustomerChatPage'
 import CustomerLayout from './components/customercompo/CustomerLayout'
 import AdminWallet from './pages/adminsite/AdminWallet'
+import FindBarbers from './pages/customersite/FindBarbers'
+import InstantBooking from './pages/barbersite/InstantBooking'
+import ForgetPassword from './pages/authservice/ForgetPassword'
+import ForgetOtp from './pages/authservice/ForgetOtp'
+import ResetPassword from './pages/authservice/ResetPassword'
 
 function App() {
   return (
@@ -281,7 +286,13 @@ function App() {
             <Route path="/booking-status" element={<BookingStatus />} />
 
             <Route path="/admin-wallet/" element={<AdminWallet />} />
+            <Route path="/find-barber/" element={<FindBarbers />} />
+            <Route path="/instant-booking/" element={<InstantBooking />} />
             <Route path="/barber/chat/:bookingId" element={<BarberChatPage />} />
+
+            <Route path="/forget-password" element={<ForgetPassword />} />
+            <Route path="/forget-otp" element={<ForgetOtp />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             
 
             <Route

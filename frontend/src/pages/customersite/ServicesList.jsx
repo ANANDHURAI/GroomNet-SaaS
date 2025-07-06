@@ -2,11 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Clock } from 'lucide-react';
 import apiClient from '../../slices/api/apiIntercepters';
 import Navbar from '../../components/basics/Navbar';
+import { useNavigate } from 'react-router-dom';
 
 const Services = () => {
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [categoryId, setCategoryId] = useState(null);
+
+  const navigate = useNavigate()
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -31,7 +34,12 @@ const Services = () => {
   };
 
   const handleServiceSelect = (service) => {
-    window.location.href = `/select-barber?service_id=${service.id}&service_name=${service.name}`;
+    const bookingType = sessionStorage.getItem('bookingType');
+    if (bookingType === 'INSTANT_BOOKING') {
+      navigate(`/add-address?service_id=${service.id}&service_name=${service.name}`);
+    } else {
+      navigate(`/select-barber?service_id=${service.id}&service_name=${service.name}`);
+    }
   };
 
   const handleBack = () => {

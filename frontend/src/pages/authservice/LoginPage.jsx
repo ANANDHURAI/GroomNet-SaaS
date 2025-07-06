@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom'; // Added Link import
 import { login } from '../../slices/auth/LoginSlice';
 import apiClient from '../../slices/api/apiIntercepters';
 
@@ -79,6 +79,16 @@ function LoginPage() {
                             required
                             className="w-full px-4 py-3 bg-white/20 backdrop-blur border border-blue-300/30 rounded-lg text-white placeholder-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-200"
                         />
+
+                        {/* Forgot Password Link */}
+                        <div className="flex justify-end">
+                            <Link
+                                to="/forget-password"
+                                className="text-sm text-blue-300 hover:text-white transition-colors duration-200"
+                            >
+                                Forgot password?
+                            </Link>
+                        </div>
                     </div>
 
                     <button

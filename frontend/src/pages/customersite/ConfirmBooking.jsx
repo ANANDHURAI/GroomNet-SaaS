@@ -9,91 +9,89 @@ export const ConfirmBooking = () => {
   const [error, setError] = useState(null);
   const [confirming, setConfirming] = useState(false);
   const [bookingData, setBookingData] = useState(null);
+  const [bookingType, setBookingType] = useState("");
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
+
+    const typeFromSession = sessionStorage.getItem("bookingType");
+    const normalizedType = (typeFromSession || "SCHEDULE_BOOKING").toUpperCase();
+    setBookingType(normalizedType);
+
     const currentBookingData = {
-      service_id: urlParams.get('service_id'),
-      barber_id: urlParams.get('barber_id'),
-      slot_id: urlParams.get('slot_id'),
-      address_id: urlParams.get('address_id')
+      service_id: urlParams.get("service_id"),
+      barber_id: urlParams.get("barber_id"),
+      slot_id: urlParams.get("slot_id"),
+      address_id: urlParams.get("address_id"),
     };
 
-    if (!currentBookingData.service_id || !currentBookingData.barber_id || !currentBookingData.slot_id || !currentBookingData.address_id) {
-      setError('Missing booking information. Please start from the beginning.');
+    console.log("DEBUG: Booking Data ->", currentBookingData);
+    console.log("DEBUG: Booking Type ->", normalizedType);
+
+    
+    if (
+      !currentBookingData.service_id ||
+      !currentBookingData.address_id ||
+      (normalizedType !== "INSTANT_BOOKING" && (!currentBookingData.barber_id || !currentBookingData.slot_id))
+    ) {
+      console.error("Missing booking info:", {
+        ...currentBookingData,
+        bookingType: normalizedType,
+      });
+      setError("Missing booking information. Please start from the beginning.");
       setLoading(false);
       return;
     }
 
     setBookingData(currentBookingData);
-    fetchBookingSummary(currentBookingData);
+    fetchBookingSummary(currentBookingData, normalizedType);
   }, []);
 
-  const fetchBookingSummary = async (bookingData) => {
+  const fetchBookingSummary = async (data, type) => {
     try {
       setLoading(true);
-      const response = await apiClient.post('/customersite/booking-summary/', bookingData);
-      console.log('Booking Summary Response:', response.data); // Debug log
-      
-      // If service_amount and platform_fee are missing, calculate them
-      let summary = response.data;
-      if (!summary.service_amount && summary.service && summary.service.price) {
-        const serviceAmount = parseFloat(summary.service.price);
-        const platformFee = Math.round(serviceAmount * 0.05 * 100) / 100; // 5% fee, rounded to 2 decimals
-        const totalAmount = Math.round((serviceAmount + platformFee) * 100) / 100;
-        
-        summary = {
-          ...summary,
-          service_amount: serviceAmount,
-          platform_fee: platformFee,
-          total_amount: totalAmount
-        };
+
+      const payload = {
+        service_id: data.service_id,
+        address_id: data.address_id,
+      };
+
+      if (type !== "INSTANT_BOOKING") {
+        payload.barber_id = data.barber_id;
+        payload.slot_id = data.slot_id;
       }
-      
-      setBookingSummary(summary);
+
+      console.log("DEBUG: API Payload ->", payload);
+
+      const response = await apiClient.post("/customersite/booking-summary/", payload);
+
+      console.log("Booking Summary Response:", response.data);
+
+      setBookingSummary(response.data);
     } catch (error) {
-      console.error('Error fetching booking summary:', error);
-      setError('Failed to load booking details. Please try again.');
+      console.error("Error fetching booking summary:", error);
+      setError("Failed to load booking details. Please try again.");
     } finally {
       setLoading(false);
     }
-  };
-
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { 
-      weekday: 'long', 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
-    });
-  };
-
-  const formatTime = (timeString) => {
-    const [hours, minutes] = timeString.split(':');
-    const date = new Date();
-    date.setHours(parseInt(hours), parseInt(minutes));
-    return date.toLocaleTimeString('en-US', { 
-      hour: 'numeric', 
-      minute: '2-digit',
-      hour12: true 
-    });
   };
 
   const handleConfirmBooking = async () => {
     try {
       setConfirming(true);
 
-      const paymentUrl = new URL('/payment', window.location.origin);
-      paymentUrl.searchParams.set('service_id', bookingData.service_id);
-      paymentUrl.searchParams.set('barber_id', bookingData.barber_id);
-      paymentUrl.searchParams.set('slot_id', bookingData.slot_id);
-      paymentUrl.searchParams.set('address_id', bookingData.address_id);
-      
+      const paymentUrl = new URL("/payment", window.location.origin);
+      paymentUrl.searchParams.set("service_id", bookingData.service_id);
+      paymentUrl.searchParams.set("address_id", bookingData.address_id);
+      if (bookingType !== "INSTANT_BOOKING") {
+        paymentUrl.searchParams.set("barber_id", bookingData.barber_id);
+        paymentUrl.searchParams.set("slot_id", bookingData.slot_id);
+      }
+
       window.location.href = paymentUrl.toString();
     } catch (error) {
-      console.error('Error confirming booking:', error);
-      alert('Failed to confirm booking. Please try again.');
+      console.error("Error confirming booking:", error);
+      alert("Failed to confirm booking. Please try again.");
     } finally {
       setConfirming(false);
     }
@@ -118,7 +116,7 @@ export const ConfirmBooking = () => {
           <h2 className="text-lg font-semibold text-gray-800 mb-2">Something went wrong</h2>
           <p className="text-gray-600 mb-4">{error}</p>
           <button
-            onClick={() => window.location.href = '/'}
+            onClick={() => window.location.href = "/"}
             className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
           >
             Start Over
@@ -126,10 +124,6 @@ export const ConfirmBooking = () => {
         </div>
       </div>
     );
-  }
-
-  if (!bookingSummary) {
-    return null;
   }
 
   return (
@@ -167,28 +161,34 @@ export const ConfirmBooking = () => {
             <p className="font-semibold text-green-600 whitespace-nowrap">₹{bookingSummary.service.price}</p>
           </div>
 
-          <div className="flex items-center space-x-4 border-b pb-4">
-            <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
-              <User className="w-6 h-6 text-purple-600" />
-            </div>
-            <div>
-              <h3 className="font-semibold text-gray-800">{bookingSummary.barber.name}</h3>
-              <p className="text-sm text-gray-600">Professional Barber</p>
-            </div>
-          </div>
-
-          <div className="flex items-center space-x-4 border-b pb-4">
-            <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
-              <Calendar className="w-6 h-6 text-orange-600" />
-            </div>
-            <div>
-              <h3 className="font-semibold text-gray-800">{formatDate(bookingSummary.slot.date)}</h3>
-              <div className="flex items-center text-sm text-gray-600 mt-1">
-                <Clock className="w-4 h-4 mr-1" />
-                {formatTime(bookingSummary.slot.start_time)} - {formatTime(bookingSummary.slot.end_time)}
+          {bookingType !== "INSTANT_BOOKING" && (
+            <>
+              <div className="flex items-center space-x-4 border-b pb-4">
+                <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+                  <User className="w-6 h-6 text-purple-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-800">{bookingSummary.barber.name}</h3>
+                  <p className="text-sm text-gray-600">Professional Barber</p>
+                </div>
               </div>
-            </div>
-          </div>
+
+              <div className="flex items-center space-x-4 border-b pb-4">
+                <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
+                  <Calendar className="w-6 h-6 text-orange-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-800">
+                    {bookingSummary.slot.date}
+                  </h3>
+                  <div className="flex items-center text-sm text-gray-600 mt-1">
+                    <Clock className="w-4 h-4 mr-1" />
+                    {bookingSummary.slot.start_time} - {bookingSummary.slot.end_time}
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
 
           <div className="flex items-start space-x-4">
             <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
@@ -203,25 +203,19 @@ export const ConfirmBooking = () => {
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Price Breakdown - FIXED */}
-        <div className="bg-white rounded-xl p-6 mb-6 shadow-md">
-          <h3 className="font-semibold text-gray-800 mb-4">Price Breakdown</h3>
-          <div className="space-y-3">
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600">Service Amount</span>
-              <span className="text-gray-800">₹{Number(bookingSummary.service_amount).toFixed(2)}</span>
+          <div className="border-t pt-4 space-y-2">
+            <div className="flex justify-between text-gray-700">
+              <span>Service Price</span>
+              <span>₹{bookingSummary.service_amount}</span>
             </div>
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600">Platform Fee (5%)</span>
-              <span className="text-gray-800">₹{Number(bookingSummary.platform_fee).toFixed(2)}</span>
+            <div className="flex justify-between text-gray-700">
+              <span>Platform Fee (5%)</span>
+              <span>₹{bookingSummary.platform_fee}</span>
             </div>
-            <div className="border-t pt-3">
-              <div className="flex justify-between items-center">
-                <span className="text-lg font-semibold text-gray-800">Total Amount</span>
-                <span className="text-2xl font-bold text-green-600">₹{Number(bookingSummary.total_amount).toFixed(2)}</span>
-              </div>
+            <div className="flex justify-between text-lg font-semibold text-gray-900 border-t pt-2">
+              <span>Total Amount</span>
+              <span>₹{bookingSummary.total_amount}</span>
             </div>
           </div>
         </div>
@@ -231,14 +225,8 @@ export const ConfirmBooking = () => {
           disabled={confirming}
           className="w-full bg-blue-600 text-white py-4 rounded-xl text-lg font-semibold hover:bg-blue-700 transition disabled:opacity-50"
         >
-          {confirming ? 'Processing...' : 'Confirm & Proceed to Payment'}
+          {confirming ? "Processing..." : "Confirm & Proceed to Payment"}
         </button>
-
-        <div className="mt-4 bg-blue-50 rounded-lg p-3">
-          <p className="text-sm text-blue-800 text-center">
-            Payment will be processed securely. Total includes service fee and platform charges.
-          </p>
-        </div>
       </div>
     </div>
   );

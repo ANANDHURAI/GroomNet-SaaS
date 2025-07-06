@@ -40,6 +40,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     is_blocked = models.BooleanField(default=False)
+    is_online = models.BooleanField(default=False)
     created_at = models.DateTimeField(default=timezone.now)
     is_verified = models.BooleanField(default=False)
     updated_at = models.DateTimeField(auto_now=True)

@@ -6,7 +6,7 @@ from barbersite.models import BarberSlot
 from profileservice.models import Address
 from .utils import get_lat_lng_from_address
 from django.db import transaction
-
+from decimal import Decimal
 
 class BarberSerializer(serializers.ModelSerializer):
     class Meta:
@@ -29,7 +29,6 @@ class AddressSerializer(serializers.ModelSerializer):
         validated_data['user'] = user
         address = super().create(validated_data)
 
-        # Construct full address for geocoding
         full_address = f"{address.building}, {address.street}, {address.city}, {address.district}, {address.state}, {address.pincode}"
         lat, lng = get_lat_lng_from_address(full_address)
         print("latitude and langitut",lat,lng)
@@ -43,61 +42,74 @@ class AddressSerializer(serializers.ModelSerializer):
         
         return address
 
-    
-
 from rest_framework import serializers
 from .models import Booking, PaymentModel
 
 class BookingCreateSerializer(serializers.ModelSerializer):
-    payment_method = serializers.CharField(write_only=True)
-    booking_type = serializers.CharField(write_only=True)
+    payment_method = serializers.ChoiceField(choices=['COD', 'STRIPE', 'WALLET'])
+    slot = serializers.PrimaryKeyRelatedField(
+        queryset=BarberSlot.objects.all(), required=False, allow_null=True
+    )
+    barber = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.filter(user_type='barber'), required=False, allow_null=True
+    )
 
     class Meta:
         model = Booking
-        fields = ['service', 'barber', 'slot', 'address', 'payment_method', 'booking_type']
+        fields = ['service', 'barber', 'slot', 'address', 'payment_method']
 
-    def validate_address(self, value):
-        request = self.context.get('request')
-        if request and value.user != request.user:
-            raise serializers.ValidationError("Address does not belong to the current user")
-        return value
+    def validate(self, data):
+        request = self.context['request']
+        booking_type = (
+            request.data.get('booking_type') or
+            request.session.get('booking_type')
+        )
+        if not booking_type:
+            raise serializers.ValidationError("Booking type is required.")
 
-    def validate_payment_method(self, value):
-        valid_methods = ['COD', 'STRIPE', 'WALLET']
-        if value not in valid_methods:
-            raise serializers.ValidationError(f"Invalid payment method. Must be one of: {valid_methods}")
-        return value
+        if booking_type not in ["INSTANT_BOOKING", "SCHEDULE_BOOKING"]:
+            raise serializers.ValidationError({
+                "booking_type": "Invalid booking type. Must be one of: ['INSTANT_BOOKING', 'SCHEDULE_BOOKING']"
+            })
 
-    def validate_booking_type(self, value):
-        valid_types = ['INSTANT_BOOKING', 'SCHEDULE_BOOKING']
-        if value not in valid_types:
-            raise serializers.ValidationError(f"Invalid booking type. Must be one of: {valid_types}")
-        return value
+        payment_method = data.get('payment_method')
+        if booking_type == "SCHEDULE_BOOKING" and payment_method == "COD":
+            raise serializers.ValidationError({
+                "payment_method": "Cash on Delivery is not allowed for scheduled bookings."
+            })
+
+        if booking_type == "SCHEDULE_BOOKING":
+            if not data.get('slot'):
+                raise serializers.ValidationError({"slot": "Slot is required for scheduled bookings."})
+            if not data.get('barber'):
+                raise serializers.ValidationError({"barber": "Barber is required for scheduled bookings."})
+
+        if booking_type == "INSTANT_BOOKING":
+            data['slot'] = None
+            data['barber'] = None
+
+        self.context['booking_type'] = booking_type
+        return data
 
     def create(self, validated_data):
         request = self.context['request']
+        booking_type = self.context['booking_type']
         customer = request.user
         payment_method = validated_data.pop('payment_method')
-        booking_type = validated_data.pop('booking_type')
         service = validated_data['service']
-        slot = validated_data['slot']
-        
-        # Ensure service has a price
-        if not hasattr(service, 'price') or service.price is None:
-            raise serializers.ValidationError("Service price is not set")
-        
-        # Convert to Decimal for precise calculations
-        from decimal import Decimal
+        slot = validated_data.get('slot')
+
         service_amount = Decimal(str(service.price))
         platform_fee = (service_amount * Decimal('0.05')).quantize(Decimal('0.01'))
         total_amount = service_amount + platform_fee
 
-        if slot.is_booked:
-            raise serializers.ValidationError("This slot is already booked")
-
         with transaction.atomic():
-            slot.is_booked = True
-            slot.save()
+            if booking_type == "SCHEDULE_BOOKING":
+                if slot and slot.is_booked:
+                    raise serializers.ValidationError("This slot is already booked.")
+                if slot:
+                    slot.is_booked = True
+                    slot.save()
 
             booking = Booking.objects.create(
                 customer=customer,
@@ -108,25 +120,16 @@ class BookingCreateSerializer(serializers.ModelSerializer):
                 **validated_data
             )
 
-            # Set payment status based on method
-            if payment_method == 'COD':
-                payment_status = 'PENDING'
-            elif payment_method == 'WALLET':
-                payment_status = 'SUCCESS'
-            elif payment_method == 'STRIPE':
-                payment_status = 'PENDING'
-            else:
-                payment_status = 'PENDING'
-
             PaymentModel.objects.create(
                 booking=booking,
                 payment_method=payment_method,
-                payment_status=payment_status,
+                payment_status='SUCCESS' if payment_method == 'WALLET' else 'PENDING',
                 service_amount=service_amount,
                 platform_fee=platform_fee
             )
 
         return booking
+
 
 class BookingSummarySerializer(serializers.ModelSerializer):
     service_name = serializers.CharField(source='service.name', read_only=True)

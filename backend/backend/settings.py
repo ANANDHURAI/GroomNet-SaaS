@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'chat',
     'paymentservice',
     'travel_tracking',
+    'instantbooking',
 ]
 
 
