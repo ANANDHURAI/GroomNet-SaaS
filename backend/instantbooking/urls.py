@@ -1,15 +1,11 @@
-# instantbooking/urls.py
+# urls.py
 from django.urls import path
-from .views import (
-    FindNearbyBarbers, 
-    BarberOnlineStatus,
-)
+from .views import BookingAcceptView, BookingRejectView, MakeingBookingRequestView, BookingStatusView, BarberOnlineStatusView
 
 urlpatterns = [
-    path("find-nearby-barbers/", FindNearbyBarbers.as_view(), name="find_nearby_barbers"),
-    path("barber-online-status/", BarberOnlineStatus.as_view(), name="barber_online_status"),
-        # path("barber-requests/", BarberBookingRequests.as_view(), name="barber_booking_requests"),
-    # path("customer-booking-status/", CustomerBookingStatus.as_view(), name="customer_booking_status"),
-    # path("cancel-booking/", CancelBooking.as_view(), name="cancel_booking"),
-
+    path('booking/<int:booking_id>/details/', MakeingBookingRequestView.as_view(), name="booking-details"),
+    path('booking/<int:booking_id>/accept/', BookingAcceptView.as_view(), name="instant-booking-accept"),
+    path('booking/<int:booking_id>/reject/', BookingRejectView.as_view(), name="instant-booking-reject"),
+    path('booking/<int:booking_id>/status/', BookingStatusView.as_view(), name="booking-status"),
+    path('barber/status/', BarberOnlineStatusView.as_view(), name="barber-status"),
 ]

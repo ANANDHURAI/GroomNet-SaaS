@@ -7,6 +7,8 @@ function SuccessPage() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
 
+  const bookingType = sessionStorage.getItem('bookingType');
+
   useEffect(() => {
     const sessionId = params.get('session_id');
 
@@ -21,6 +23,23 @@ function SuccessPage() {
         });
     }
   }, []);
+
+  const handleButtonClick = () => {
+    if (bookingType === 'INSTANT_BOOKING') {
+      const bookingId = sessionStorage.getItem('instantBookingId');
+      if (bookingId) {
+        console.log("✅ Navigating to FindBarbers with booking_id:", bookingId);
+        navigate('/find-barber/?booking_id=' + bookingId);
+
+      } else {
+        console.error("❌ No instantBookingId found in sessionStorage");
+        navigate('/booking-history');
+      }
+    } else {
+      navigate('/booking-history');
+    }
+  };
+
 
   return (
     <>
@@ -41,10 +60,10 @@ function SuccessPage() {
           <p className="text-gray-600 mb-6">You will find your booking in your history.</p>
 
           <button
-            onClick={() => navigate('/booking-history')}
+            onClick={handleButtonClick}
             className="px-5 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
           >
-            View Booking History
+            {bookingType === 'INSTANT_BOOKING' ? 'Find Barber' : 'View Booking History'}
           </button>
         </div>
       </div>

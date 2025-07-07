@@ -2,399 +2,392 @@ import json
 import asyncio
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
-from authservice.models import User
-from adminsite.models import ServiceModel
-from profileservice.models import UserProfile, Address
-from urllib.parse import parse_qs
-import jwt
+from django.contrib.auth.models import AnonymousUser
+from rest_framework_simplejwt.tokens import UntypedToken
+from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from django.conf import settings
-import logging
-from datetime import datetime
+from jwt import decode as jwt_decode
+from authservice.models import User
+from customersite.models import Booking
+from barbersite.models import BarberService
 
-logger = logging.getLogger(__name__)
 
 class InstantBookingConsumer(AsyncWebsocketConsumer):
     async def connect(self):
-        query_string = self.scope["query_string"].decode()
-        query_params = parse_qs(query_string)
-        token = query_params.get("token", [None])[0]
+        self.booking_id = self.scope['url_route']['kwargs']['booking_id']
         
-        if not token:
-            await self.close(code=4003)
-            return
-
-        user = await self.get_user_from_token(token)
-        if not user:
-            await self.close(code=4003)
+        await self.authenticate_user()
+        
+        if self.user == AnonymousUser():
+            await self.close()
             return
             
-        self.scope["user"] = user
+        self.customer_room = f"customer_booking_{self.booking_id}"
         
-        if user.user_type == "barber":
-            self.group_name = f"barber_{user.id}"
-        elif user.user_type == "customer":
-            self.group_name = f"customer_{user.id}"
-        else:
-            await self.close(code=4003)
-            return
+        if self.user.user_type == 'customer':
+            await self.channel_layer.group_add(self.customer_room, self.channel_name)
+            await self.accept()
+            await self.send_booking_to_barbers()
+           
+            asyncio.create_task(self.auto_cancel_booking())
+            
+        elif self.user.user_type == 'barber':
+            self.barber_room = f"barber_{self.user.id}_booking_{self.booking_id}"
+            await self.channel_layer.group_add(self.barber_room, self.channel_name)
+            await self.accept()
+            
+            # FIXED: Send booking request immediately when barber connects
+            booking = await self.get_booking()
+            if booking and not booking.barber and booking.status == 'PENDING':
+                nearby_barbers = await self.get_nearby_barbers(booking)
+                if self.user in nearby_barbers:
+                    await self.send_booking_request_to_barber(booking)
+                else:
+                    print(f"Barber {self.user.id} not in nearby barbers list")
 
-        await self.channel_layer.group_add(self.group_name, self.channel_name)
-        await self.accept()
-        
-        # Log successful connection
-        logger.info(f"User {user.id} ({user.user_type}) connected to group {self.group_name}")
+    async def authenticate_user(self):
+        try:
+            query_string = self.scope.get('query_string', b'').decode()
+            token = None
+            
+            for param in query_string.split('&'):
+                if param.startswith('token='):
+                    token = param.split('=')[1]
+                    break
+            
+            if not token:
+                self.user = AnonymousUser()
+                return
+            
+            UntypedToken(token)
+            decoded_data = jwt_decode(token, settings.SECRET_KEY, algorithms=["HS256"])
+            user_id = decoded_data.get('user_id')
+            
+            if user_id:
+                self.user = await self.get_user(user_id)
+            else:
+                self.user = AnonymousUser()
+                
+        except (InvalidToken, TokenError, Exception) as e:
+            print(f"Authentication error: {e}")
+            self.user = AnonymousUser()
 
     async def disconnect(self, close_code):
-        if hasattr(self, 'group_name'):
-            await self.channel_layer.group_discard(self.group_name, self.channel_name)
-            logger.info(f"User disconnected from group {self.group_name}")
+        if hasattr(self, 'user') and self.user != AnonymousUser():
+            if self.user.user_type == 'customer':
+                await self.channel_layer.group_discard(self.customer_room, self.channel_name)
+            elif self.user.user_type == 'barber':
+                barber_room = f"barber_{self.user.id}_booking_{self.booking_id}"
+                await self.channel_layer.group_discard(barber_room, self.channel_name)
 
     async def receive(self, text_data):
         try:
             data = json.loads(text_data)
             action = data.get("action")
-            user = self.scope["user"]
-
-            if user.user_type == "barber":
-                if action == "accept_booking":
-                    await self.handle_accept_booking(data)
-                elif action == "reject_booking":
-                    await self.handle_reject_booking(data)
-                elif action == "toggle_online":
-                    await self.handle_toggle_online(data)
-                    
+            
+            if action == "accept" and self.user.user_type == "barber":
+                await self.handle_barber_accept()
+            elif action == "reject" and self.user.user_type == "barber":
+                await self.handle_barber_reject()
+                
         except json.JSONDecodeError:
-            await self.send(text_data=json.dumps({"error": "Invalid JSON format"}))
-        except Exception as e:
-            logger.error(f"Error in receive: {e}")
-            await self.send(text_data=json.dumps({"error": "Internal server error"}))
+            await self.send(text_data=json.dumps({
+                "error": "Invalid JSON format"
+            }))
 
-    async def handle_accept_booking(self, data):
-        """Barber accepts the booking request"""
-        customer_id = data.get("customer_id")
-        service_id = data.get("service_id")
-        barber_id = self.scope["user"].id
-
-        if not customer_id or not service_id:
-            await self.send(text_data=json.dumps({"error": "Missing customer_id or service_id"}))
+    async def send_booking_to_barbers(self):
+        booking = await self.get_booking()
+        if booking.barber:
             return
-
-        try:
-            # Get barber details
-            barber = await self.get_user_details(barber_id)
-            service = await self.get_service_details(service_id)
             
-            if not barber or not service:
-                await self.send(text_data=json.dumps({"error": "Barber or service not found"}))
-                return
-            
-            # Get barber profile image URL
-            barber_profile_image = ""
-            if barber.profileimage:
-                barber_profile_image = f"http://localhost:8000{barber.profileimage.url}"
-            
-            # Send acceptance to customer
+        nearby_barbers = await self.get_nearby_barbers(booking)
+        
+        if not nearby_barbers:
+            await self.send(text_data=json.dumps({
+                "message": "No barbers available",
+                "no_barbers": True
+            }))
+            return
+        
+        # Send to all nearby barbers via the general room
+        for barber in nearby_barbers:
+            # Send to general barber room
             await self.channel_layer.group_send(
-                f"customer_{customer_id}", {
-                    "type": "booking_accepted",
-                    "barber_id": barber_id,
-                    "barber_name": barber.name,
-                    "barber_phone": barber.phone or "",
-                    "barber_profile_image": barber_profile_image,
-                    "service_id": service_id,
-                    "service_name": service.name,
-                    "service_price": str(service.price),
+                "general_room",
+                {
+                    "type": "send_booking_request",
+                    "data": {
+                        "booking_id": self.booking_id,
+                        "service_name": booking.service.name,
+                        "price": float(booking.service.price),
+                        "duration": booking.service.duration_minutes,
+                        "customer_name": booking.customer.name,
+                        "customer_location": {
+                            "address": f"{booking.address.building}, {booking.address.street}, {booking.address.city}"
+                        },
+                        "message": "New booking request"
+                    }
+                }
+            )
+        
+        await self.send(text_data=json.dumps({
+            "message": f"Request sent to {len(nearby_barbers)} barbers",
+            "barbers_count": len(nearby_barbers)
+        }))
+
+    async def send_booking_request_to_barber(self, booking):
+        await self.send(text_data=json.dumps({
+            "booking_id": self.booking_id,
+            "service_name": booking.service.name,
+            "price": float(booking.service.price),
+            "duration": booking.service.duration_minutes,
+            "customer_name": booking.customer.name,
+            "customer_location": {
+                "address": f"{booking.address.building}, {booking.address.street}, {booking.address.city}"
+            },
+            "message": "New booking request"
+        }))
+
+    async def handle_barber_accept(self):
+        booking = await self.get_booking()
+        
+        if booking.barber:
+            await self.send(text_data=json.dumps({
+                "message": "Already assigned",
+                "already_assigned": True
+            }))
+            return
+        
+        success = await self.assign_barber_to_booking(booking.id, self.user.id)
+        
+        if success:
+            await self.send(text_data=json.dumps({
+                "message": "Booking accepted",
+                "customer_name": booking.customer.name,
+                "customer_phone": booking.customer.phone,
+                "customer_location": {
+                    "address": f"{booking.address.building}, {booking.address.street}, {booking.address.city}"
+                },
+                "service_name": booking.service.name,
+                "booking_accepted": True
+            }))
+            
+            await self.channel_layer.group_send(
+                self.customer_room,
+                {
+                    "type": "send_barber_assigned",
+                    "data": {
+                        "message": "Barber assigned",
+                        "barber_name": self.user.name,
+                        "barber_phone": self.user.phone,
+                        "barber_profile": self.user.profileimage.url if self.user.profileimage else None,
+                        "booking_confirmed": True
+                    }
                 }
             )
             
-            # Get customer details for confirmation
-            customer = await self.get_user_details(customer_id)
-            
-            # Confirm to barber
+            # Notify other barbers that booking is taken
+            nearby_barbers = await self.get_nearby_barbers(booking)
+            for barber in nearby_barbers:
+                if barber.id != self.user.id: 
+                    barber_room = f"barber_{barber.id}_booking_{self.booking_id}"
+                    await self.channel_layer.group_send(
+                        barber_room,
+                        {
+                            "type": "send_booking_taken",
+                            "data": {
+                                "message": "Booking taken",
+                                "booking_taken": True
+                            }
+                        }
+                    )
+        else:
             await self.send(text_data=json.dumps({
-                "type": "booking_confirmed",
-                "message": "Booking request accepted successfully",
-                "customer_name": customer.name if customer else "Unknown"
+                "message": "Already assigned",
+                "already_assigned": True
             }))
-            
-            logger.info(f"Barber {barber_id} accepted booking from customer {customer_id}")
-            
-        except Exception as e:
-            logger.error(f"Error in handle_accept_booking: {e}")
-            await self.send(text_data=json.dumps({"error": "Failed to accept booking"}))
 
-    async def handle_reject_booking(self, data):
-        """Barber rejects the booking request"""
-        customer_id = data.get("customer_id")
-        service_id = data.get("service_id")
-        barber_id = self.scope["user"].id
+    async def handle_barber_reject(self):
+        await self.send(text_data=json.dumps({
+            "message": "Booking rejected",
+            "booking_rejected": True
+        }))
 
-        if not customer_id or not service_id:
-            await self.send(text_data=json.dumps({"error": "Missing customer_id or service_id"}))
-            return
-
-        try:
-            # Find next available barber (excluding current barber)
-            next_barber = await self.find_next_barber(service_id, exclude_barber_id=barber_id)
-            
-            if next_barber:
-                # Get complete customer and service details
-                customer_data = await self.get_customer_complete_details(customer_id)
-                service_data = await self.get_service_complete_details(service_id)
-                
-                await self.channel_layer.group_send(
-                    f"barber_{next_barber.id}", {
-                        "type": "send_booking_request",
-                        "customer_id": customer_id,
-                        "customer_name": customer_data.get("name", "Unknown"),
-                        "customer_phone": customer_data.get("phone", ""),
-                        "customer_profile_image": customer_data.get("profile_image", ""),
-                        "customer_address": customer_data.get("address", {}),
-                        "service_id": service_id,
-                        "service_name": service_data.get("name", "Unknown Service"),
-                        "service_price": service_data.get("price", "0"),
-                        "timestamp": datetime.now().isoformat()
-                    }
-                )
-                
-                logger.info(f"Booking request forwarded from barber {barber_id} to barber {next_barber.id}")
-            else:
-                # No more barbers available
-                await self.channel_layer.group_send(
-                    f"customer_{customer_id}", {
-                        "type": "no_barbers_available",
-                        "message": "No barbers available right now"
-                    }
-                )
-                
-                logger.info(f"No more barbers available for service {service_id}")
-            
-            # Confirm rejection to barber
-            await self.send(text_data=json.dumps({
-                "type": "booking_rejected",
-                "message": "Booking request rejected"
-            }))
-            
-        except Exception as e:
-            logger.error(f"Error in handle_reject_booking: {e}")
-            await self.send(text_data=json.dumps({"error": "Failed to reject booking"}))
-
-    async def handle_toggle_online(self, data):
-        """Toggle barber online status"""
-        is_online = data.get("is_online", False)
-        barber_id = self.scope["user"].id
+    async def auto_cancel_booking(self):
+        await asyncio.sleep(120)  # Wait 2 minutes
         
-        try:
-            success = await self.update_barber_online_status(barber_id, is_online)
+        booking = await self.get_booking()
+        if not booking.barber:
+            await self.update_booking_status(booking.id, "CANCELLED")
             
-            if success:
-                await self.send(text_data=json.dumps({
-                    "type": "online_status_updated",
-                    "is_online": is_online,
-                    "message": f"Status updated to {'online' if is_online else 'offline'}"
-                }))
-                logger.info(f"Barber {barber_id} status updated to {'online' if is_online else 'offline'}")
-            else:
-                await self.send(text_data=json.dumps({
-                    "type": "error",
-                    "message": "Failed to update online status"
-                }))
-        except Exception as e:
-            logger.error(f"Error in handle_toggle_online: {e}")
-            await self.send(text_data=json.dumps({"error": "Failed to update status"}))
+            await self.channel_layer.group_send(
+                self.customer_room,
+                {
+                    "type": "send_booking_timeout",
+                    "data": {
+                        "message": "Request expired",
+                        "booking_expired": True
+                    }
+                }
+            )
+            
+            nearby_barbers = await self.get_nearby_barbers(booking)
+            for barber in nearby_barbers:
+                barber_room = f"barber_{barber.id}_booking_{self.booking_id}"
+                await self.channel_layer.group_send(
+                    barber_room,
+                    {
+                        "type": "send_booking_timeout",
+                        "data": {
+                            "message": "Request expired",
+                            "booking_expired": True
+                        }
+                    }
+                )
 
     # WebSocket message handlers
     async def send_booking_request(self, event):
-        """Send booking request to barber"""
-        try:
-            await self.send(text_data=json.dumps({
-                "type": "new_booking_request",
-                "customer_id": event["customer_id"],
-                "customer_name": event["customer_name"],
-                "customer_phone": event.get("customer_phone", ""),
-                "customer_profile_image": event.get("customer_profile_image", ""),
-                "customer_address": event.get("customer_address", {}),
-                "service_id": event["service_id"],
-                "service_name": event["service_name"],
-                "service_price": event.get("service_price", "0"),
-                "timestamp": event.get("timestamp", datetime.now().isoformat())
-            }))
-            logger.info(f"Booking request sent to barber with complete details")
-        except Exception as e:
-            logger.error(f"Error sending booking request: {e}")
+        await self.send(text_data=json.dumps(event["data"]))
 
-    async def booking_accepted(self, event):
-        """Send booking acceptance to customer"""
-        try:
-            await self.send(text_data=json.dumps({
-                "type": "booking_accepted",
-                "barber_id": event["barber_id"],
-                "barber_name": event["barber_name"],
-                "barber_phone": event["barber_phone"],
-                "barber_profile_image": event.get("barber_profile_image", ""),
-                "service_id": event["service_id"],
-                "service_name": event["service_name"],
-                "service_price": event["service_price"],
-            }))
-            logger.info(f"Booking acceptance sent to customer")
-        except Exception as e:
-            logger.error(f"Error sending booking acceptance: {e}")
+    async def send_barber_assigned(self, event):
+        await self.send(text_data=json.dumps(event["data"]))
 
-    async def no_barbers_available(self, event):
-        """Send no barbers available message to customer"""
-        try:
-            await self.send(text_data=json.dumps({
-                "type": "no_barbers_available",
-                "message": event["message"]
-            }))
-            logger.info(f"No barbers available message sent to customer")
-        except Exception as e:
-            logger.error(f"Error sending no barbers available message: {e}")
+    async def send_booking_taken(self, event):
+        await self.send(text_data=json.dumps(event["data"]))
 
+    async def send_booking_timeout(self, event):
+        await self.send(text_data=json.dumps(event["data"]))
+
+    # Database operations
     @database_sync_to_async
-    def get_user_from_token(self, token):
-        try:
-            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
-            user_id = payload.get('user_id')
-            return User.objects.get(id=user_id)
-        except (jwt.InvalidTokenError, User.DoesNotExist) as e:
-            logger.error(f"Token validation error: {e}")
-            return None
-
-    @database_sync_to_async
-    def get_user_details(self, user_id):
+    def get_user(self, user_id):
         try:
             return User.objects.get(id=user_id)
         except User.DoesNotExist:
-            logger.error(f"User {user_id} not found")
+            return AnonymousUser()
+
+    @database_sync_to_async
+    def get_booking(self):
+        try:
+            return Booking.objects.select_related('customer', 'service', 'address').get(id=self.booking_id)
+        except Booking.DoesNotExist:
             return None
 
     @database_sync_to_async
-    def get_service_details(self, service_id):
+    def get_nearby_barbers(self, booking):
         try:
-            return ServiceModel.objects.get(id=service_id)
-        except ServiceModel.DoesNotExist:
-            logger.error(f"Service {service_id} not found")
-            return None
-
-    @database_sync_to_async
-    def get_service_complete_details(self, service_id):
-        """Get complete service details"""
-        try:
-            service = ServiceModel.objects.get(id=service_id)
-            return {
-                "id": service.id,
-                "name": service.name,
-                "price": str(service.price),
-                "description": getattr(service, 'description', ''),
-                "duration": getattr(service, 'duration', ''),
-            }
-        except ServiceModel.DoesNotExist:
-            logger.error(f"Service {service_id} not found")
-            return {
-                "id": service_id,
-                "name": "Unknown Service",
-                "price": "0",
-                "description": "",
-                "duration": "",
-            }
-
-    @database_sync_to_async
-    def get_customer_complete_details(self, customer_id):
-        """Get complete customer details including address"""
-        try:
-            user = User.objects.get(id=customer_id)
-            
-            # Get profile image URL
-            profile_image = ""
-            if user.profileimage:
-                profile_image = f"http://localhost:8000{user.profileimage.url}"
-            
-            # Get default address
-            default_address = {}
-            try:
-                address = Address.objects.filter(user=user, is_default=True).first()
-                if address:
-                    default_address = {
-                        "id": address.id,
-                        "name": address.name,
-                        "mobile": address.mobile,
-                        "building": address.building,
-                        "street": address.street,
-                        "city": address.city,
-                        "district": address.district,
-                        "state": address.state,
-                        "pincode": address.pincode,
-                    }
-            except Exception as e:
-                logger.error(f"Error getting address for customer {customer_id}: {e}")
-            
-            # Get user profile for additional details
-            profile_data = {}
-            try:
-                profile = UserProfile.objects.get(user=user)
-                profile_data = {
-                    "gender": profile.gender,
-                    "date_of_birth": profile.date_of_birth.isoformat() if profile.date_of_birth else None,
-                    "bio": profile.bio,
-                }
-            except UserProfile.DoesNotExist:
-                logger.info(f"No profile found for customer {customer_id}")
-            
-            return {
-                "id": user.id,
-                "name": user.name,
-                "email": user.email,
-                "phone": user.phone or "",
-                "profile_image": profile_image,
-                "gender": user.gender or profile_data.get("gender", ""),
-                "address": default_address,
-                "profile": profile_data,
-                "created_at": user.created_at.isoformat(),
-            }
-            
-        except User.DoesNotExist:
-            logger.error(f"Customer {customer_id} not found")
-            return {
-                "id": customer_id,
-                "name": "Unknown Customer",
-                "email": "",
-                "phone": "",
-                "profile_image": "",
-                "gender": "",
-                "address": {},
-                "profile": {},
-                "created_at": "",
-            }
-
-    @database_sync_to_async
-    def find_next_barber(self, service_id, exclude_barber_id=None):
-        try:
-            queryset = User.objects.filter(
-                user_type="barber",
-                is_online=True,
+            # FIXED: Get all barbers who provide the service and are online
+            barber_services = BarberService.objects.filter(
+                service=booking.service,
                 is_active=True,
-                is_blocked=False,
-                barber_services__service_id=service_id,
-                barber_services__is_active=True
-            )
+                barber__is_active=True,
+                barber__is_online=True
+            ).select_related('barber')
+
+            nearby_barbers = []
+            for barber_service in barber_services:
+                nearby_barbers.append(barber_service.barber)
+                print(f"Found nearby barber: {barber_service.barber.name} (ID: {barber_service.barber.id})")
             
-            if exclude_barber_id:
-                queryset = queryset.exclude(id=exclude_barber_id)
-            
-            return queryset.first()
+            print(f"Total nearby barbers found: {len(nearby_barbers)}")
+            return nearby_barbers
+
         except Exception as e:
-            logger.error(f"Error finding next barber: {e}")
-            return None
+            print(f"Error finding nearby barbers: {e}")
+            return []
 
     @database_sync_to_async
-    def update_barber_online_status(self, barber_id, is_online):
+    def assign_barber_to_booking(self, booking_id, barber_id):
         try:
-            updated = User.objects.filter(
-                id=barber_id,
-                user_type="barber"
-            ).update(is_online=is_online)
-            return updated > 0
-        except Exception as e:
-            logger.error(f"Error updating barber status: {e}")
+            booking = Booking.objects.select_for_update().get(id=booking_id)
+            if booking.barber is None:
+                booking.barber_id = barber_id
+                booking.status = 'CONFIRMED'
+                booking.save()
+                print(f"Booking {booking_id} assigned to barber {barber_id}")
+                return True
+            print(f"Booking {booking_id} already assigned to barber {booking.barber_id}")
             return False
+        except Booking.DoesNotExist:
+            print(f"Booking {booking_id} not found")
+            return False
+
+    @database_sync_to_async
+    def update_booking_status(self, booking_id, status):
+        try:
+            Booking.objects.filter(id=booking_id).update(status=status)
+            print(f"Booking {booking_id} status updated to {status}")
+            return True
+        except Exception as e:
+            print(f"Error updating booking status: {e}")
+            return False
+        
+
+
+class BarberGeneralConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
+        await self.authenticate_user()
+        
+        if self.user == AnonymousUser() or self.user.user_type != "barber":
+            await self.close()
+            return
+
+        await self.channel_layer.group_add("general_room", self.channel_name)
+        await self.accept()
+
+    async def authenticate_user(self):
+        try:
+            query_string = self.scope.get('query_string', b'').decode()
+            token = None
+            
+            for param in query_string.split('&'):
+                if param.startswith('token='):
+                    token = param.split('=')[1]
+                    break
+            
+            if not token:
+                self.user = AnonymousUser()
+                return
+            
+            UntypedToken(token)
+            decoded_data = jwt_decode(token, settings.SECRET_KEY, algorithms=["HS256"])
+            user_id = decoded_data.get('user_id')
+            
+            if user_id:
+                self.user = await self.get_user(user_id)
+            else:
+                self.user = AnonymousUser()
+                
+        except (InvalidToken, TokenError, Exception) as e:
+            print(f"Authentication error: {e}")
+            self.user = AnonymousUser()
+
+    async def disconnect(self, close_code):
+        await self.channel_layer.group_discard("general_room", self.channel_name)
+
+    async def send_booking_request(self, event):
+        booking_id = event.get('data', {}).get('booking_id')
+        if booking_id:
+            is_eligible = await self.check_if_barber_eligible(booking_id)
+            if is_eligible:
+                await self.send(text_data=json.dumps(event['data']))
+
+    @database_sync_to_async
+    def get_user(self, user_id):
+        try:
+            return User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            return AnonymousUser()
+
+    @database_sync_to_async
+    def check_if_barber_eligible(self, booking_id):
+        try:
+            booking = Booking.objects.select_related('service').get(id=booking_id)
+            return BarberService.objects.filter(
+                barber=self.user,
+                service=booking.service,
+                is_active=True
+            ).exists()
+        except:
+            return False
+

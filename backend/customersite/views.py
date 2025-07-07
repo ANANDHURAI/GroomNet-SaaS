@@ -21,10 +21,6 @@ from profileservice.models import Address,UserProfile
 from profileservice.serializers import AddressSerializer
 from authservice.models import User
 from.models import Booking 
-from rest_framework import status, generics
-from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
 logger = logging.getLogger(__name__)
 from django.utils import timezone
 from datetime import datetime

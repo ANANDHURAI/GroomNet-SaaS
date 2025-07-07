@@ -31439,3 +31439,67 @@ AttributeError: 'NoneType' object has no attribute 'name'
 "GET /travel-tracking/travel-status/2/ HTTP/1.1" 200 79
 "GET /customersite/booking-history/ HTTP/1.1" 200 6484
 "GET /customersite/booking-history/ HTTP/1.1" 200 6484
+Unauthorized: /customersite/booking-history/
+Unauthorized: /customersite/booking-history/
+Unauthorized: /customersite/booking-history/
+Unauthorized: /customersite/booking-history/
+Bad Request: /auth/logout/
+Unauthorized: /instant-booking/booking/36/status/
+Unauthorized: /instant-booking/booking/36/status/
+Not Found: /instant-booking/barber/status/
+Not Found: /instant-booking/barber/status/
+Not Found: /instant-booking/barber/status/
+Not Found: /instant-booking/barber/status/
+Not Found: /instant-booking/barber/status/
+Not Found: /instant-booking/barber/status/
+Not Found: /instant-booking/barber/status/
+Not Found: /instant-booking/barber/status/
+Not Found: /instant-booking/barber/status/
+Not Found: /instant-booking/barber/status/
+Not Found: /instant-booking/barber/status/
+Not Found: /instant-booking/barber/status/
+Not Found: /instant-booking/barber/status/
+Not Found: /instant-booking/barber/status/
+Not Found: /instant-booking/barber/status/
+Not Found: /instant-booking/barber/status/
+Not Found: /instant-booking/barber/status/
+Unauthorized: /instant-booking/booking/36/status/
+Unauthorized: /instant-booking/booking/36/status/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /instant-booking/booking/36/status/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /instant-booking/booking/36/status/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /instant-booking/booking/36/status/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /instant-booking/booking/36/status/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /instant-booking/booking/36/status/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /instant-booking/booking/36/status/
+Unauthorized: /instant-booking/booking/36/status/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /instant-booking/booking/36/status/
+Unauthorized: /instant-booking/booking/36/status/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /instant-booking/booking/36/status/
+Unauthorized: /instant-booking/booking/36/status/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /auth/logout/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /instant-booking/barber/status/
+Unauthorized: /instant-booking/barber/status/
+Unauthorized: /instant-booking/barber/status/
+Unauthorized: /instant-booking/booking/38/status/
+Unauthorized: /instant-booking/barber/status/
+Unauthorized: /instant-booking/booking/38/status/
+Unauthorized: /auth/token/refresh/
+Bad Request: /auth/logout/
+Unauthorized: /instant-booking/booking/38/status/
+Unauthorized: /instant-booking/booking/38/status/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /instant-booking/booking/38/status/
+Unauthorized: /instant-booking/booking/38/status/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /auth/logout/
+Unauthorized: /auth/token/refresh/

@@ -33,7 +33,7 @@ class Booking(models.Model):
     slot = models.ForeignKey(BarberSlot, on_delete=models.CASCADE, null=True, blank=True)
 
     address = models.ForeignKey(Address, on_delete=models.CASCADE)
-    status = models.CharField(max_length=15, choices=BOOKING_STATUS, default="CONFIRMED")
+    status = models.CharField(max_length=15, choices=BOOKING_STATUS, default="PENDING")
     booking_type = models.CharField(max_length=20 , choices=BOOKING_TYPE_CHOICES , default="INSTANT_BOOKING")
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
     is_payment_done = models.BooleanField(default=False)

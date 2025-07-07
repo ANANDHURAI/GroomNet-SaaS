@@ -1,250 +1,231 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework import status, permissions
+from django.shortcuts import get_object_or_404
+from customersite.models import Booking
+from authservice.models import User
 from rest_framework.permissions import IsAuthenticated
+from django.db import transaction
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
-from authservice.models import User
-from adminsite.models import ServiceModel
 
 
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-from channels.layers import get_channel_layer
-from asgiref.sync import async_to_sync
-from authservice.models import User
-from adminsite.models import ServiceModel
-from django.utils import timezone
-import logging
-
-logger = logging.getLogger(__name__)
-
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-from channels.layers import get_channel_layer
-from asgiref.sync import async_to_sync
-from authservice.models import User
-from adminsite.models import ServiceModel
-import logging
-
-logger = logging.getLogger(__name__)
-
-class FindNearbyBarbers(APIView):
+class MakeingBookingRequestView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def post(self, request):
-        customer = request.user
-        service_id = request.data.get("service_id")
-
-        if not service_id:
-            return Response({"error": "Service ID is required"}, status=400)
-
-        # Validate customer type
-        if customer.user_type != "customer":
-            return Response({"error": "Only customers can request bookings"}, status=403)
-
-        try:
-            service = ServiceModel.objects.get(id=service_id)
-        except ServiceModel.DoesNotExist:
-            return Response({"error": "Service not found"}, status=404)
-
-        # Find online barbers for this service
-        barbers = User.objects.filter(
-            user_type="barber",
-            is_online=True,
-            is_active=True,
-            is_blocked=False,
-            barber_services__service_id=service_id,
-            barber_services__is_active=True
-        ).distinct().order_by('id')
-
-        logger.info(f"Found {barbers.count()} online barbers for service {service_id}")
-
-        if not barbers.exists():
-            return Response({
-                "error": "No online barbers available for this service",
-                "barbers_found": 0
-            }, status=404)
+    def get(self, request, booking_id):
+        barber = request.user
+        if barber.user_type != "barber":
+            return Response(
+                {"detail": "Only barbers can access booking details."}, 
+                status=status.HTTP_403_FORBIDDEN
+            )
         
-        first_barber = barbers.first()
-        success = self.send_request_to_barber(first_barber, customer, service)
-        
-        if success:
-            return Response({
-                "message": "Booking request sent to barber. Please wait for response.",
-                "barbers_found": barbers.count(),
-                "barber_contacted": first_barber.name
-            })
-        else:
-            return Response({
-                "error": "Failed to send booking request",
-                "barbers_found": barbers.count()
-            }, status=500)
-
-    def send_request_to_barber(self, barber, customer, service):
-        """Send booking request to barber via WebSocket"""
         try:
-            channel_layer = get_channel_layer()
+            booking = Booking.objects.select_related(
+                'customer', 'service', 'address'
+            ).get(id=booking_id)
             
-            # Send booking request to barber
-            async_to_sync(channel_layer.group_send)(
-                f"barber_{barber.id}",
-                {
-                    "type": "send_booking_request",
-                    "customer_id": customer.id,
-                    "customer_name": customer.name,
-                    "customer_phone": customer.phone or "",
-                    "customer_profile_image": customer.profileimage.url if customer.profileimage else "",
-                    "service_id": service.id,
-                    "service_name": service.name,
-                    "service_price": str(service.price),
+            if booking.barber:
+                return Response(
+                    {"detail": "Booking already assigned to another barber."}, 
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            booking_data = {
+                "booking_id": booking.id,
+                "service_name": booking.service.name,
+                "price": float(booking.service.price),
+                "duration": booking.service.duration_minutes,
+                "customer_name": booking.customer.name,
+                "customer_location": {
+                    "latitude": booking.address.latitude,
+                    "longitude": booking.address.longitude,
+                    "address": f"{booking.address.building}, {booking.address.street}, {booking.address.city}"
+                },
+                "created_at": booking.created_at,
+                "status": booking.status
+            }
+            
+            return Response(booking_data, status=status.HTTP_200_OK)
+            
+        except Booking.DoesNotExist:
+            return Response(
+                {"detail": "Booking not found."}, 
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+
+class BookingAcceptView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, booking_id):
+        barber = request.user
+        
+        if barber.user_type != "barber":
+            return Response(
+                {"detail": "Only barbers can accept bookings."}, 
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        try:
+            with transaction.atomic():
+                booking = Booking.objects.select_for_update().get(id=booking_id)
+                
+                if booking.barber:
+                    return Response(
+                        {"detail": "Booking already assigned to another barber."}, 
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+                
+                if booking.status != 'PENDING':
+                    return Response(
+                        {"detail": "Booking is no longer available."}, 
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+                
+                booking.barber = barber
+                booking.status = 'CONFIRMED'
+                booking.save()
+                
+                channel_layer = get_channel_layer()
+                
+                async_to_sync(channel_layer.group_send)(
+                    f"customer_booking_{booking_id}",
+                    {
+                        "type": "send_barber_assigned",
+                        "data": {
+                            "message": "Barber assigned",
+                            "barber_name": barber.name,
+                            "barber_phone": barber.phone,
+                            "barber_profile": barber.profileimage.url if barber.profileimage else None,
+                            "booking_confirmed": True
+                        }
+                    }
+                )
+                
+                response_data = {
+                    "message": "Booking accepted successfully.",
+                    "booking_id": booking.id,
+                    "customer_name": booking.customer.name,
+                    "customer_phone": booking.customer.phone,
+                    "customer_location": {
+                        "latitude": booking.address.latitude,
+                        "longitude": booking.address.longitude,
+                        "address": f"{booking.address.building}, {booking.address.street}, {booking.address.city}"
+                    },
+                    "service_name": booking.service.name,
+                    "service_price": float(booking.service.price),
+                    "service_duration": booking.service.duration_minutes
                 }
+                
+                return Response(response_data, status=status.HTTP_200_OK)
+                
+        except Booking.DoesNotExist:
+            return Response(
+                {"detail": "Booking not found."}, 
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+
+class BookingRejectView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, booking_id):
+        barber = request.user
+        
+        if barber.user_type != "barber":
+            return Response(
+                {"detail": "Only barbers can reject bookings."}, 
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        try:
+            booking = Booking.objects.get(id=booking_id)
+            
+            print(f"Barber {barber.id} ({barber.name}) rejected booking {booking_id}")
+            
+            return Response(
+                {"message": "Booking rejected successfully."}, 
+                status=status.HTTP_200_OK
             )
             
-            logger.info(f"Booking request sent to barber {barber.id} for customer {customer.id}")
-            return True
-            
-        except Exception as e:
-            logger.error(f"Error sending booking request to barber {barber.id}: {e}")
-            return False
+        except Booking.DoesNotExist:
+            return Response(
+                {"detail": "Booking not found."}, 
+                status=status.HTTP_404_NOT_FOUND
+            )
 
 
-class BarberOnlineStatus(APIView):
+class BookingStatusView(APIView):
     permission_classes = [IsAuthenticated]
-    
-    def get(self, request):
-        if request.user.user_type != "barber":
-            return Response({"error": "Only barbers can access this endpoint"}, status=403)
+
+    def get(self, request, booking_id):
+        customer = request.user
         
-        return Response({
-            "is_online": request.user.is_online,
-            "barber_id": request.user.id,
-            "barber_name": request.user.name
-        })
-    
-    def post(self, request):
-        if request.user.user_type != "barber":
-            return Response({"error": "Only barbers can access this endpoint"}, status=403)
-        
-        is_online = request.data.get("is_online", False)
+        if customer.user_type != "customer":
+            return Response(
+                {"detail": "Only customers can check booking status."}, 
+                status=status.HTTP_403_FORBIDDEN
+            )
         
         try:
-            updated = User.objects.filter(id=request.user.id).update(is_online=is_online)
+            booking = Booking.objects.select_related(
+                'customer', 'barber', 'service'
+            ).get(id=booking_id, customer=customer)
             
-            if updated:
-                logger.info(f"Barber {request.user.id} status updated to {'online' if is_online else 'offline'}")
-                return Response({
-                    "message": "Status updated successfully",
-                    "is_online": is_online,
-                    "barber_id": request.user.id
-                })
-            else:
-                return Response({"error": "Failed to update status"}, status=500)
-        
-        except Exception as e:
-            logger.error(f"Error updating barber status: {e}")
-            return Response({"error": "Failed to update status"}, status=500)
-        
+            response_data = {
+                "booking_id": booking.id,
+                "status": booking.status,
+                "service_name": booking.service.name,
+                "created_at": booking.created_at,
+                "barber_assigned": booking.barber is not None
+            }
+            
+            if booking.barber:
+                response_data["barber_details"] = {
+                    "name": booking.barber.name,
+                    "phone": booking.barber.phone,
+                    "profile_image": booking.barber.profileimage.url if booking.barber.profileimage else None
+                }
+            
+            return Response(response_data, status=status.HTTP_200_OK)
+            
+        except Booking.DoesNotExist:
+            return Response(
+                {"detail": "Booking not found."}, 
+                status=status.HTTP_404_NOT_FOUND
+            )
 
 
-class CustomerBookingStatus(APIView):
-    """API to check customer's booking status"""
+class BarberOnlineStatusView(APIView):
     permission_classes = [IsAuthenticated]
-    
+
     def get(self, request):
-        if request.user.user_type != "customer":
-            return Response({"error": "Only customers can access this endpoint"}, status=403)
+        barber = request.user
+        if barber.user_type != 'barber':
+            return Response(
+                {'detail': 'Only barbers can check status'}, 
+                status=status.HTTP_403_FORBIDDEN
+            )
         
         return Response({
-            "customer_id": request.user.id,
-            "customer_name": request.user.name,
-            "message": "Ready to receive booking updates"
+            'is_online': getattr(barber, 'is_online', False)
         })
-        
-        
-# class BarberOnlineStatus(APIView):
-#     permission_classes = [IsAuthenticated]
 
-#     def get(self, request):
-#         barber = request.user
-#         if barber.user_type != "barber":
-#             return Response({"error": "Only barbers can access this endpoint"}, status=403)
+    def post(self, request):
+        barber = request.user
+        if barber.user_type != 'barber':
+            return Response(
+                {'detail': 'Only barbers can update status'}, 
+                status=status.HTTP_403_FORBIDDEN
+            )
             
-#         return Response({
-#             "is_online": barber.is_online
-#         })
-
-#     def post(self, request):
-#         barber = request.user
-#         if barber.user_type != "barber":
-#             return Response({"error": "Only barbers can access this endpoint"}, status=403)
-            
-#         is_online = request.data.get("is_online", False)
+        is_online = request.data.get('is_online', False)
+        barber.is_online = is_online
+        barber.save()
         
-#         barber.is_online = is_online
-#         barber.save()
-        
-#         return Response({
-#             "message": f"Status updated to {'online' if is_online else 'offline'}",
-#             "is_online": is_online
-#         })
+        return Response({'is_online': is_online})
+    
 
 
-# class CustomerBookingStatus(APIView):
-#     permission_classes = [IsAuthenticated]
-
-#     def get(self, request):
-#         """Get customer's current booking status"""
-#         customer = request.user
-#         if customer.user_type != "customer":
-#             return Response({"error": "Only customers can access this endpoint"}, status=403)
-
-#         latest_booking = Booking.objects.filter(
-#             customer=customer,
-#             booking_type="INSTANT_BOOKING",
-#             status__in=["PENDING", "CONFIRMED"]
-#         ).order_by('-created_at').first()
-
-#         if not latest_booking:
-#             return Response({"message": "No active bookings"})
-
-#         data = {
-#             "booking_id": latest_booking.id,
-#             "status": latest_booking.status,
-#             "service_name": latest_booking.service.name,
-#             "total_amount": str(latest_booking.total_amount),
-#             "created_at": latest_booking.created_at.isoformat()
-#         }
-
-#         if latest_booking.barber:
-#             data["barber_name"] = latest_booking.barber.name
-#             data["barber_phone"] = latest_booking.barber.phone or ""
-
-#         return Response(data)
-
-
-# class CancelBooking(APIView):
-#     permission_classes = [IsAuthenticated]
-
-#     def post(self, request):
-#         """Cancel a booking"""
-#         customer = request.user
-#         booking_id = request.data.get("booking_id")
-        
-#         if not booking_id:
-#             return Response({"error": "Booking ID is required"}, status=400)
-        
-#         try:
-#             booking = Booking.objects.get(
-#                 id=booking_id,
-#                 customer=customer,
-#                 status="PENDING"
-#             )
-#             booking.status = "CANCELLED"
-#             booking.save()
-            
-#             return Response({"message": "Booking cancelled successfully"})
-#         except Booking.DoesNotExist:
-#             return Response({"error": "Booking not found or already processed"}, status=404)
-        

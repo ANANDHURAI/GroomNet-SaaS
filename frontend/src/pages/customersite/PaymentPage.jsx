@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import apiClient from '../../slices/api/apiIntercepters';
-import { ConfirmationModal } from '../../components/admincompo/serviceCom/ConfirmationModal';
 import Navbar from '../../components/basics/Navbar';
 import { loadStripe } from '@stripe/stripe-js';
 
@@ -75,6 +74,7 @@ function PaymentPage() {
       });
 
       const bookingId = bookingRes.data.booking_id;
+      sessionStorage.setItem('instantBookingId', bookingId);
 
       if (method === "COD" || method === "WALLET") {
         navigate('/booking-success');

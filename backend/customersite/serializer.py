@@ -110,12 +110,14 @@ class BookingCreateSerializer(serializers.ModelSerializer):
                 if slot:
                     slot.is_booked = True
                     slot.save()
+                    
+            status = 'PENDING' if booking_type == "INSTANT_BOOKING" else 'CONFIRMED'
 
             booking = Booking.objects.create(
                 customer=customer,
                 total_amount=total_amount,
                 is_payment_done=(payment_method in ['COD', 'WALLET']),
-                status='CONFIRMED',
+                status=status,
                 booking_type=booking_type,
                 **validated_data
             )
