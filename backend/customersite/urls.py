@@ -13,7 +13,8 @@ from .views import (
     BookingSuccessView,
     BookingHistoryView,
     BookingDetailView,
-    reverse_geocode
+    update_travel_status,
+    get_travel_status,get_booking_details
     
 )
 
@@ -31,5 +32,8 @@ urlpatterns = [
     path('booking-success/', BookingSuccessView.as_view()),
     path('booking-history/', BookingHistoryView.as_view()),
     path('booking-details/<int:pk>/', BookingDetailView.as_view()),
-    path('reverse-geocode/', reverse_geocode),
+    path('booking/<int:booking_id>/update-travel-status/', update_travel_status, name="update_travel_status"),
+    path('booking/<int:booking_id>/get-travel-status/',get_travel_status, name="get_travel_status"),
+    path('booking/<int:booking_id>/', get_booking_details, name="get_booking_details"),
+    
 ]

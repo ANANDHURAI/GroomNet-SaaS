@@ -51,6 +51,8 @@ import ForgetPassword from './pages/authservice/ForgetPassword'
 import ForgetOtp from './pages/authservice/ForgetOtp'
 import ResetPassword from './pages/authservice/ResetPassword'
 import WorkingArea from './pages/barbersite/WorkingArea'
+import TravelPage from './pages/barbersite/TravelPage'
+import StatusCheaking from './pages/customersite/StatusCheaking'
 
 function App() {
   return (
@@ -283,7 +285,6 @@ function App() {
             <Route path="/booking-history" element={<BookingHistoryPage />} />
             <Route path="/booking-details/:id" element={<BookingDetailsPage />} />
             <Route path="/my-addresses" element={<AddressList />} />
-            <Route path="/booking-status" element={<BookingStatus />} />
 
             <Route path="/admin-wallet/" element={<AdminWallet />} />
             <Route path="/find-barber/" element={<FindBarbers />} />
@@ -293,7 +294,9 @@ function App() {
             <Route path="/forget-password" element={<ForgetPassword />} />
             <Route path="/forget-otp" element={<ForgetOtp />} />
             <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/travel-status/:bookingId" element={<TravelPage />} />
             
+            <Route path="/booking-status/:bookingId" element={<StatusCheaking />} />
 
             <Route
               path="/customer/chat/:bookingId"

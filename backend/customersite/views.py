@@ -433,90 +433,75 @@ class BookingDetailView(APIView):
             return Response({"detail": "Booking not found"}, status=status.HTTP_404_NOT_FOUND)
 
         payment = getattr(booking, 'payment', None)
+
+        if booking.slot:
+            slottime = f"{booking.slot.start_time} - {booking.slot.end_time}"
+            start_time = str(booking.slot.start_time)
+            end_time = str(booking.slot.end_time)
+            date = str(booking.slot.date)
+        else:
+            slottime = "N/A"
+            start_time = "N/A"
+            end_time = "N/A"
+            date = str(booking.created_at.date()) 
         data = {
             "orderid": booking.id,
             "name": booking.customer.name,
-            "barbername": booking.barber.name,
-            "slottime": f"{booking.slot.start_time} - {booking.slot.end_time}",
-            "start_time": str(booking.slot.start_time),
-            "end_time": str(booking.slot.end_time),
-            "date": str(booking.slot.date),
+            "barbername": booking.barber.name if booking.barber else "Unassigned",
+            "slottime": slottime,
+            "start_time": start_time,
+            "end_time": end_time,
+            "date": date,
             "service": booking.service.name,
             "booking_type": booking.booking_type,
             "total_amount": str(booking.total_amount),
             "payment_method": payment.payment_method if payment else "N/A",
             "booking_status": booking.status,
-            "booking_type": booking.booking_type,
         }
         return Response(data)
 
 
 
-from geopy.geocoders import Nominatim
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-from rest_framework import status
-from .models import Address
-from rest_framework.views import APIView
 
-@api_view(['POST'])
+@api_view(['PATCH'])
 @permission_classes([IsAuthenticated])
-def reverse_geocode(request):
+def update_travel_status(request, booking_id):
     try:
-        print("DEBUG: Starting reverse geocoding")
-        print(f"DEBUG: Request data: {request.data}")
-        print(f"DEBUG: User: {request.user.id} - {request.user.email}")
-        
-        latitude = request.data.get('latitude')
-        longitude = request.data.get('longitude')
-        
-        print(f"DEBUG: Geocoding coordinates - Lat: {latitude}, Lng: {longitude}")
+        booking = Booking.objects.get(id=booking_id, barber=request.user)
+        new_status = request.data.get('travel_status')
 
-        if not latitude or not longitude:
-            print("DEBUG: Missing coordinates for geocoding")
-            return Response({'error': 'Latitude and longitude are required'}, status=400)
+        if new_status not in dict(Booking.TRAVEL_STATUS_CHOICES).keys():
+            return Response({"error": "Invalid travel status."}, status=400)
 
-        try:
-            geolocator = Nominatim(user_agent="groomnet")
-            print(f"DEBUG: Using Nominatim geocoder")
-            
-            location = geolocator.reverse(f"{latitude}, {longitude}", language='en')
-            print(f"DEBUG: Geocoding result: {location}")
-            
-            if not location:
-                print("DEBUG: No location found for coordinates")
-                return Response({'error': 'Could not fetch address'}, status=400)
+        booking.travel_status = new_status
+        booking.save()
+        return Response({"message": "Travel status updated.", "travel_status": booking.travel_status})
+    except Booking.DoesNotExist:
+        return Response({"error": "Booking not found or not assigned to you."}, status=404)
 
-            address = location.raw.get('address', {})
-            print(f"DEBUG: Raw address data: {address}")
 
-           
-            response_data = {
-                'building': address.get('house_number', '') or address.get('building', ''),
-                'street': address.get('road', '') or address.get('neighbourhood', '') or address.get('suburb', ''),
-                'city': (address.get('city') or 
-                        address.get('town') or 
-                        address.get('village') or 
-                        address.get('state_district') or 
-                        address.get('county', '')),
-                'district': address.get('county', '') or address.get('state_district', ''),
-                'state': address.get('state', ''),
-                'pincode': address.get('postcode', '')
-            }
-            
-            print(f"📤 DEBUG: Processed address data: {response_data}")
-            return Response(response_data, status=200)
-            
-        except Exception as geocoding_error:
-            print(f"❌ DEBUG: Geocoding error: {str(geocoding_error)}")
-            return Response({
-                'error': 'Geocoding service error',
-                'details': str(geocoding_error)
-            }, status=500)
-            
-    except Exception as e:
-        print(f"❌ DEBUG: Unexpected error in reverse_geocode: {str(e)}")
-        return Response({
-            'error': 'An error occurred during geocoding'
-        }, status=500)
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_travel_status(request, booking_id):
+    try:
+        booking = Booking.objects.get(id=booking_id, customer=request.user)
+        return Response({"travel_status": booking.travel_status})
+    except Booking.DoesNotExist:
+        return Response({"error": "Booking not found."}, status=404)
+    
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_booking_details(request, booking_id):
+    try:
+        booking = Booking.objects.get(id=booking_id, barber=request.user)
+        booking_data = {
+            'id': booking.id,
+            'customer': {'name': booking.customer.name if booking.customer else ''},
+            'service': {'name': booking.service.name if booking.service else ''},
+            'total_amount': booking.total_amount,
+            'travel_status': booking.travel_status,
+        }
+        return Response(booking_data)
+    except Booking.DoesNotExist:
+        return Response({"error": "Booking not found or not assigned to you."}, status=404)

@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Power, User, Clock, MapPin, Phone, Check, X, DollarSign } from 'lucide-react';
+import { Power, User, Clock, MapPin, Phone, Check, X, IndianRupee } from 'lucide-react';
 import apiClient from '../../slices/api/apiIntercepters';
 import BarberSidebar from '../../components/barbercompo/BarberSidebar';
+import { useNavigate } from 'react-router-dom';
 
 const WorkingArea = () => {
   const [isOnline, setIsOnline] = useState(false);
@@ -10,11 +11,37 @@ const WorkingArea = () => {
   const [notification, setNotification] = useState('');
   const [loading, setLoading] = useState(false);
   const wsRef = useRef(null);
+  const navigate = useNavigate()
 
   const ACCESS_TOKEN = sessionStorage.getItem('access_token');
+  useEffect(() => {
+    const savedAcceptedBooking = sessionStorage.getItem('acceptedBooking');
+    if (savedAcceptedBooking) {
+      try {
+        const parsedBooking = JSON.parse(savedAcceptedBooking);
+        setAcceptedBooking(parsedBooking);
+        setIsOnline(true); 
+        connectToBookingUpdates();
+      } catch (error) {
+        console.error('Error parsing saved booking:', error);
+        sessionStorage.removeItem('acceptedBooking');
+        setIsOnline(false);
+      }
+    } else {
+      setIsOnline(false);
+    }
+  }, []);
+
 
   useEffect(() => {
-    fetchOnlineStatus();
+    if (acceptedBooking) {
+      sessionStorage.setItem('acceptedBooking', JSON.stringify(acceptedBooking));
+    } else {
+      sessionStorage.removeItem('acceptedBooking');
+    }
+  }, [acceptedBooking]);
+
+  useEffect(() => {
     return () => {
       if (wsRef.current) {
         wsRef.current.close();
@@ -22,14 +49,6 @@ const WorkingArea = () => {
     };
   }, []);
 
-  const fetchOnlineStatus = async () => {
-    try {
-      const response = await apiClient.get(`/instant-booking/barber/status/`);
-      setIsOnline(response.data.is_online);
-    } catch (error) {
-      console.error('Error fetching status:', error);
-    }
-  };
 
   const toggleOnlineStatus = async () => {
     setLoading(true);
@@ -96,7 +115,6 @@ const WorkingArea = () => {
       wsRef.current.close();
     }
     setCurrentBooking(null);
-    setAcceptedBooking(null);
   };
 
   const handleAcceptBooking = async () => {
@@ -106,11 +124,13 @@ const WorkingArea = () => {
     try {
       const response = await apiClient.post(`/instant-booking/booking/${currentBooking.booking_id}/accept/`);
       
-      setAcceptedBooking({
+      const acceptedBookingData = {
         ...currentBooking,
         customer_phone: response.data.customer_phone,
         customer_location: response.data.customer_location
-      });
+      };
+      
+      setAcceptedBooking(acceptedBookingData);
       setCurrentBooking(null);
       setNotification('Booking accepted successfully!');
     } catch (error) {
@@ -142,6 +162,7 @@ const WorkingArea = () => {
       setLoading(false);
     }
   };
+
 
   const clearNotification = () => {
     setTimeout(() => setNotification(''), 3000);
@@ -239,7 +260,7 @@ const WorkingArea = () => {
                   </span>
                 </div>
                 <div className="flex items-center space-x-3">
-                  <DollarSign className="w-4 h-4 text-gray-400" />
+                  <IndianRupee className="w-4 h-4 text-gray-400" />
                   <span className="text-sm text-gray-900">
                     ${currentBooking.price}
                   </span>
@@ -304,9 +325,9 @@ const WorkingArea = () => {
                   </span>
                 </div>
                 <div className="flex items-center space-x-3">
-                  <DollarSign className="w-4 h-4 text-gray-400" />
+                  <IndianRupee className="w-4 h-4 text-gray-400" />
                   <span className="text-sm text-gray-900">
-                    ${acceptedBooking.price}
+                    ₹{acceptedBooking.price}
                   </span>
                 </div>
                 <div className="flex items-center space-x-3">
@@ -316,8 +337,24 @@ const WorkingArea = () => {
                   </span>
                 </div>
               </div>
+
+              <div className="flex justify-end mt-4 space-x-2">
+                <button
+                  className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                  onClick={() => navigate(`/barber/chat/${acceptedBooking.booking_id}`)}
+                >
+                  Message
+                </button>
+                <button
+                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700"
+                  onClick={() => navigate(`/travel-status/${acceptedBooking.booking_id}`)}
+                >
+                  Start
+                </button>
+              </div>
             </div>
           )}
+
 
           {!currentBooking && !acceptedBooking && isOnline && (
             <div className="bg-white rounded-lg shadow-sm p-6 text-center">

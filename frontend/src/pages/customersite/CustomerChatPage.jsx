@@ -15,7 +15,7 @@ function CustomerChatPage() {
   const [isOtherUserOnline, setIsOtherUserOnline] = useState(false);
   const messagesEndRef = useRef(null);
   const websocketRef = useRef(null);
-
+  
   const { isOtherUserTyping, handleInputChange, handleWebSocketMessage } = useTypingIndicator(websocketRef, bookingId);
 
   const scrollToBottom = () => {

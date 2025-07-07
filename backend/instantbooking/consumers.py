@@ -36,7 +36,6 @@ class InstantBookingConsumer(AsyncWebsocketConsumer):
             await self.channel_layer.group_add(self.barber_room, self.channel_name)
             await self.accept()
             
-            # FIXED: Send booking request immediately when barber connects
             booking = await self.get_booking()
             if booking and not booking.barber and booking.status == 'PENDING':
                 nearby_barbers = await self.get_nearby_barbers(booking)
@@ -109,9 +108,8 @@ class InstantBookingConsumer(AsyncWebsocketConsumer):
             }))
             return
         
-        # Send to all nearby barbers via the general room
+      
         for barber in nearby_barbers:
-            # Send to general barber room
             await self.channel_layer.group_send(
                 "general_room",
                 {
@@ -186,7 +184,7 @@ class InstantBookingConsumer(AsyncWebsocketConsumer):
                 }
             )
             
-            # Notify other barbers that booking is taken
+        
             nearby_barbers = await self.get_nearby_barbers(booking)
             for barber in nearby_barbers:
                 if barber.id != self.user.id: 
@@ -214,7 +212,7 @@ class InstantBookingConsumer(AsyncWebsocketConsumer):
         }))
 
     async def auto_cancel_booking(self):
-        await asyncio.sleep(120)  # Wait 2 minutes
+        await asyncio.sleep(120) 
         
         booking = await self.get_booking()
         if not booking.barber:
@@ -245,7 +243,6 @@ class InstantBookingConsumer(AsyncWebsocketConsumer):
                     }
                 )
 
-    # WebSocket message handlers
     async def send_booking_request(self, event):
         await self.send(text_data=json.dumps(event["data"]))
 
@@ -258,7 +255,7 @@ class InstantBookingConsumer(AsyncWebsocketConsumer):
     async def send_booking_timeout(self, event):
         await self.send(text_data=json.dumps(event["data"]))
 
-    # Database operations
+   
     @database_sync_to_async
     def get_user(self, user_id):
         try:
@@ -276,7 +273,7 @@ class InstantBookingConsumer(AsyncWebsocketConsumer):
     @database_sync_to_async
     def get_nearby_barbers(self, booking):
         try:
-            # FIXED: Get all barbers who provide the service and are online
+           
             barber_services = BarberService.objects.filter(
                 service=booking.service,
                 is_active=True,
@@ -390,4 +387,3 @@ class BarberGeneralConsumer(AsyncWebsocketConsumer):
             ).exists()
         except:
             return False
-

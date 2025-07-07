@@ -142,17 +142,8 @@ class BarberServiceViewSet(viewsets.ModelViewSet):
 
 
 
-from datetime import datetime, timedelta
-from django.db import transaction
-from django.db.models import ProtectedError
-from django.shortcuts import get_object_or_404
-from rest_framework import status, viewsets
-from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-import logging
 
-logger = logging.getLogger(__name__)
+
 
 class BarberSlotViewSet(viewsets.ViewSet):
     permission_classes = [IsAuthenticated]
@@ -190,11 +181,6 @@ class BarberSlotViewSet(viewsets.ViewSet):
 
         if end_time == "24:00:00":
             end_time = "23:59:59"
-
-        # if start_time >= end_time:
-        #     return Response({
-        #         'error': 'Start time must be before end time.'
-        #     }, status=status.HTTP_400_BAD_REQUEST)
 
         if BarberSlot.objects.filter(
             barber=request.user, 
@@ -285,11 +271,18 @@ class BarberAppointments(APIView):
 
         data = []
         for booking in appointments:
+            if booking.slot: 
+                time_str = f"{booking.slot.start_time} - {booking.slot.end_time}"
+                date_str = booking.slot.date.strftime('%Y-%m-%d')
+            else:  
+                time_str = "Instant Booking"
+                date_str = booking.created_at.strftime('%Y-%m-%d')
+
             data.append({
-                'id': booking.id, 
+                'id': booking.id,
                 'customer_name': booking.customer.name,
-                'time': f"{booking.slot.start_time} - {booking.slot.end_time}",
-                'date': booking.slot.date.strftime('%Y-%m-%d'),
+                'time': time_str,
+                'date': date_str,
                 'address': f"{booking.address.street}, {booking.address.city}, {booking.address.pincode}",
                 'price': float(booking.total_amount),
                 'status': booking.status,
@@ -300,5 +293,6 @@ class BarberAppointments(APIView):
             })
 
         return Response(data)
+
 
         

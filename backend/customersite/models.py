@@ -16,6 +16,16 @@ class Booking(models.Model):
         ("CANCELLED", "Cancelled"),
         ("COMPLETED", "Completed")
     ]
+
+    TRAVEL_STATUS_CHOICES = [
+        ("NOT_STARTED", "Not Started"),
+        ("STARTED", "Started"),
+        ("ON_THE_WAY", "On the Way"),
+        ("ALMOST_NEAR", "Almost Near"),
+        ("ARRIVED", "Arrived"),
+    ]
+
+
     customer = models.ForeignKey(
         User, 
         on_delete=models.CASCADE, 
@@ -31,7 +41,7 @@ class Booking(models.Model):
     )
     service = models.ForeignKey(ServiceModel, on_delete=models.CASCADE)
     slot = models.ForeignKey(BarberSlot, on_delete=models.CASCADE, null=True, blank=True)
-
+    travel_status = models.CharField(max_length=20,choices=TRAVEL_STATUS_CHOICES,default="NOT_STARTED")
     address = models.ForeignKey(Address, on_delete=models.CASCADE)
     status = models.CharField(max_length=15, choices=BOOKING_STATUS, default="PENDING")
     booking_type = models.CharField(max_length=20 , choices=BOOKING_TYPE_CHOICES , default="INSTANT_BOOKING")
@@ -47,6 +57,8 @@ class Booking(models.Model):
     def __str__(self):
         barber_name = self.barber.name if self.barber else "No Barber Assigned"
         return f"{self.customer.name} - {self.service.name} - {barber_name}"
+
+
 
 class PaymentModel(models.Model):
     PAYMENT_METHODS = [
