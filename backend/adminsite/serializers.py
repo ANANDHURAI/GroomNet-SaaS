@@ -17,6 +17,7 @@ class UsersListSerializer(serializers.ModelSerializer):
             return obj.profileimage.url
         return None
     
+    
 class BarbersListSerializer(serializers.ModelSerializer):
     profileimage_url = serializers.SerializerMethodField()
     
@@ -33,11 +34,11 @@ class BarbersListSerializer(serializers.ModelSerializer):
         return None
     
 
-    
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = CategoryModel
         fields = '__all__'
+
 
 class ServiceSerializer(serializers.ModelSerializer):
     category_name = serializers.CharField(source='category.name', read_only=True)
@@ -58,8 +59,6 @@ class ServiceSerializer(serializers.ModelSerializer):
             }
         return representation
 
-from rest_framework import serializers
-from .models import AdminWallet
 
 class AdminWalletSerializer(serializers.ModelSerializer):
     amount = serializers.DecimalField(max_digits=10, decimal_places=2, write_only=True, required=False)

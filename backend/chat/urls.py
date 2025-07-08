@@ -1,4 +1,4 @@
-# chat/urls.py
+
 from django.urls import path
 from .views import ChatMessagesView, get_unread_count, get_booking_info
 

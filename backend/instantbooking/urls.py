@@ -1,4 +1,4 @@
-# urls.py
+
 from django.urls import path
 from .views import BookingAcceptView, BookingRejectView, MakeingBookingRequestView, BookingStatusView, BarberOnlineStatusView
 

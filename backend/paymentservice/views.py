@@ -34,7 +34,6 @@ class CreateStripeCheckoutSession(APIView):
                     status=status.HTTP_404_NOT_FOUND
                 )
             
-            # Get payment record
             try:
                 payment = PaymentModel.objects.get(booking=booking)
                 logger.info(f"Found payment record for booking {booking_id}")
@@ -45,10 +44,10 @@ class CreateStripeCheckoutSession(APIView):
                     status=status.HTTP_404_NOT_FOUND
                 )
             
-            # Calculate amount - use the total_amount property
+            
             try:
-                total_amount = payment.total_amount  # This uses the property
-                unit_amount = int(total_amount * 100)  # Convert to paisa/cents
+                total_amount = payment.total_amount 
+                unit_amount = int(total_amount * 100)
                 logger.info(f"Calculated unit_amount: {unit_amount} paisa for booking {booking_id}")
                 
                 if unit_amount <= 0:
@@ -64,14 +63,13 @@ class CreateStripeCheckoutSession(APIView):
                     status=status.HTTP_500_INTERNAL_SERVER_ERROR
                 )
             
-            # Get barber name safely
+           
             barber_name = "Barber"
             if hasattr(booking.barber, 'name') and booking.barber.name:
                 barber_name = booking.barber.name
             elif hasattr(booking.barber, 'username') and booking.barber.username:
                 barber_name = booking.barber.username
             
-            # Create Stripe checkout session
             try:
                 checkout_session = stripe.checkout.Session.create(
                     payment_method_types=['card'], 
@@ -137,7 +135,6 @@ class VerifyPayment(APIView):
                     booking.is_payment_done = True
                     booking.save()
 
-                    # Update payment record
                     payment = PaymentModel.objects.filter(booking=booking).first()
                     if payment:
                         payment.transaction_id = session.id
@@ -145,7 +142,6 @@ class VerifyPayment(APIView):
                         payment.payment_method = 'STRIPE'
                         payment.save()
 
-                        # Add amount to admin wallet
                         self.add_to_admin_wallet(payment.total_amount)
 
                         logger.info(f"Payment verified and admin wallet updated for booking {booking_id}")
@@ -158,11 +154,9 @@ class VerifyPayment(APIView):
             return Response({"error": str(e)}, status=500)
     
     def add_to_admin_wallet(self, amount):
-        """Add payment amount to admin wallet"""
         try:
-            # Get or create admin wallet (assuming there's only one admin wallet)
             admin_wallet, created = AdminWallet.objects.get_or_create(
-                id=1,  # Assuming single admin wallet with ID 1
+                id=1,
                 defaults={'total_earnings': 0}
             )
             admin_wallet.total_earnings += amount

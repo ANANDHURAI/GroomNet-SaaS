@@ -4,17 +4,19 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from authservice.models import User
 from rest_framework.generics import RetrieveAPIView
-from .serializers import UsersListSerializer, BarbersListSerializer ,CategorySerializer, ServiceSerializer
+from .serializers import UsersListSerializer, BarbersListSerializer ,CategorySerializer, ServiceSerializer,AdminWalletSerializer
 from barber_reg.models import BarberRequest
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from django.db import transaction
 import logging
-from .models import  CategoryModel , ServiceModel
 User = get_user_model()
 logger = logging.getLogger(__name__)
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.generics import ListAPIView
+from rest_framework.decorators import api_view, permission_classes
+from customersite.models import PaymentModel
+from .models import ServiceModel, CategoryModel , AdminWallet 
 
 
 class PendingBarbersRequestsView(APIView):
@@ -272,17 +274,6 @@ class ServiceViewSet(ModelViewSet):
     serializer_class = ServiceSerializer
     permission_classes = [IsAuthenticated]
 
-from rest_framework.viewsets import ModelViewSet
-from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-from rest_framework import status
-from .models import AdminWallet
-from .serializers import AdminWalletSerializer
-import logging
-from customersite.models import PaymentModel , Booking
-
-logger = logging.getLogger(__name__)
 
 class AdminWalletView(APIView):
     permission_classes = [IsAuthenticated]
@@ -306,12 +297,6 @@ class AdminWalletView(APIView):
                 {"error": "Failed to fetch admin wallet", "details": str(e)}, 
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
-
-from rest_framework.decorators import api_view, permission_classes
-from customersite.models import Booking, PaymentModel
-from .models import ServiceModel, CategoryModel , AdminWallet 
-from authservice.models import User
-from barbersite.models import BarberSlot ,BarberService , BarberSlotBooking
 
 
 @api_view(['GET'])

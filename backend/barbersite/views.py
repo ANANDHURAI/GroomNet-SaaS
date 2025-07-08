@@ -141,10 +141,6 @@ class BarberServiceViewSet(viewsets.ModelViewSet):
         })
 
 
-
-
-
-
 class BarberSlotViewSet(viewsets.ViewSet):
     permission_classes = [IsAuthenticated]
 

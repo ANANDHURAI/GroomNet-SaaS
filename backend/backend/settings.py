@@ -36,7 +36,6 @@ INSTALLED_APPS = [
     'channels_redis',
     'chat',
     'paymentservice',
-    'travel_tracking',
     'instantbooking',
 ]
 
@@ -202,7 +201,6 @@ MEDIA_ROOT = BASE_DIR / 'media'
 STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
 STRIPE_PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY")
 
-# print("Loaded STRIPE_SECRET_KEY:", STRIPE_SECRET_KEY)
 
 ASGI_APPLICATION = 'backend.asgi.application'
 
@@ -220,13 +218,3 @@ CHANNEL_LAYERS = {
 
 GOOGLE_MAPS_API_KEY = os.getenv("GOOGLE_MAPS_API_KEY")
 
-CELERY_BROKER_URL = 'redis://localhost:6379/0' 
-CELERY_ACCEPT_CONTENT = ['json']
-CELERY_TASK_SERIALIZER = 'json'
-
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
-        'LOCATION': 'chat_cache_table',
-    }
-}

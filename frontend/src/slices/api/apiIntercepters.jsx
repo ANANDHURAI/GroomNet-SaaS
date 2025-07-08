@@ -58,7 +58,7 @@ apiClient.interceptors.response.use(
 
     if (error.response?.status === 401 && !originalRequest._retry) {
       if (originalRequest.url?.includes("/token/refresh/")) {
-        return Promise.reject(error); // prevent infinite loop
+        return Promise.reject(error); 
       }
 
       const isAuthEndpoint = authEndpoints.some(endpoint =>

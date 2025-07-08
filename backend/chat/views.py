@@ -15,7 +15,6 @@ class ChatMessagesView(APIView):
     def get(self, request, booking_id):
         booking = get_object_or_404(Booking, id=booking_id)
 
-        # Check if user has access to this booking
         if booking.customer != request.user and booking.barber != request.user:
             return Response(
                 {'error': 'You do not have access to this chat'}, 
@@ -26,7 +25,6 @@ class ChatMessagesView(APIView):
             booking=booking
         ).select_related('sender').order_by('timestamp')
         
-        # Mark messages as read (exclude sender's own messages)
         ChatMessage.objects.filter(
             booking=booking,
             is_read=False
@@ -42,7 +40,7 @@ class ChatMessagesView(APIView):
             'status': booking.status,
             'booking_date': booking.slot.date,
             'booking_time': booking.slot.start_time,
-            'current_user_id': request.user.id  # Add current user ID
+            'current_user_id': request.user.id
         }
         
         return Response({

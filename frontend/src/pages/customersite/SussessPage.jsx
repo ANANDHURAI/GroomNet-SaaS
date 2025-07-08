@@ -28,11 +28,11 @@ function SuccessPage() {
     if (bookingType === 'INSTANT_BOOKING') {
       const bookingId = sessionStorage.getItem('instantBookingId');
       if (bookingId) {
-        console.log("✅ Navigating to FindBarbers with booking_id:", bookingId);
+        console.log(" Navigating to FindBarbers with booking_id:", bookingId);
         navigate('/find-barber/?booking_id=' + bookingId);
 
       } else {
-        console.error("❌ No instantBookingId found in sessionStorage");
+        console.error("No instantBookingId found in sessionStorage");
         navigate('/booking-history');
       }
     } else {

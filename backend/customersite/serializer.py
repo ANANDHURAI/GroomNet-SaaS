@@ -4,7 +4,6 @@ from .models import Booking , PaymentModel
 from authservice.models import User
 from barbersite.models import BarberSlot
 from profileservice.models import Address
-from .utils import get_lat_lng_from_address
 from django.db import transaction
 from decimal import Decimal
 
@@ -42,8 +41,6 @@ class AddressSerializer(serializers.ModelSerializer):
         
         return address
 
-from rest_framework import serializers
-from .models import Booking, PaymentModel
 
 class BookingCreateSerializer(serializers.ModelSerializer):
     payment_method = serializers.ChoiceField(choices=['COD', 'STRIPE', 'WALLET'])

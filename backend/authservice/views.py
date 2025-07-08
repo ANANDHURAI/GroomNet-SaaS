@@ -47,7 +47,6 @@ class CustomerBarberLogin(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-
 class RegisterView(APIView):
     def post(self, request):
         serializer = RegisterSerializer(data=request.data)
@@ -125,21 +124,18 @@ class OTPVerification(APIView):
             )
 
         try:
-            
             user_data = cache.get(f"registration_{email}")
             if not user_data:
                 return Response(
                     {'error': 'OTP expired or not found. Please register again.'}, 
                     status=status.HTTP_400_BAD_REQUEST
                 )
-
            
             if user_data['otp'] != otp:
                 return Response(
                     {'error': 'Invalid OTP. Please try again.'}, 
                     status=status.HTTP_400_BAD_REQUEST
                 )
-
             
             data = user_data['data']
             user = User.objects.create_user(
@@ -149,15 +145,10 @@ class OTPVerification(APIView):
                 user_type='customer',
                 password=data.get('password', '')
             )
-
            
             refresh = RefreshToken.for_user(user)
-            
-            
             cache.delete(f"registration_{email}")
-            
-            logger.info(f"User registered successfully: {email}")
-            
+
             return Response({
                 'message': 'User registered successfully',
                 'refresh': str(refresh),
@@ -237,6 +228,7 @@ class AdminDashboard(APIView):
         data = {'great_massage': f'Hello welcome Admin {request.user.name}!'}
         return Response(data)
     
+
 class ForgotPasswordView(APIView):
     def post(self, request):
         serializer = ForgotPasswordSerializer(data=request.data)
@@ -244,11 +236,12 @@ class ForgotPasswordView(APIView):
 
         email = serializer.validated_data['email']
         otp = random.randint(1000, 9999)
-        cache.set(f"otp_{email}", str(otp), timeout=300)  # 5 minutes
+        cache.set(f"otp_{email}", str(otp), timeout=300) 
 
         if send_otp(email, otp):
             return Response({"message": "OTP sent to your email for password reset.", "email": email})
         return Response({"error": "Failed to send OTP"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 class VerifyOTPView(APIView):
     def post(self, request):
@@ -268,6 +261,7 @@ class VerifyOTPView(APIView):
         
         return Response({"message": "OTP verified successfully.", "email": email})
 
+
 class ResetPasswordView(APIView):
     def post(self, request):
         serializer = ResetPasswordSerializer(data=request.data)
@@ -277,7 +271,6 @@ class ResetPasswordView(APIView):
         otp = serializer.validated_data['otp']
         new_password = serializer.validated_data['new_password']
         
-        # Verify OTP one more time
         cached_otp = cache.get(f"otp_{email}")
         if not cached_otp or cached_otp != otp:
             return Response({"error": "Invalid or expired OTP."}, status=status.HTTP_400_BAD_REQUEST)
@@ -286,7 +279,7 @@ class ResetPasswordView(APIView):
             user = User.objects.get(email=email)
             user.set_password(new_password)
             user.save()
-            cache.delete(f"otp_{email}")  # Clear OTP after successful reset
+            cache.delete(f"otp_{email}")
             return Response({"message": "Password reset successfully."})
         except User.DoesNotExist:
             return Response({"error": "User not found."}, status=status.HTTP_404_NOT_FOUND)
