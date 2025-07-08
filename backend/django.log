@@ -39305,3 +39305,9 @@ Internal Server Error: /payment-service/wallet/stripe-checkout/
 Internal Server Error: /payment-service/wallet/stripe-checkout/
 Internal Server Error: /payment-service/wallet/stripe-checkout/
 Internal Server Error: /payment-service/wallet/verify-payment/
+Unauthorized: /customersite/wallet/
+Unauthorized: /customersite/wallet/
+Bad Request: /auth/logout/
+Bad Request: /auth/customer-barber-login/
+Not Found: /profile-service/address/
+Not Found: /profile-service/address/

@@ -6,6 +6,7 @@ from barbersite.models import BarberSlot
 from profileservice.models import Address
 from django.db import transaction
 from decimal import Decimal
+from .utils import get_lat_lng_from_address
 
 class BarberSerializer(serializers.ModelSerializer):
     class Meta:
@@ -42,6 +43,7 @@ class AddressSerializer(serializers.ModelSerializer):
         return address
 
 
+from.models import CustomerWallet
 class BookingCreateSerializer(serializers.ModelSerializer):
     payment_method = serializers.ChoiceField(choices=['COD', 'STRIPE', 'WALLET'])
     slot = serializers.PrimaryKeyRelatedField(
@@ -107,6 +109,13 @@ class BookingCreateSerializer(serializers.ModelSerializer):
                 if slot:
                     slot.is_booked = True
                     slot.save()
+
+            if payment_method == "WALLET":
+                wallet = CustomerWallet.objects.select_for_update().get(user=customer)
+                if wallet.account_total_balance < total_amount:
+                    raise serializers.ValidationError("Insufficient wallet balance.")
+                wallet.account_total_balance -= total_amount
+                wallet.save()
                     
             status = 'PENDING' if booking_type == "INSTANT_BOOKING" else 'CONFIRMED'
 

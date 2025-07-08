@@ -508,9 +508,6 @@ def get_booking_details(request, booking_id):
         return Response({"error": "Booking not found or not assigned to you."}, status=404)
     
 
-
-
-
 class CustomerWalletView(APIView):
     permission_classes = [IsAuthenticated]
 
