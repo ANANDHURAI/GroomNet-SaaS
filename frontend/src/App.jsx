@@ -53,6 +53,7 @@ import ResetPassword from './pages/authservice/ResetPassword'
 import WorkingArea from './pages/barbersite/WorkingArea'
 import TravelPage from './pages/barbersite/TravelPage'
 import StatusCheaking from './pages/customersite/StatusCheaking'
+import CustomerWallet from './pages/customersite/CustomerWallet'
 
 function App() {
   return (
@@ -306,6 +307,8 @@ function App() {
                 </CustomerLayout>
               }
             />
+            <Route path="/customer-wallet" element={<CustomerWallet />} />
+
 
           </Routes>
         </ServiceProvider>

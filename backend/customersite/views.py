@@ -11,6 +11,8 @@ BarberSerializer ,
 AvailableSlotSerializer,
 AddressSerializer,
 BookingCreateSerializer,
+CustomerWalletSerializer,
+
 )
 from adminsite.models import CategoryModel , ServiceModel
 import logging
@@ -20,7 +22,7 @@ from django.utils import timezone
 from profileservice.models import Address,UserProfile
 from profileservice.serializers import AddressSerializer
 from authservice.models import User
-from.models import Booking 
+from.models import Booking ,CustomerWallet
 logger = logging.getLogger(__name__)
 from django.utils import timezone
 from datetime import datetime
@@ -462,7 +464,6 @@ class BookingDetailView(APIView):
 
 
 
-
 @api_view(['PATCH'])
 @permission_classes([IsAuthenticated])
 def update_travel_status(request, booking_id):
@@ -505,3 +506,41 @@ def get_booking_details(request, booking_id):
         return Response(booking_data)
     except Booking.DoesNotExist:
         return Response({"error": "Booking not found or not assigned to you."}, status=404)
+    
+
+
+
+
+class CustomerWalletView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        wallet, created = CustomerWallet.objects.get_or_create(user=request.user)
+        data = {
+            "id": wallet.id,
+            "amount": wallet.amount,
+            "account_total_balance": wallet.account_total_balance,
+            "created_at": wallet.created_at
+        }
+        return Response(data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        serializer = CustomerWalletSerializer(data=request.data)
+        if serializer.is_valid():
+            amount = serializer.validated_data['amount']
+            wallet, created = CustomerWallet.objects.get_or_create(user=request.user)
+            wallet.account_total_balance += amount
+            wallet.save()
+            
+            return Response({'message': 'Amount successfully added to your wallet'}, status=status.HTTP_202_ACCEPTED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+    
+
+        
+
+
+
+
+

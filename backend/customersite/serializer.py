@@ -182,3 +182,7 @@ class PaymentSerializer(serializers.ModelSerializer):
             'booking_id', 'customer_name', 'service_name'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
+
+class CustomerWalletSerializer(serializers.Serializer):
+    amount = serializers.DecimalField(max_digits=10, decimal_places=2)
+

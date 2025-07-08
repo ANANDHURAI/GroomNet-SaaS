@@ -14,7 +14,7 @@ const CusSideNavBar = () => {
         <Link to="/my-addresses" className="text-gray-700 hover:text-purple-600">
           My Addresses
         </Link>
-        <Link to="/wallet" className="text-gray-700 hover:text-purple-600">
+        <Link to="/customer-wallet" className="text-gray-700 hover:text-purple-600">
           Wallet
         </Link>
       </nav>

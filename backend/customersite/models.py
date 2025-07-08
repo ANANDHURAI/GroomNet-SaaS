@@ -92,3 +92,15 @@ class PaymentModel(models.Model):
         return self.service_amount + self.platform_fee
 
 
+class CustomerWallet(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="user_wallet")
+    amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    account_total_balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.name}'s Wallet - Balance: ₹{self.account_total_balance}"
+
+
+
+   
