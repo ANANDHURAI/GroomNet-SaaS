@@ -2,46 +2,65 @@ import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import apiClient from "../../slices/api/apiIntercepters";
 import BarberSidebar from "../../components/barbercompo/BarberSidebar";
+import { 
+  Home, 
+  Car, 
+  Map, 
+  MapPin, 
+  CheckCircle, 
+  Loader2,
+  User,
+  Scissors,
+  CreditCard,
+  ChevronRight,
+  Clock,
+  AlertCircle
+} from "lucide-react";
+import Message from "../../components/customercompo/booking/Message";
 
 function TravelPage() {
   const { bookingId } = useParams();
   const [currentStatus, setCurrentStatus] = useState("NOT_STARTED");
   const [isLoading, setIsLoading] = useState(false);
   const [bookingDetails, setBookingDetails] = useState(null);
-
+  const [serviceSocket, setServiceSocket] = useState(null);
+  const [serviceStatus, setServiceStatus] = useState("not_requested");
+  const [waitTime, setWaitTime] = useState(0);
+  const [waitTimer, setWaitTimer] = useState(null);
+  const [notification, setNotification] = useState(""); 
   const statusFlow = [
     {
       key: "NOT_STARTED",
       label: "Not Started",
-      icon: "🏠",
+      icon: <Home className="w-5 h-5" />,
       color: "gray",
       description: "Ready to begin your journey"
     },
     {
       key: "STARTED",
       label: "Started",
-      icon: "🚗",
+      icon: <Car className="w-5 h-5" />,
       color: "green",
       description: "Journey has begun"
     },
     {
       key: "ON_THE_WAY",
       label: "On the Way",
-      icon: "🛣️",
+      icon: <Map className="w-5 h-5" />,
       color: "yellow",
       description: "Traveling to destination"
     },
     {
       key: "ALMOST_NEAR",
       label: "Almost Near",
-      icon: "📍",
+      icon: <MapPin className="w-5 h-5" />,
       color: "orange",
       description: "Almost at customer location"
     },
     {
       key: "ARRIVED",
       label: "Arrived",
-      icon: "✅",
+      icon: <CheckCircle className="w-5 h-5" />,
       color: "blue",
       description: "Reached customer location"
     }
@@ -63,6 +82,66 @@ function TravelPage() {
     }
   }, [bookingId]);
 
+  useEffect(() => {
+    if (currentStatus === "ARRIVED") {
+      const wsUrl = `ws://localhost:8000/ws/service/conformation/`;
+      const socket = new WebSocket(wsUrl);
+      
+      socket.onopen = () => {
+        console.log("Service WebSocket connected");
+        setServiceSocket(socket);
+      };
+      
+      socket.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        console.log("WebSocket message:", data);
+        
+        if (data.type === 'customer_response') {
+          if (data.status === 'ready') {
+            setServiceStatus('ready');
+            showNotification("✅ Customer is ready! You can start the service.");
+          } else if (data.status === 'wait') {
+            setServiceStatus('wait');
+            setWaitTime(60);
+            startWaitTimer();
+            showNotification("⏳ Customer requested a 1 minute wait.");
+          }
+        }
+      };
+      
+      socket.onclose = () => {
+        console.log("Service WebSocket disconnected");
+        setServiceSocket(null);
+      };
+      
+      socket.onerror = (error) => {
+        console.error("WebSocket error:", error);
+      };
+      
+      return () => {
+        socket.close();
+      };
+    }
+  }, [currentStatus]);
+
+  const startWaitTimer = () => {
+    if (waitTimer) clearInterval(waitTimer);
+    
+    const timer = setInterval(() => {
+      setWaitTime((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          setServiceStatus('ready');
+          showNotification("✅ Wait time is over! You can now start the service.");
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    
+    setWaitTimer(timer);
+  };
+
   const updateStatus = async (status) => {
     setIsLoading(true);
     try {
@@ -73,19 +152,37 @@ function TravelPage() {
       
       setCurrentStatus(status);
       const statusLabel = statusFlow.find(s => s.key === status)?.label;
-      showNotification(`Status updated to ${statusLabel}`, "success");
+      showNotification(`✅ Status updated to ${statusLabel}`);
       
     } catch (error) {
       console.error("Failed to update status:", error);
-      showNotification("Failed to update travel status", "error");
+      showNotification("❌ Failed to update travel status");
     } finally {
       setIsLoading(false);
     }
   };
 
-  const showNotification = (message, type) => {
-    const alertClass = type === "success" ? "✅" : "❌";
-    alert(`${alertClass} ${message}`);
+  const requestServiceStart = async () => {
+    setIsLoading(true);
+    try {
+      await apiClient.post(`/instant-booking/service/conformation/${bookingId}/`, {
+        action: 'request_service'
+      });
+      
+      setServiceStatus('requested');
+      showNotification("✅ Service request sent to customer");
+      
+    } catch (error) {
+      console.error("Failed to request service:", error);
+      showNotification("❌ Failed to send service request");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const showNotification = (message) => {
+    setNotification(message);
+    setTimeout(() => setNotification(""), 2000); 
   };
 
   const getCurrentStatusIndex = () => {
@@ -111,6 +208,12 @@ function TravelPage() {
     return colorMap[color] || colorMap.gray;
   };
 
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
   const nextStatus = getNextStatus();
   const currentStatusIndex = getCurrentStatusIndex();
 
@@ -121,7 +224,6 @@ function TravelPage() {
       </div>
       <div className="flex-1 p-4 md:p-8 overflow-auto">
         <div className="max-w-5xl mx-auto">
-       
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
               Travel Status Update
@@ -133,19 +235,22 @@ function TravelPage() {
               <div className="mt-4 p-4 bg-white rounded-lg shadow-sm border">
                 <h3 className="font-semibold text-gray-800 mb-2">Booking Details</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                  <div>
+                  <div className="flex items-center">
+                    <User className="w-4 h-4 mr-2 text-gray-500" />
                     <span className="text-gray-500">Customer:</span>
                     <span className="ml-2 font-medium">{bookingDetails.customer?.name}</span>
                   </div>
-                  <div>
+                  <div className="flex items-center">
+                    <Scissors className="w-4 h-4 mr-2 text-gray-500" />
                     <span className="text-gray-500">Service:</span>
                     <span className="ml-2 font-medium">{bookingDetails.service?.name}</span>
                   </div>
-                  <div>
+                  <div className="flex items-center">
+                    <CreditCard className="w-4 h-4 mr-2 text-gray-500" />
                     <span className="text-gray-500">Booking ID:</span>
                     <span className="ml-2 font-medium">#{bookingId}</span>
                   </div>
-                  <div>
+                  <div className="flex items-center">
                     <span className="text-gray-500">Amount:</span>
                     <span className="ml-2 font-medium">₹{bookingDetails.total_amount}</span>
                   </div>
@@ -163,13 +268,15 @@ function TravelPage() {
                   {statusFlow.map((status, index) => (
                     <div key={status.key} className="flex flex-col items-center relative">
                       <div
-                        className={`w-12 h-12 rounded-full border-2 flex items-center justify-center text-xl transition-all duration-300 ${
+                        className={`w-12 h-12 rounded-full border-2 flex items-center justify-center transition-all duration-300 ${
                           index <= currentStatusIndex
                             ? `${getColorClasses(status.color, true)} text-white shadow-lg`
                             : `${getColorClasses(status.color, false)} hover:shadow-md`
                         }`}
                       >
-                        {status.icon}
+                        {React.cloneElement(status.icon, {
+                          className: `w-5 h-5 ${index <= currentStatusIndex ? 'text-white' : ''}`
+                        })}
                       </div>
                       <div className="mt-2 text-center">
                         <div className={`text-xs font-medium ${
@@ -208,14 +315,84 @@ function TravelPage() {
             <h2 className="text-xl font-semibold text-gray-800 mb-6">Update Status</h2>
             
             {currentStatus === "ARRIVED" ? (
-              <div className="text-center p-8 bg-green-50 rounded-lg border border-green-200">
-                <div className="text-4xl mb-4">🎉</div>
-                <h3 className="text-xl font-bold text-green-800 mb-2">
-                  You've Arrived!
-                </h3>
-                <p className="text-green-600">
-                  Great job! You've successfully reached your customer's location.
-                </p>
+              <div className="space-y-4">
+                <div className="text-center p-8 bg-green-50 rounded-lg border border-green-200">
+                  <CheckCircle className="w-12 h-12 mx-auto mb-4 text-green-600" />
+                  <h3 className="text-xl font-bold text-green-800 mb-2">
+                    You've Arrived!
+                  </h3>
+                  <p className="text-green-600">
+                    Great job! You've successfully reached your customer's location.
+                  </p>
+                </div>
+
+               
+                <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                  <h3 className="text-lg font-semibold text-blue-800 mb-4">Start Service</h3>
+                  
+                  {serviceStatus === 'not_requested' && (
+                    <button
+                      onClick={requestServiceStart}
+                      disabled={isLoading}
+                      className={`w-full px-6 py-3 rounded-lg font-medium text-white transition-all duration-200 flex items-center justify-center ${
+                        isLoading
+                          ? 'bg-gray-400 cursor-not-allowed'
+                          : 'bg-blue-600 hover:bg-blue-700 hover:shadow-lg active:scale-95'
+                      }`}
+                    >
+                      {isLoading ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          <span>Requesting...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Scissors className="w-4 h-4 mr-2" />
+                          <span>Request to Start Service</span>
+                        </>
+                      )}
+                    </button>
+                  )}
+
+                  {serviceStatus === 'requested' && (
+                    <div className="text-center p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                      <Clock className="w-8 h-8 mx-auto mb-2 text-yellow-600" />
+                      <p className="text-yellow-700 font-medium">
+                        Waiting for customer response...
+                      </p>
+                      <p className="text-sm text-yellow-600 mt-1">
+                        The customer will receive a notification to confirm if they're ready.
+                      </p>
+                    </div>
+                  )}
+
+                  {serviceStatus === 'wait' && (
+                    <div className="text-center p-4 bg-orange-50 rounded-lg border border-orange-200">
+                      <AlertCircle className="w-8 h-8 mx-auto mb-2 text-orange-600" />
+                      <p className="text-orange-700 font-medium">
+                        Customer needs to wait
+                      </p>
+                      <p className="text-sm text-orange-600 mt-1">
+                        Please wait for: <span className="font-bold">{formatTime(waitTime)}</span>
+                      </p>
+                    </div>
+                  )}
+
+                  {serviceStatus === 'ready' && (
+                    <div className="text-center p-4 bg-green-50 rounded-lg border border-green-200">
+                      <CheckCircle className="w-8 h-8 mx-auto mb-2 text-green-600" />
+                      <p className="text-green-700 font-medium">
+                        Customer is ready!
+                      </p>
+                      <p className="text-sm text-green-600 mt-1">
+                        You can now start providing the service.
+                      </p>
+                      <button className="mt-3 px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+                        Start Service Now
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             ) : (
               <div className="space-y-4">
@@ -223,7 +400,9 @@ function TravelPage() {
                   <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-3">
-                        <div className="text-2xl">{nextStatus.icon}</div>
+                        <div className="p-2 rounded-full bg-blue-100 text-blue-600">
+                          {nextStatus.icon}
+                        </div>
                         <div>
                           <div className="font-semibold text-gray-800">
                             Next: {nextStatus.label}
@@ -236,34 +415,35 @@ function TravelPage() {
                       <button
                         onClick={() => updateStatus(nextStatus.key)}
                         disabled={isLoading}
-                        className={`px-6 py-3 rounded-lg font-medium text-white transition-all duration-200 ${
+                        className={`px-6 py-3 rounded-lg font-medium text-white transition-all duration-200 flex items-center ${
                           isLoading
                             ? 'bg-gray-400 cursor-not-allowed'
                             : 'bg-blue-600 hover:bg-blue-700 hover:shadow-lg active:scale-95'
                         }`}
                       >
                         {isLoading ? (
-                          <span className="flex items-center space-x-2">
-                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                             <span>Updating...</span>
-                          </span>
+                          </>
                         ) : (
-                          'Update Status'
+                          <>
+                            <span>Update Status</span>
+                            <ChevronRight className="w-4 h-4 ml-2" />
+                          </>
                         )}
                       </button>
                     </div>
                   </div>
                 )}
-
-
               </div>
             )}
           </div>
         </div>
       </div>
+      {notification && <Message message={notification} />}
     </div>
   );
-
 }
 
 export default TravelPage;

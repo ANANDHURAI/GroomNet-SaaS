@@ -320,7 +320,6 @@ class InstantBookingConsumer(AsyncWebsocketConsumer):
             return False
         
 
-
 class BarberGeneralConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         await self.authenticate_user()
@@ -387,3 +386,77 @@ class BarberGeneralConsumer(AsyncWebsocketConsumer):
             ).exists()
         except:
             return False
+
+
+class ServiceConformationConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
+        self.group_name = "service_start_request"
+        await self.channel_layer.group_add(
+            self.group_name,
+            self.channel_name
+        )
+        await self.accept()
+
+    async def disconnect(self, close_code):
+        await self.channel_layer.group_discard(
+            self.group_name,
+            self.channel_name
+        )
+
+    async def receive(self, text_data):
+        data = json.loads(text_data)
+        action = data.get('action')
+        booking_id = data.get('booking_id')
+
+        if action == 'ready':
+            await self.channel_layer.group_send(
+                self.group_name,
+                {
+                    "type": "customer_ready",
+                    "booking_id": booking_id
+                }
+            )
+        elif action == 'wait':
+            await self.channel_layer.group_send(
+                self.group_name,
+                {
+                    "type": "customer_wait",
+                    "booking_id": booking_id
+                }
+            )
+
+    async def customer_ready(self, event):
+        booking_id = event['booking_id']
+        await self.send(text_data=json.dumps({
+            'type': 'customer_response',
+            'status': 'ready',
+            'booking_id': booking_id
+        }))
+
+    async def customer_wait(self, event):
+        booking_id = event['booking_id']
+        await self.send(text_data=json.dumps({
+            'type': 'customer_response',
+            'status': 'wait',
+            'booking_id': booking_id
+        }))
+
+    async def send_request_to_customer(self, event):
+        booking_id = event['booking_id']
+        await self.send(text_data=json.dumps({
+            'type': 'service_request',
+            'booking_id': booking_id,
+            'message': 'Barber wants to start the service. Are you ready?'
+        }))
+
+    @database_sync_to_async
+    def start_service(self, booking_id):
+        booking = Booking.objects.select_related('barber').get(id=booking_id)
+        if booking.barber:
+            return {
+                'barber_id': booking.barber.id,
+                'barber_name': booking.barber.name
+            }
+        return None
+    
+

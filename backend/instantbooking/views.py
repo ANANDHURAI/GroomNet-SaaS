@@ -226,4 +226,33 @@ class BarberOnlineStatusView(APIView):
         return Response({'is_online': is_online})
     
 
+class CustomerConformationView(APIView):
+    permission_classes = [IsAuthenticated]
+    channel_layer = get_channel_layer()
 
+    def post(self, request, booking_id):
+        action = request.data.get('action')
+
+        if action == 'request_service':
+            async_to_sync(self.channel_layer.group_send)(
+                "service_start_request",
+                {
+                    "type": "send_request_to_customer",
+                    "booking_id": booking_id
+                }
+            )
+            return Response({"status": "Request sent to customer"}, status=200)
+
+        elif action in ['ready', 'wait']:
+            async_to_sync(self.channel_layer.group_send)(
+                "service_start_request",
+                {
+                    "type": "customer_ready" if action == 'ready' else "customer_wait",
+                    "booking_id": booking_id
+                }
+            )
+            return Response({"status": f"Customer response: {action}"}, status=200)
+        
+        else:
+            return Response({"error": "Invalid action"}, status=400)
+    

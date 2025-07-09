@@ -2,7 +2,18 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import apiClient from '../../slices/api/apiIntercepters';
 import CustomerLayout from '../../components/customercompo/CustomerLayout';
-import { Truck, Clock, MessageSquare, MapPin } from 'lucide-react';
+import { 
+  Truck, 
+  Clock, 
+  MessageSquare, 
+  MapPin, 
+  CheckCircle, 
+  AlertCircle,
+  X,
+  Scissors,
+  User
+} from 'lucide-react';
+import Message from '../../components/customercompo/booking/Message';
 
 function BookingDetailsPage() {
   const { id } = useParams();
@@ -10,6 +21,10 @@ function BookingDetailsPage() {
   const [data, setData] = useState(null);
   const [travelStatus, setTravelStatus] = useState(null);
   const [timeLeft, setTimeLeft] = useState('');
+  const [serviceSocket, setServiceSocket] = useState(null);
+  const [showServicePopup, setShowServicePopup] = useState(false);
+  const [isResponding, setIsResponding] = useState(false);
+  const [notification, setNotification] = useState('');
 
   useEffect(() => {
     apiClient.get(`/customersite/booking-details/${id}/`)
@@ -18,13 +33,46 @@ function BookingDetailsPage() {
         setData(res.data);
         calculateTimeLeft(res.data.date, res.data.slottime);
         
-     
         const bookingIdToUse = res.data.id || res.data.orderid; 
         console.log("Using booking ID for travel status:", bookingIdToUse);
         fetchTravelStatus(bookingIdToUse);
       })
       .catch(err => console.error("Booking fetch error", err));
   }, [id]);
+
+  useEffect(() => {
+    if (data && data.booking_status === 'CONFIRMED') {
+      const wsUrl = `ws://localhost:8000/ws/service/conformation/`;
+      const socket = new WebSocket(wsUrl);
+      
+      socket.onopen = () => {
+        console.log("Service WebSocket connected");
+        setServiceSocket(socket);
+      };
+      
+      socket.onmessage = (event) => {
+        const message = JSON.parse(event.data);
+        console.log("WebSocket message:", message);
+        
+        if (message.type === 'service_request') {
+          setShowServicePopup(true);
+        }
+      };
+      
+      socket.onclose = () => {
+        console.log("Service WebSocket disconnected");
+        setServiceSocket(null);
+      };
+      
+      socket.onerror = (error) => {
+        console.error("WebSocket error:", error);
+      };
+      
+      return () => {
+        socket.close();
+      };
+    }
+  }, [data]);
 
   const calculateTimeLeft = (date, time) => {
     if (time === "N/A") {
@@ -51,6 +99,30 @@ function BookingDetailsPage() {
     }
   };
 
+  const handleServiceResponse = (response) => {
+    if (!serviceSocket) return;
+    
+    setIsResponding(true);
+    
+    const message = {
+      action: response,
+      booking_id: data.id || data.orderid
+    };
+    
+    serviceSocket.send(JSON.stringify(message));
+    
+    setTimeout(() => {
+      setIsResponding(false);
+      setShowServicePopup(false);
+
+      if (response === 'ready') {
+        setNotification('✅ You confirmed you are ready! The barber will start the service.');
+      } else {
+        setNotification('⏳ You requested to wait. The barber will wait for 1 minute.');
+      }
+    }, 1000);
+  };
+
   const handleChatClick = () => {
     navigate(`/customer/chat/${id}`, {
       state: {
@@ -58,6 +130,107 @@ function BookingDetailsPage() {
         barberName: data.barbername
       }
     });
+  };
+
+  const ServiceConfirmationPopup = () => {
+    if (!showServicePopup) return null;
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 transform transition-all">
+          <div className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center space-x-3">
+                <div className="p-2 bg-blue-100 rounded-full">
+                  <Scissors className="w-6 h-6 text-blue-600" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-800">Service Request</h3>
+                  <p className="text-sm text-gray-600">From your barber</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowServicePopup(false)}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="mb-6">
+              <div className="flex items-center space-x-3 mb-4">
+                <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
+                  <User className="w-5 h-5 text-gray-600" />
+                </div>
+                <div>
+                  <p className="font-medium text-gray-800">{data?.barbername}</p>
+                  <p className="text-sm text-gray-600">Your assigned barber</p>
+                </div>
+              </div>
+              
+              <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                <p className="text-blue-800 font-medium">
+                  "I've arrived at your location and I'm ready to start the service. Are you ready?"
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <button
+                onClick={() => handleServiceResponse('ready')}
+                disabled={isResponding}
+                className={`w-full px-6 py-3 rounded-lg font-medium text-white transition-all duration-200 flex items-center justify-center ${
+                  isResponding
+                    ? 'bg-gray-400 cursor-not-allowed'
+                    : 'bg-green-600 hover:bg-green-700 hover:shadow-lg active:scale-95'
+                }`}
+              >
+                {isResponding ? (
+                  <>
+                    <div className="w-4 h-4 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <span>Responding...</span>
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle className="w-4 h-4 mr-2" />
+                    <span>I'm Ready!</span>
+                  </>
+                )}
+              </button>
+
+              <button
+                onClick={() => handleServiceResponse('wait')}
+                disabled={isResponding}
+                className={`w-full px-6 py-3 rounded-lg font-medium transition-all duration-200 flex items-center justify-center ${
+                  isResponding
+                    ? 'bg-gray-400 cursor-not-allowed text-white'
+                    : 'bg-white text-orange-600 border-2 border-orange-600 hover:bg-orange-50 active:scale-95'
+                }`}
+              >
+                {isResponding ? (
+                  <>
+                    <div className="w-4 h-4 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <span>Responding...</span>
+                  </>
+                ) : (
+                  <>
+                    <Clock className="w-4 h-4 mr-2" />
+                    <span>Please Wait (1 min)</span>
+                  </>
+                )}
+              </button>
+            </div>
+
+            <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+              <p className="text-xs text-gray-600 text-center">
+                <strong>Ready:</strong> Service will start immediately<br />
+                <strong>Wait:</strong> Barber will wait for 1 minute
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -98,6 +271,35 @@ function BookingDetailsPage() {
                 <Clock size={14} className="inline mr-1" />
                 <strong>ETA:</strong> {travelStatus.eta} | <strong>Distance:</strong> {travelStatus.distance}
               </p>
+              
+              {travelStatus.travel_status === 'ARRIVED' && (
+                <div className="mt-2 p-2 bg-green-100 rounded border border-green-300">
+                  <div className="flex items-center text-green-800">
+                    <CheckCircle size={16} className="mr-1" />
+                    <span className="text-sm font-medium">Barber has arrived at your location!</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {data.booking_status === 'CONFIRMED' && travelStatus?.travel_status === 'ARRIVED' && (
+            <div className="bg-gradient-to-r from-green-50 to-blue-50 p-4 rounded-lg border border-green-200 mt-4">
+              <h3 className="text-green-800 flex items-center gap-2 font-semibold mb-2">
+                <Scissors size={18} /> Service Status
+              </h3>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-green-700 font-medium">Your barber is ready to start the service</p>
+                  <p className="text-sm text-green-600 mt-1">
+                    You will receive a notification when the barber wants to begin
+                  </p>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  <span className="text-sm text-green-600">Active</span>
+                </div>
+              </div>
             </div>
           )}
 
@@ -124,6 +326,10 @@ function BookingDetailsPage() {
       ) : (
         <div className="text-gray-600">Loading booking details...</div>
       )}
+
+      <ServiceConfirmationPopup />
+
+      {notification && <Message message={notification} />}
     </CustomerLayout>
   );
 }
