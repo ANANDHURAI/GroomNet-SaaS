@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import apiClient from "../../slices/api/apiIntercepters";
 import BarberSidebar from "../../components/barbercompo/BarberSidebar";
 import { 
@@ -28,6 +28,9 @@ function TravelPage() {
   const [waitTime, setWaitTime] = useState(0);
   const [waitTimer, setWaitTimer] = useState(null);
   const [notification, setNotification] = useState(""); 
+
+  const navigate = useNavigate();
+
   const statusFlow = [
     {
       key: "NOT_STARTED",
@@ -387,7 +390,10 @@ function TravelPage() {
                       <p className="text-sm text-green-600 mt-1">
                         You can now start providing the service.
                       </p>
-                      <button className="mt-3 px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+                      <button
+                        className="mt-3 px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                        onClick={() => navigate(`/barber/service-complete/${bookingId}`)}
+                      >
                         Start Service Now
                       </button>
                     </div>

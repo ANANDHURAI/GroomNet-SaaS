@@ -54,10 +54,6 @@ function BookingHistoryPage() {
                   </p>
 
                   <p className="text-sm text-gray-500">
-                    Barber: {booking.barbername}
-                  </p>
-
-                  <p className="text-sm text-gray-500">
                     Total: ₹{booking.total_amount.toFixed(2)}
                   </p>
                 </div>

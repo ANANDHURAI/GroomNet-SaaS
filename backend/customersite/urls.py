@@ -16,7 +16,8 @@ from .views import (
     update_travel_status,
     get_travel_status,
     get_booking_details,
-    CustomerWalletView
+    CustomerWalletView,
+    CompletedServiceView
     
 )
 
@@ -38,5 +39,6 @@ urlpatterns = [
     path('booking/<int:booking_id>/get-travel-status/',get_travel_status, name="get_travel_status"),
     path('booking/<int:booking_id>/', get_booking_details, name="get_booking_details"),
     path('wallet/', CustomerWalletView.as_view(), name="wallet_details"),
+    path('complete/service/<int:booking_id>/', CompletedServiceView.as_view(), name="complete-service"),
     
 ]

@@ -424,6 +424,14 @@ class ServiceConformationConsumer(AsyncWebsocketConsumer):
                     "booking_id": booking_id
                 }
             )
+        elif action == 'service_completed':
+            await self.channel_layer.group_send(
+                self.group_name,
+                {
+                    "type": "send_complete_message_to_customer",
+                    "booking_id": booking_id
+                }
+            )
 
     async def customer_ready(self, event):
         booking_id = event['booking_id']
@@ -447,6 +455,14 @@ class ServiceConformationConsumer(AsyncWebsocketConsumer):
             'type': 'service_request',
             'booking_id': booking_id,
             'message': 'Barber wants to start the service. Are you ready?'
+        }))
+
+    async def send_complete_message_to_customer(self, event):
+        booking_id = event['booking_id']
+        await self.send(text_data=json.dumps({
+            'type': 'serivce_completed',
+            'status': 'completed',
+            'booking_id': booking_id
         }))
 
     @database_sync_to_async

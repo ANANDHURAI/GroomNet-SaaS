@@ -14,13 +14,14 @@ const WorkingArea = () => {
   const navigate = useNavigate()
 
   const ACCESS_TOKEN = sessionStorage.getItem('access_token');
+  
   useEffect(() => {
     const savedAcceptedBooking = sessionStorage.getItem('acceptedBooking');
     if (savedAcceptedBooking) {
       try {
         const parsedBooking = JSON.parse(savedAcceptedBooking);
         setAcceptedBooking(parsedBooking);
-        setIsOnline(true); 
+        setIsOnline(true);
         connectToBookingUpdates();
       } catch (error) {
         console.error('Error parsing saved booking:', error);
@@ -101,6 +102,7 @@ const WorkingArea = () => {
       }
     };
 
+
     wsRef.current.onclose = () => {
       console.log('WebSocket disconnected');
     };
@@ -127,7 +129,10 @@ const WorkingArea = () => {
       const acceptedBookingData = {
         ...currentBooking,
         customer_phone: response.data.customer_phone,
-        customer_location: response.data.customer_location
+        customer_location: response.data.customer_location,
+        service_name: response.data.service_name,
+        price: response.data.service_price,
+        duration: response.data.service_duration
       };
       
       setAcceptedBooking(acceptedBookingData);
@@ -135,8 +140,14 @@ const WorkingArea = () => {
       setNotification('Booking accepted successfully!');
     } catch (error) {
       console.error('Error accepting booking:', error);
+      
+
       if (error.response?.status === 400) {
-        setNotification('Booking already assigned to another barber');
+        const errorMessage = error.response.data?.detail || 'Booking already assigned to another barber';
+        setNotification(errorMessage);
+        setCurrentBooking(null);
+      } else if (error.response?.status === 404) {
+        setNotification('Booking not found');
         setCurrentBooking(null);
       } else {
         setNotification('Error accepting booking');

@@ -252,6 +252,15 @@ class CustomerConformationView(APIView):
                 }
             )
             return Response({"status": f"Customer response: {action}"}, status=200)
+        elif action == 'service_completed':
+            async_to_sync(self.channel_layer.group_send)(
+                "service_start_request",
+                {
+                    "type": "send_complete_message_to_customer",
+                    "booking_id": booking_id
+                }
+            )
+            return Response({"status": "Service completion notification sent"}, status=200)
         
         else:
             return Response({"error": "Invalid action"}, status=400)

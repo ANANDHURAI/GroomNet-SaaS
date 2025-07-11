@@ -533,8 +533,77 @@ class CustomerWalletView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+from django.utils.timezone import now
 
-        
+class CompletedServiceView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, booking_id):
+        try:
+            booking = Booking.objects.select_related(
+                'customer', 'address', 'service', 'payment'
+            ).get(id=booking_id)
+
+            payment = booking.payment
+
+            data = {
+                'id': booking.id,
+                'customer_name': booking.customer.name,
+                'customer_phone': booking.customer.phone,
+                'address': f"{booking.address.building}, {booking.address.street}, {booking.address.city}, {booking.address.state} - {booking.address.pincode}",
+                'service': booking.service.name,
+                'price': str(booking.total_amount),
+                'service_amount': str(payment.service_amount),
+                'platform_fee': str(payment.platform_fee),
+                'booking_type': booking.booking_type,
+                'payment_method': payment.payment_method.upper(),
+                'payment_done': payment.payment_status == "SUCCESS",
+            }
+
+            return Response(data, status=status.HTTP_200_OK)
+
+        except Booking.DoesNotExist:
+            return Response(
+                {"error": "Booking not found ❌"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+    def post(self, request, booking_id):
+        try:
+            booking = Booking.objects.select_related('payment').get(id=booking_id)
+            payment = booking.payment
+
+            if payment.payment_method == "COD" and payment.payment_status != "SUCCESS":
+                payment.payment_status = "SUCCESS"
+                payment.save()
+
+            booking.status = "COMPLETED"
+            booking.is_payment_done = True
+            booking.completed_at = now()
+            booking.save()
+
+            if payment.payment_method == "COD":
+                earnings = payment.service_amount  
+                message = f"✅ Service completed. You earned ₹{earnings}. Please deposit ₹{payment.platform_fee} platform fee manually."
+            else:
+                earnings = payment.service_amount 
+                message = f"✅ Service completed. You earned ₹{earnings}."
+
+            return Response(
+                {
+                    "message": message,
+                    "earnings": str(earnings),
+                    "platform_fee": str(payment.platform_fee) if payment.payment_method == "COD" else None,
+                    "payment_method": payment.payment_method
+                },
+                status=status.HTTP_200_OK
+            )
+
+        except Booking.DoesNotExist:
+            return Response(
+                {"error": "Booking not found ❌"},
+                status=status.HTTP_404_NOT_FOUND
+            )
 
 
         

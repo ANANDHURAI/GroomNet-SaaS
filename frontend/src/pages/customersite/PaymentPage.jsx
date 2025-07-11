@@ -77,9 +77,12 @@ function PaymentPage() {
       sessionStorage.setItem('instantBookingId', bookingId);
 
       if (method === "COD" || method === "WALLET") {
-        navigate('/booking-success');
+        setTimeout(() => {
+          navigate('/booking-success');
+        }, 3000);
         return;
       }
+
 
       const stripeSessionRes = await apiClient.post('/payment-service/create-checkout-session/', {
         booking_id: bookingId
