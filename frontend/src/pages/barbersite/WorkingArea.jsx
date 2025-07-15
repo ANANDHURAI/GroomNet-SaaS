@@ -3,6 +3,8 @@ import { Power, User, Clock, MapPin, Phone, Check, X, IndianRupee } from 'lucide
 import apiClient from '../../slices/api/apiIntercepters';
 import BarberSidebar from '../../components/barbercompo/BarberSidebar';
 import { useNavigate } from 'react-router-dom';
+import Appointments from './Appointments';
+import NotificationIndicator from '../../components/mini ui/NotificationIndicater';
 
 const WorkingArea = () => {
   const [isOnline, setIsOnline] = useState(false);
@@ -10,6 +12,7 @@ const WorkingArea = () => {
   const [acceptedBooking, setAcceptedBooking] = useState(null);
   const [notification, setNotification] = useState('');
   const [loading, setLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState('instant'); // 'instant' or 'scheduled'
   const wsRef = useRef(null);
   const navigate = useNavigate()
 
@@ -22,7 +25,9 @@ const WorkingArea = () => {
         const parsedBooking = JSON.parse(savedAcceptedBooking);
         setAcceptedBooking(parsedBooking);
         setIsOnline(true);
-        connectToBookingUpdates();
+        if (activeTab === 'instant') {
+          connectToBookingUpdates();
+        }
       } catch (error) {
         console.error('Error parsing saved booking:', error);
         sessionStorage.removeItem('acceptedBooking');
@@ -31,8 +36,7 @@ const WorkingArea = () => {
     } else {
       setIsOnline(false);
     }
-  }, []);
-
+  }, [activeTab]);
 
   useEffect(() => {
     if (acceptedBooking) {
@@ -50,7 +54,6 @@ const WorkingArea = () => {
     };
   }, []);
 
-
   const toggleOnlineStatus = async () => {
     setLoading(true);
     try {
@@ -61,7 +64,7 @@ const WorkingArea = () => {
       setIsOnline(response.data.is_online);
       setNotification(response.data.is_online ? 'You are now online!' : 'You are now offline');
       
-      if (response.data.is_online) {
+      if (response.data.is_online && activeTab === 'instant') {
         connectToBookingUpdates();
       } else {
         disconnectFromBookingUpdates();
@@ -105,7 +108,6 @@ const WorkingArea = () => {
       }
     };
 
-
     wsRef.current.onclose = () => {
       console.log('WebSocket disconnected');
     };
@@ -144,7 +146,6 @@ const WorkingArea = () => {
     } catch (error) {
       console.error('Error accepting booking:', error);
       
-
       if (error.response?.status === 400) {
         const errorMessage = error.response.data?.detail || 'Booking already assigned to another barber';
         setNotification(errorMessage);
@@ -177,7 +178,6 @@ const WorkingArea = () => {
     }
   };
 
-
   const clearNotification = () => {
     setTimeout(() => setNotification(''), 3000);
   };
@@ -188,6 +188,205 @@ const WorkingArea = () => {
     }
   }, [notification]);
 
+  const renderInstantBookingContent = () => (
+    <>
+      <div className="bg-white rounded-lg shadow-sm p-6 mb-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900">
+              Work Status
+            </h3>
+            <p className="text-sm text-gray-500">
+              {isOnline
+                ? "Available for bookings"
+                : "Not receiving bookings"}
+            </p>
+          </div>
+          <button
+            onClick={toggleOnlineStatus}
+            disabled={loading}
+            className={`relative inline-flex h-8 w-16 rounded-full transition-colors duration-200 ease-in-out ${
+              isOnline ? "bg-green-500" : "bg-gray-300"
+            } ${loading ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
+          >
+            <span
+              className={`inline-block h-6 w-6 transform rounded-full bg-white transition duration-200 ease-in-out ${
+                isOnline ? "translate-x-9" : "translate-x-1"
+              } mt-1`}
+            />
+          </button>
+        </div>
+      </div>
+
+      {notification && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+          <p className="text-sm text-blue-800">{notification}</p>
+        </div>
+      )}
+
+      {currentBooking && (
+        <div className="bg-white rounded-lg shadow-sm p-6 mb-4 border-l-4 border-orange-400">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-900">
+              New Booking Request
+            </h3>
+            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+              Pending
+            </span>
+          </div>
+
+          <div className="space-y-3 mb-6">
+            <div className="flex items-center space-x-3">
+              <User className="w-4 h-4 text-gray-400" />
+              <span className="text-sm text-gray-900">
+                {currentBooking.customer_name}
+              </span>
+            </div>
+            <div className="flex items-center space-x-3">
+              <Clock className="w-4 h-4 text-gray-400" />
+              <span className="text-sm text-gray-900">
+                {currentBooking.service_name} ({currentBooking.duration} mins)
+              </span>
+            </div>
+            <div className="flex items-center space-x-3">
+              <IndianRupee className="w-4 h-4 text-gray-400" />
+              <span className="text-sm text-gray-900">
+                ${currentBooking.price}
+              </span>
+            </div>
+            <div className="flex items-center space-x-3">
+              <MapPin className="w-4 h-4 text-gray-400" />
+              <span className="text-sm text-gray-900">
+                {currentBooking.customer_location.address}
+              </span>
+            </div>
+          </div>
+
+          <div className="flex space-x-3">
+            <button
+              onClick={handleAcceptBooking}
+              disabled={loading}
+              className="flex-1 bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+            >
+              <Check className="w-4 h-4" />
+              <span>Accept</span>
+            </button>
+            <button
+              onClick={handleRejectBooking}
+              disabled={loading}
+              className="flex-1 bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+            >
+              <X className="w-4 h-4" />
+              <span>Reject</span>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {acceptedBooking && (
+        <div className="bg-white rounded-lg shadow-sm p-6 mb-4 border-l-4 border-green-400">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-900">
+              Current Booking
+            </h3>
+            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+              Confirmed
+            </span>
+          </div>
+
+          <div className="space-y-3">
+            <div className="flex items-center space-x-3">
+              <User className="w-4 h-4 text-gray-400" />
+              <span className="text-sm text-gray-900">
+                {acceptedBooking.customer_name}
+              </span>
+            </div>
+            <div className="flex items-center space-x-3">
+              <Phone className="w-4 h-4 text-gray-400" />
+              <span className="text-sm text-gray-900">
+                {acceptedBooking.customer_phone}
+              </span>
+            </div>
+            <div className="flex items-center space-x-3">
+              <Clock className="w-4 h-4 text-gray-400" />
+              <span className="text-sm text-gray-900">
+                {acceptedBooking.service_name} ({acceptedBooking.duration} mins)
+              </span>
+            </div>
+            <div className="flex items-center space-x-3">
+              <IndianRupee className="w-4 h-4 text-gray-400" />
+              <span className="text-sm text-gray-900">
+                ₹{acceptedBooking.price}
+              </span>
+            </div>
+            <div className="flex items-center space-x-3">
+              <MapPin className="w-4 h-4 text-gray-400" />
+              <span className="text-sm text-gray-900">
+                {acceptedBooking.customer_location.address}
+              </span>
+            </div>
+          </div>
+
+          <div className="flex justify-end mt-4 space-x-2">
+            <button
+              className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+              onClick={() => navigate(`/barber/chat/${acceptedBooking.booking_id}`)}
+            >
+              Message
+            </button>
+            <button
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700"
+              onClick={() => navigate(`/travel-status/${acceptedBooking.booking_id}`)}
+            >
+              Start
+            </button>
+          </div>
+        </div>
+      )}
+
+      {!currentBooking && !acceptedBooking && isOnline && (
+        <div className="bg-white rounded-lg shadow-sm p-6 text-center">
+          <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+            <Clock className="w-8 h-8 text-gray-400" />
+          </div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            Waiting for bookings...
+          </h3>
+          <p className="text-sm text-gray-500">
+            You're online and ready to receive booking requests
+          </p>
+        </div>
+      )}
+
+      {!isOnline && (
+        <div className="bg-white rounded-lg shadow-sm p-6 text-center">
+          <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+            <Power className="w-8 h-8 text-gray-400" />
+          </div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            You're offline
+          </h3>
+          <p className="text-sm text-gray-500">
+            Toggle online to start receiving booking requests
+          </p>
+        </div>
+      )}
+    </>
+  );
+
+  const renderScheduledBookingContent = () => (
+    <div className="bg-white rounded-lg shadow-sm p-6 text-center">
+      <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+        <Clock className="w-8 h-8 text-gray-400" />
+      </div>
+      <h3 className="text-lg font-semibold text-gray-900 mb-2">
+        Scheduled Booking
+      </h3>
+      <Appointments/>
+
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-gray-50 flex">
       <div className="hidden lg:block w-64 border-r bg-white">
@@ -196,206 +395,47 @@ const WorkingArea = () => {
 
       <div className="flex-1 p-4">
         <div className="max-w-4xl mx-auto">
-          <div className="bg-white rounded-lg shadow-sm p-6 mb-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <Power
-                  className={`w-5 h-5 ${
-                    isOnline ? "text-green-500" : "text-gray-400"
-                  }`}
-                />
-                <span
-                  className={`text-sm font-medium ${
-                    isOnline ? "text-green-600" : "text-gray-500"
-                  }`}
-                >
-                  {isOnline ? "Online" : "Offline"}
-                </span>
-              </div>
-            </div>
+          <div className="flex border-b border-gray-200 mb-4">
+            <button
+              className={`py-2 px-4 font-semibold text-base ${activeTab === 'instant' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
+              onClick={() => setActiveTab('instant')}
+            >
+              Instant Booking
+            </button>
+            <button
+              className={`py-2 px-4 font-semibold text-base ${activeTab === 'scheduled' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
+              onClick={() => setActiveTab('scheduled')}
+            >
+              <NotificationIndicator/>
+              Scheduled Booking
+            </button>
           </div>
 
-          <div className="bg-white rounded-lg shadow-sm p-6 mb-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900">
-                  Work Status
-                </h3>
-                <p className="text-sm text-gray-500">
-                  {isOnline
-                    ? "Available for bookings"
-                    : "Not receiving bookings"}
-                </p>
-              </div>
-              <button
-                onClick={toggleOnlineStatus}
-                disabled={loading}
-                className={`relative inline-flex h-8 w-16 rounded-full transition-colors duration-200 ease-in-out ${
-                  isOnline ? "bg-green-500" : "bg-gray-300"
-                } ${loading ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
-              >
-                <span
-                  className={`inline-block h-6 w-6 transform rounded-full bg-white transition duration-200 ease-in-out ${
-                    isOnline ? "translate-x-9" : "translate-x-1"
-                  } mt-1`}
-                />
-              </button>
-            </div>
-          </div>
-
-          {notification && (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-              <p className="text-sm text-blue-800">{notification}</p>
-            </div>
-          )}
-
-          {currentBooking && (
-            <div className="bg-white rounded-lg shadow-sm p-6 mb-4 border-l-4 border-orange-400">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  New Booking Request
-                </h3>
-                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
-                  Pending
-                </span>
-              </div>
-
-              <div className="space-y-3 mb-6">
-                <div className="flex items-center space-x-3">
-                  <User className="w-4 h-4 text-gray-400" />
-                  <span className="text-sm text-gray-900">
-                    {currentBooking.customer_name}
-                  </span>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <Clock className="w-4 h-4 text-gray-400" />
-                  <span className="text-sm text-gray-900">
-                    {currentBooking.service_name} ({currentBooking.duration} mins)
-                  </span>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <IndianRupee className="w-4 h-4 text-gray-400" />
-                  <span className="text-sm text-gray-900">
-                    ${currentBooking.price}
-                  </span>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <MapPin className="w-4 h-4 text-gray-400" />
-                  <span className="text-sm text-gray-900">
-                    {currentBooking.customer_location.address}
-                  </span>
+          {activeTab === 'instant' ? (
+            <>
+              <div className="bg-white rounded-lg shadow-sm p-6 mb-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <Power
+                      className={`w-5 h-5 ${
+                        isOnline ? "text-green-500" : "text-gray-400"
+                      }`}
+                    />
+                    <span
+                      className={`text-sm font-medium ${
+                        isOnline ? "text-green-600" : "text-gray-500"
+                      }`}
+                    >
+                      {isOnline ? "Online" : "Offline"}
+                    </span>
+                  </div>
                 </div>
               </div>
 
-              <div className="flex space-x-3">
-                <button
-                  onClick={handleAcceptBooking}
-                  disabled={loading}
-                  className="flex-1 bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
-                >
-                  <Check className="w-4 h-4" />
-                  <span>Accept</span>
-                </button>
-                <button
-                  onClick={handleRejectBooking}
-                  disabled={loading}
-                  className="flex-1 bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
-                >
-                  <X className="w-4 h-4" />
-                  <span>Reject</span>
-                </button>
-              </div>
-            </div>
-          )}
-
-          {acceptedBooking && (
-            <div className="bg-white rounded-lg shadow-sm p-6 mb-4 border-l-4 border-green-400">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  Current Booking
-                </h3>
-                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                  Confirmed
-                </span>
-              </div>
-
-              <div className="space-y-3">
-                <div className="flex items-center space-x-3">
-                  <User className="w-4 h-4 text-gray-400" />
-                  <span className="text-sm text-gray-900">
-                    {acceptedBooking.customer_name}
-                  </span>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <Phone className="w-4 h-4 text-gray-400" />
-                  <span className="text-sm text-gray-900">
-                    {acceptedBooking.customer_phone}
-                  </span>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <Clock className="w-4 h-4 text-gray-400" />
-                  <span className="text-sm text-gray-900">
-                    {acceptedBooking.service_name} ({acceptedBooking.duration} mins)
-                  </span>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <IndianRupee className="w-4 h-4 text-gray-400" />
-                  <span className="text-sm text-gray-900">
-                    ₹{acceptedBooking.price}
-                  </span>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <MapPin className="w-4 h-4 text-gray-400" />
-                  <span className="text-sm text-gray-900">
-                    {acceptedBooking.customer_location.address}
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex justify-end mt-4 space-x-2">
-                <button
-                  className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
-                  onClick={() => navigate(`/barber/chat/${acceptedBooking.booking_id}`)}
-                >
-                  Message
-                </button>
-                <button
-                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700"
-                  onClick={() => navigate(`/travel-status/${acceptedBooking.booking_id}`)}
-                >
-                  Start
-                </button>
-              </div>
-            </div>
-          )}
-
-
-          {!currentBooking && !acceptedBooking && isOnline && (
-            <div className="bg-white rounded-lg shadow-sm p-6 text-center">
-              <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
-                <Clock className="w-8 h-8 text-gray-400" />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                Waiting for bookings...
-              </h3>
-              <p className="text-sm text-gray-500">
-                You're online and ready to receive booking requests
-              </p>
-            </div>
-          )}
-
-          {!isOnline && (
-            <div className="bg-white rounded-lg shadow-sm p-6 text-center">
-              <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
-                <Power className="w-8 h-8 text-gray-400" />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                You're offline
-              </h3>
-              <p className="text-sm text-gray-500">
-                Toggle online to start receiving booking requests
-              </p>
-            </div>
+              {renderInstantBookingContent()}
+            </>
+          ) : (
+            renderScheduledBookingContent()
           )}
         </div>
       </div>

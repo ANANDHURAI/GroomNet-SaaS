@@ -8,7 +8,7 @@ function AddressList() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    apiClient.get('/profile-service/address/')
+    apiClient.get('/profile-service/addresses/')
       .then(response => setAddresses(response.data))
       .catch(error => console.error('Failed to fetch addresses:', error));
   }, []);
@@ -23,7 +23,7 @@ function AddressList() {
 
   const handleDelete = (id) => {
     if (window.confirm('Are you sure you want to delete this address?')) {
-      apiClient.delete(`/profile-service/address/${id}/`)
+      apiClient.delete(`/profile-service/addresses/${id}/`)
         .then(() => {
           setAddresses(prev => prev.filter(addr => addr.id !== id));
         })

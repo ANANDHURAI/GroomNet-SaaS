@@ -263,17 +263,15 @@ class BarberSlotViewSet(viewsets.ViewSet):
 
 class BarberAppointments(APIView):
     def get(self, request):
-        appointments = Booking.objects.all().select_related('customer', 'slot', 'address').order_by('-id')
+        appointments = Booking.objects.filter(
+            booking_type='SCHEDULE_BOOKING'
+        ).select_related('customer', 'slot', 'address').order_by('-id')
 
         data = []
         for booking in appointments:
-            if booking.slot: 
-                time_str = f"{booking.slot.start_time} - {booking.slot.end_time}"
-                date_str = booking.slot.date.strftime('%Y-%m-%d')
-            else:  
-                time_str = "Instant Booking"
-                date_str = booking.created_at.strftime('%Y-%m-%d')
-
+            time_str = f"{booking.slot.start_time} - {booking.slot.end_time}"
+            date_str = booking.slot.date.strftime('%Y-%m-%d')
+            
             data.append({
                 'id': booking.id,
                 'customer_name': booking.customer.name,
@@ -284,7 +282,7 @@ class BarberAppointments(APIView):
                 'status': booking.status,
                 'phone': booking.customer.phone,
                 'service': booking.service.name,
-                'bookingType': booking.booking_type or "",
+                'bookingType': booking.booking_type,
                 'bookingTypeDisplay': booking.get_booking_type_display()
             })
 
