@@ -19,7 +19,7 @@ import logging
 from barbersite.models import BarberSlot, BarberService
 from django.contrib.auth.models import User
 from django.utils import timezone
-from profileservice.models import Address
+from profileservice.models import Address , UserProfile
 from profileservice.serializers import AddressSerializer
 from authservice.models import User
 from.models import Booking ,CustomerWallet
@@ -54,6 +54,29 @@ class UserLocationUpdateView(generics.CreateAPIView):
         result = serializer.save()
         return Response(result, status=status.HTTP_200_OK)
 
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def check_user_location(request):
+    try:
+        user_profile = UserProfile.objects.get(user=request.user)
+        if user_profile.address and user_profile.address.latitude and user_profile.address.longitude:
+            return Response({
+                'has_location': True,
+                'latitude': user_profile.address.latitude,
+                'longitude': user_profile.address.longitude,
+                'address': {
+                    'building': user_profile.address.building,
+                    'street': user_profile.address.street,
+                    'city': user_profile.address.city,
+                    'district': user_profile.address.district,
+                    'state': user_profile.address.state,
+                    'pincode': user_profile.address.pincode
+                }
+            })
+        else:
+            return Response({'has_location': False})
+    except UserProfile.DoesNotExist:
+        return Response({'has_location': False})
 
 class CategoryListView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]

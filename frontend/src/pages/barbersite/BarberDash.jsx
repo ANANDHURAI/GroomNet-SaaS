@@ -14,10 +14,34 @@ function BarberDash() {
   const [location, setLocation] = useState(null);
 
   useEffect(() => {
-    if (!sessionStorage.getItem('locationSent')) {
-      const timer = setTimeout(() => setShowLocationModal(true), 1500);
-      return () => clearTimeout(timer);
-    }
+    const checkExistingLocation = async () => {
+      try {
+        const response = await apiClient.get('/customersite/user-location/check/');
+        if (response.data.has_location) {
+          setLocation({
+            latitude: response.data.latitude,
+            longitude: response.data.longitude,
+            address: response.data.address
+          });
+          sessionStorage.setItem('locationSent', 'true');
+        } else {
+    
+          if (!sessionStorage.getItem('locationSent')) {
+            const timer = setTimeout(() => setShowLocationModal(true), 1500);
+            return () => clearTimeout(timer);
+          }
+        }
+      } catch (err) {
+        console.error('Error checking location:', err);
+    
+        if (!sessionStorage.getItem('locationSent')) {
+          const timer = setTimeout(() => setShowLocationModal(true), 1500);
+          return () => clearTimeout(timer);
+        }
+      }
+    };
+
+    checkExistingLocation();
   }, []);
 
   const handleEnableLocation = async () => {
@@ -34,7 +58,18 @@ function BarberDash() {
       
       console.log('Server response:', response.data);
 
-      setLocation(locationData);
+      setLocation({
+        latitude: locationData.latitude,
+        longitude: locationData.longitude,
+        address: {
+          building: response.data.building,
+          street: response.data.street,
+          city: response.data.city,
+          district: response.data.district,
+          state: response.data.state,
+          pincode: response.data.pincode
+        }
+      });
       setLocationError('');
       sessionStorage.setItem('locationSent', 'true');
       setShowLocationModal(false);
@@ -106,6 +141,11 @@ function BarberDash() {
                     <span className="text-sm font-medium">
                       Location enabled - Customers can find you nearby
                     </span>
+                    {location.address && (
+                      <span className="text-xs text-gray-500 ml-2">
+                        ({location.address.city}, {location.address.state})
+                      </span>
+                    )}
                   </div>
                 ) : (
                   <div className="flex items-center gap-2 text-amber-600 mt-2">
@@ -138,6 +178,11 @@ function BarberDash() {
                 <div className="text-green-600">
                   <CheckCircle className="w-6 h-6 mb-2" />
                   <p className="text-sm">Location Active</p>
+                  {location.address && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      {location.address.city}, {location.address.state}
+                    </p>
+                  )}
                 </div>
               ) : (
                 <div className="text-amber-600">

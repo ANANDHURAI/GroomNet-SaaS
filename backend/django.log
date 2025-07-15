@@ -42813,3 +42813,31 @@ Traceback (most recent call last):
                     ^^^^^^^^^^^^^^^^^
 AttributeError: 'NoneType' object has no attribute 'date'
 Bad Request: /auth/customer-barber-login/
+Forbidden: /chat-service/chat/64/messages/
+Forbidden: /chat-service/chat/64/messages/
+Forbidden: /chat-service/chat/64/messages/
+Forbidden: /chat-service/chat/64/messages/
+Forbidden: /chat-service/chat/62/messages/
+Forbidden: /chat-service/chat/62/messages/
+Forbidden: /chat-service/chat/62/messages/
+Forbidden: /chat-service/chat/62/messages/
+Not Found: /profile-service/address/
+Not Found: /profile-service/address/
+Bad Request: /customersite/booking-summary/
+Bad Request: /customersite/booking-summary/
+Not Found: /profile-service/address/
+Not Found: /profile-service/address/
+Not Found: /profile-service/address/
+Not Found: /profile-service/address/
+Bad Request: /customersite/booking-summary/
+Bad Request: /customersite/booking-summary/
+Not Found: /profile-service/address/
+Not Found: /profile-service/address/
+Not Found: /profile-service/address/
+Not Found: /profile-service/address/
+Not Found: /customersite/user-location/status/
+Not Found: /customersite/user-location/status/
+Not Found: /customersite/user-location/status/
+Not Found: /customersite/user-location/status/
+Not Found: /customersite/user-location/status/
+Not Found: /customersite/user-location/check/

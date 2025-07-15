@@ -17,13 +17,15 @@ from .views import (
     get_travel_status,
     get_booking_details,
     CustomerWalletView,
-    CompletedServiceView
+    CompletedServiceView,
+    check_user_location
     
 )
 
 urlpatterns = [
     path('home/', Home.as_view(), name='home'),
     path('user-location/', UserLocationUpdateView.as_view(), name='user-location-update'),
+    path('user-location/check/', check_user_location, name='check-user-location'),
     path('categories/', CategoryListView.as_view(), name='categories'),
     path('services/', ServiceListView.as_view(), name='services'),
     path('barbers/', BarberListView.as_view(), name='barbers'),
@@ -40,5 +42,6 @@ urlpatterns = [
     path('booking/<int:booking_id>/', get_booking_details, name="get_booking_details"),
     path('wallet/', CustomerWalletView.as_view(), name="wallet_details"),
     path('complete/service/<int:booking_id>/', CompletedServiceView.as_view(), name="complete-service"),
+    
     
 ]
