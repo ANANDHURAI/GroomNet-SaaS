@@ -255,6 +255,9 @@ class InstantBookingConsumer(AsyncWebsocketConsumer):
     async def send_booking_timeout(self, event):
         await self.send(text_data=json.dumps(event["data"]))
 
+    async def send_service_completed(self, event):
+        await self.send(text_data=json.dumps(event["data"]))
+
    
     @database_sync_to_async
     def get_user(self, user_id):

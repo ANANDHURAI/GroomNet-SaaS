@@ -12,21 +12,21 @@ AvailableSlotSerializer,
 AddressSerializer,
 BookingCreateSerializer,
 CustomerWalletSerializer,
-
+LocationSerializer,
 )
 from adminsite.models import CategoryModel , ServiceModel
 import logging
 from barbersite.models import BarberSlot, BarberService
 from django.contrib.auth.models import User
 from django.utils import timezone
-from profileservice.models import Address,UserProfile
+from profileservice.models import Address
 from profileservice.serializers import AddressSerializer
 from authservice.models import User
 from.models import Booking ,CustomerWallet
 logger = logging.getLogger(__name__)
 from django.utils import timezone
 from datetime import datetime
-import requests
+
 
 
 class Home(APIView):
@@ -44,130 +44,16 @@ class Home(APIView):
         serializer = HomeSerializer(data)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
-
-class UserLocationUpdateView(APIView):
+class UserLocationUpdateView(generics.CreateAPIView):
     permission_classes = [IsAuthenticated]
-    
-    def post(self, request):
-        try:
-            latitude = request.data.get('latitude')
-            longitude = request.data.get('longitude')
-            
-            if not latitude or not longitude:
-                return Response(
-                    {'error': 'Latitude and longitude are required'}, 
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-            
-            user_profile, created = UserProfile.objects.get_or_create(
-                user=request.user,
-                defaults={
-                    'latitude': float(latitude),
-                    'longitude': float(longitude)
-                }
-            )
-            
-            if not created:
-                user_profile.latitude = float(latitude)
-                user_profile.longitude = float(longitude)
-                user_profile.save()
+    serializer_class = LocationSerializer
 
-            address_data = self.reverse_geocode(latitude, longitude)
-            
-            user_type = request.user.user_type
-            
-            if user_type == "barber":
-                return Response({
-                    'message': 'Successfully updated barber location! You can now receive bookings.',
-                    'user_type': user_type,
-                    'latitude': latitude,
-                    'longitude': longitude,
-                    **address_data
-                }, status=status.HTTP_200_OK)
-            elif user_type == "customer":
-                return Response({
-                    'message': 'Successfully updated customer location! You can now start booking nearby services.',
-                    'user_type': user_type,
-                    'latitude': latitude,
-                    'longitude': longitude,
-                    **address_data
-                }, status=status.HTTP_200_OK)
-            else:
-                return Response({
-                    'message': 'Location updated successfully',
-                    'user_type': user_type,
-                    'latitude': latitude,
-                    'longitude': longitude,
-                    **address_data
-                }, status=status.HTTP_200_OK)
-                
-        except ValueError:
-            return Response(
-                {'error': 'Invalid latitude or longitude values'}, 
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        except Exception as e:
-            return Response(
-                {'error': f'An error occurred: {str(e)}'}, 
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
-    
-    def reverse_geocode(self, latitude, longitude):
-        try:
-            url = f"https://nominatim.openstreetmap.org/reverse"
-            params = {
-                'format': 'json',
-                'lat': latitude,
-                'lon': longitude,
-                'zoom': 18,
-                'addressdetails': 1
-            }
-            
-            headers = {
-                'User-Agent': 'GroomNet/1.0 (anandhurai@gmail.com)'
-            }
-            
-            response = requests.get(url, params=params, headers=headers, timeout=10)
-            
-            if response.status_code == 200:
-                data = response.json()
-                address = data.get('address', {})
-                
-                building = address.get('house_number', '') + ' ' + address.get('road', '')
-                street = address.get('suburb', '') or address.get('neighbourhood', '') or address.get('residential', '')
-                city = address.get('city', '') or address.get('town', '') or address.get('village', '')
-                district = address.get('state_district', '') or address.get('county', '')
-                state = address.get('state', '')
-                pincode = address.get('postcode', '')
-                
-                return {
-                    'building': building.strip() or 'Current Location',
-                    'street': street or 'Current Street',
-                    'city': city or 'Current City',
-                    'district': district or 'Current District',
-                    'state': state or 'Current State',
-                    'pincode': pincode or '000000'
-                }
-            else:
-                return self.get_default_address()
-                
-        except requests.RequestException as e:
-            print(f"Geocoding error: {e}")
-            return self.get_default_address()
-        except Exception as e:
-            print(f"Unexpected error in reverse geocoding: {e}")
-            return self.get_default_address()
-    
-    def get_default_address(self):
-        return {
-            'building': 'Current Location',
-            'street': 'Current Street',
-            'city': 'Current City',
-            'district': 'Current District',
-            'state': 'Current State',
-            'pincode': '000000'
-        }
-    
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data, context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        result = serializer.save()
+        return Response(result, status=status.HTTP_200_OK)
+
 
 class CategoryListView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]

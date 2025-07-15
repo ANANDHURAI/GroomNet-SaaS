@@ -20,7 +20,6 @@ function ServiceCompletePage() {
         if (response.data.payment_done) {
           setIsCompleted(true);
         }
-        // For COD, check if payment is collected
         if (response.data.payment_method === 'COD' && response.data.payment_done) {
           setIsCollected(true);
         }
@@ -63,9 +62,9 @@ function ServiceCompletePage() {
 
   const getEarningsAmount = () => {
     if (data?.payment_method === 'COD') {
-      return data.service_amount; // Only service amount for COD
+      return data.service_amount; 
     }
-    return data?.service_amount || data?.price; // Service amount for wallet/stripe
+    return data?.service_amount || data?.price; 
   };
 
   const getCODCollectionAmount = () => {

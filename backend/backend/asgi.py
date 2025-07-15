@@ -19,6 +19,6 @@ application = ProtocolTypeRouter({
     ),
 })
 
-print("📡 WebSocket URL patterns:", chat_websocket + booking_websocket)
+# print("WebSocket URL patterns:", chat_websocket + booking_websocket)
 
 

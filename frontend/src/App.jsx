@@ -312,7 +312,6 @@ function App() {
             <Route path="/barber/service-complete/:bookingId" element={<ServiceCompletePage />}/>
 
 
-
           </Routes>
         </ServiceProvider>
       </BrowserRouter>

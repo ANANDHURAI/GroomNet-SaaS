@@ -99,6 +99,9 @@ const WorkingArea = () => {
       } else if (data.booking_expired) {
         setCurrentBooking(null);
         setNotification('Booking request expired');
+      } else if (data.service_completed) {
+        setAcceptedBooking(null);
+        setNotification('Service completed successfully!');
       }
     };
 

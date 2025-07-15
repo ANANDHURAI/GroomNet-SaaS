@@ -59,7 +59,6 @@ class Booking(models.Model):
         return f"{self.customer.name} - {self.service.name} - {barber_name}"
 
 
-
 class PaymentModel(models.Model):
     PAYMENT_METHODS = [
         ("STRIPE", "stripe"), 

@@ -7,6 +7,8 @@ from profileservice.models import Address
 from django.db import transaction
 from decimal import Decimal
 from .utils import get_lat_lng_from_address
+from profileservice.models import UserProfile
+import requests
 
 class BarberSerializer(serializers.ModelSerializer):
     class Meta:
@@ -194,4 +196,82 @@ class PaymentSerializer(serializers.ModelSerializer):
 
 class CustomerWalletSerializer(serializers.Serializer):
     amount = serializers.DecimalField(max_digits=10, decimal_places=2)
+
+
+class LocationSerializer(serializers.Serializer):
+    latitude = serializers.FloatField()
+    longitude = serializers.FloatField()
+
+    def reverse_geocode(self, latitude, longitude):
+        try:
+            url = "https://nominatim.openstreetmap.org/reverse"
+            params = {
+                'format': 'json',
+                'lat': latitude,
+                'lon': longitude,
+                'zoom': 18,
+                'addressdetails': 1
+            }
+            headers = {'User-Agent': 'GroomNet/1.0 (anandhurai@gmail.com)'}
+
+            response = requests.get(url, params=params, headers=headers, timeout=10)
+            if response.status_code == 200:
+                data = response.json().get('address', {})
+                return {
+                    'building': (data.get('house_number', '') + ' ' + data.get('road', '')).strip() or 'Current Location',
+                    'street': data.get('suburb') or data.get('neighbourhood') or data.get('residential', 'Current Street'),
+                    'city': data.get('city') or data.get('town') or data.get('village', 'Current City'),
+                    'district': data.get('state_district') or data.get('county', 'Current District'),
+                    'state': data.get('state', 'Current State'),
+                    'pincode': data.get('postcode', '000000')
+                }
+        except Exception as e:
+            print(f"Reverse geocode error: {e}")
+        return {
+            'building': 'Current Location',
+            'street': 'Current Street',
+            'city': 'Current City',
+            'district': 'Current District',
+            'state': 'Current State',
+            'pincode': '000000'
+        }
+    
+    def create(self, validated_data):
+        user = self.context['request'].user
+        latitude = validated_data['latitude']
+        longitude = validated_data['longitude']
+
+        address_data = self.reverse_geocode(latitude, longitude)
+
+        address = Address.objects.filter(user=user, is_default=True).first()
+
+        if address:
+            for field, value in {**address_data, 'latitude': latitude, 'longitude': longitude}.items():
+                setattr(address, field, value)
+        else:
+            address = Address.objects.create(
+                user=user,
+                is_default=True,
+                latitude=latitude,
+                longitude=longitude,
+                **address_data
+            )
+
+        address.save()
+
+        profile, _ = UserProfile.objects.get_or_create(user=user)
+        profile.address = address
+        profile.save()
+
+        return {
+            'message': 'Location updated successfully!',
+            'user_type': user.user_type,
+            'latitude': latitude,
+            'longitude': longitude,
+            **address_data
+        }
+
+
+
+
 

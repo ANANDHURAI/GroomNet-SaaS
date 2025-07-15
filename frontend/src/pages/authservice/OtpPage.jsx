@@ -51,7 +51,7 @@ function OtpPage() {
         }));
         dispatch(clearRegisterData());
         
-        navigate('/home');
+        navigate('/login');
       }
     } catch (error) {
       console.error("OTP verification error", error);
@@ -83,12 +83,17 @@ function OtpPage() {
           <form onSubmit={handleOtp} className="space-y-6">
             <Input
               value={otp}
-              onChange={e => setOtp(e.target.value)}
+              onChange={e => {
+                const value = e.target.value.replace(/\D/g, '');
+                setOtp(value);
+              }}
               placeholder="Enter 4-digit OTP"
-              type="number"
+              type="text"
               maxLength="4"
               required
+              className="appearance-none"
             />
+
             
             <button 
               type="submit"

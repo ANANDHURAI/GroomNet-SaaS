@@ -82,7 +82,7 @@ function BarberStatus() {
   const handleEnterDashboard = () => {
     if (userData?.status === 'approved') {
       setTimeout(() => {
-        navigate('/barber-dash');
+        navigate('/login');
       }, 100);
     } else {
       navigate('/barber-dash');
@@ -255,7 +255,7 @@ function BarberStatus() {
                   onClick={handleEnterDashboard}
                   className="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-200"
                 >
-                  Go to Dashboard
+                  Login
                 </button>
               ) : (
                 <>
