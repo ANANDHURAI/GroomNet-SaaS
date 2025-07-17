@@ -60,7 +60,7 @@ function FindBarbers() {
         setStatus("Searching for nearby barbers...");
 
         try {
-            const statusResponse = await apiClient.get(`/instant-booking/booking/${booking_id}/status/`);
+            const statusResponse = await apiClient.post(`/instant-booking/booking/${booking_id}/`);
             
             if (statusResponse.data.barber_assigned) {
                 const barberData = statusResponse.data.barber_details;

@@ -7,7 +7,7 @@ function ServiceConfirmationPopup({ show, onClose, onRespond, barberName, isResp
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 transform transition-all">
         <div className="p-6">
-          {/* Header */}
+        
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-3">
               <div className="p-2 bg-blue-100 rounded-full">
@@ -26,7 +26,7 @@ function ServiceConfirmationPopup({ show, onClose, onRespond, barberName, isResp
             </button>
           </div>
 
-          {/* Barber Info */}
+          
           <div className="mb-6">
             <div className="flex items-center space-x-3 mb-4">
               <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
@@ -45,9 +45,9 @@ function ServiceConfirmationPopup({ show, onClose, onRespond, barberName, isResp
             </div>
           </div>
 
-          {/* Buttons */}
+        
           <div className="space-y-3">
-            {/* Ready Button */}
+            
             <button
               onClick={() => onRespond('ready')}
               disabled={isResponding}
@@ -70,7 +70,7 @@ function ServiceConfirmationPopup({ show, onClose, onRespond, barberName, isResp
               )}
             </button>
 
-            {/* Wait Button */}
+           
             <button
               onClick={() => onRespond('wait')}
               disabled={isResponding}

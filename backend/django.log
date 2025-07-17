@@ -42849,3 +42849,234 @@ Not Found: /profile-service/address/
 Not Found: /profile-service/address/
 Not Found: /profile-service/address/
 Not Found: /profile-service/address/
+Not Found: /profile-service/addresses/17/
+Unauthorized: /profile-service/user-profile/
+Unauthorized: /profile-service/user-profile/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /profile-service/user-profile/
+Unauthorized: /profile-service/user-profile/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /auth/logout/
+Unauthorized: /auth/token/refresh/
+Forbidden: /chat-service/chat/48/messages/
+Forbidden: /chat-service/chat/48/messages/
+Forbidden: /chat-service/chat/48/messages/
+Forbidden: /chat-service/chat/48/messages/
+Forbidden: /chat-service/chat/62/messages/
+Forbidden: /chat-service/chat/62/messages/
+Forbidden: /chat-service/chat/62/messages/
+Forbidden: /chat-service/chat/62/messages/
+Unauthorized: /barbersite/barber-appointments/
+Unauthorized: /barbersite/barber-appointments/
+Unauthorized: /barbersite/barber-appointments/
+Unauthorized: /barbersite/barber-appointments/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /auth/logout/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /customersite/booking-details/67/
+Unauthorized: /customersite/booking-details/67/
+Unauthorized: /customersite/booking/67/
+Unauthorized: /customersite/booking/67/
+Bad Request: /customersite/complete/service/67/
+Bad Request: /customersite/complete/service/67/
+Bad Request: /customersite/complete/service/67/
+Bad Request: /customersite/complete/service/67/
+Bad Request: /customersite/complete/service/67/
+Bad Request: /customersite/complete/service/67/
+Bad Request: /customersite/complete/service/67/
+Unauthorized: /customersite/booking-details/67/
+Unauthorized: /customersite/booking-details/67/
+Unauthorized: /customersite/complete/service/67/
+Unauthorized: /customersite/complete/service/67/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /auth/logout/
+Bad Request: /auth/logout/
+Method Not Allowed: /instant-booking/booking/68/
+Method Not Allowed: /instant-booking/booking/68/
+Internal Server Error: /instant-booking/booking/68/
+Traceback (most recent call last):
+  File "D:\NewGroomNet-clean\venv\Lib\site-packages\asgiref\sync.py", line 518, in thread_handler
+    raise exc_info[1]
+  File "D:\NewGroomNet-clean\venv\Lib\site-packages\django\core\handlers\exception.py", line 42, in inner
+    response = await get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\NewGroomNet-clean\venv\Lib\site-packages\asgiref\sync.py", line 518, in thread_handler
+    raise exc_info[1]
+  File "D:\NewGroomNet-clean\venv\Lib\site-packages\django\core\handlers\base.py", line 253, in _get_response_async
+    response = await wrapped_callback(
+               ^^^^^^^^^^^^^^^^^^^^^^^
+        request, *callback_args, **callback_kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\NewGroomNet-clean\venv\Lib\site-packages\asgiref\sync.py", line 468, in __call__
+    ret = await asyncio.shield(exec_coro)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python313\Lib\concurrent\futures\thread.py", line 59, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "D:\NewGroomNet-clean\venv\Lib\site-packages\asgiref\sync.py", line 522, in thread_handler
+    return func(*args, **kwargs)
+  File "D:\NewGroomNet-clean\venv\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "D:\NewGroomNet-clean\venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\NewGroomNet-clean\venv\Lib\site-packages\rest_framework\views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "D:\NewGroomNet-clean\venv\Lib\site-packages\rest_framework\views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "D:\NewGroomNet-clean\venv\Lib\site-packages\rest_framework\views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "D:\NewGroomNet-clean\venv\Lib\site-packages\rest_framework\views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "D:\NewGroomNet-clean\backend\instantbooking\views.py", line 38, in post
+    async_to_sync(channel_layer.group_send)(
+                  ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'function' object has no attribute 'group_send'
+Internal Server Error: /instant-booking/booking/68/
+Traceback (most recent call last):
+  File "D:\NewGroomNet-clean\venv\Lib\site-packages\asgiref\sync.py", line 518, in thread_handler
+    raise exc_info[1]
+  File "D:\NewGroomNet-clean\venv\Lib\site-packages\django\core\handlers\exception.py", line 42, in inner
+    response = await get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\NewGroomNet-clean\venv\Lib\site-packages\asgiref\sync.py", line 518, in thread_handler
+    raise exc_info[1]
+  File "D:\NewGroomNet-clean\venv\Lib\site-packages\django\core\handlers\base.py", line 253, in _get_response_async
+    response = await wrapped_callback(
+               ^^^^^^^^^^^^^^^^^^^^^^^
+        request, *callback_args, **callback_kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\NewGroomNet-clean\venv\Lib\site-packages\asgiref\sync.py", line 468, in __call__
+    ret = await asyncio.shield(exec_coro)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python313\Lib\concurrent\futures\thread.py", line 59, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "D:\NewGroomNet-clean\venv\Lib\site-packages\asgiref\sync.py", line 522, in thread_handler
+    return func(*args, **kwargs)
+  File "D:\NewGroomNet-clean\venv\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "D:\NewGroomNet-clean\venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\NewGroomNet-clean\venv\Lib\site-packages\rest_framework\views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "D:\NewGroomNet-clean\venv\Lib\site-packages\rest_framework\views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "D:\NewGroomNet-clean\venv\Lib\site-packages\rest_framework\views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "D:\NewGroomNet-clean\venv\Lib\site-packages\rest_framework\views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "D:\NewGroomNet-clean\backend\instantbooking\views.py", line 38, in post
+    async_to_sync(channel_layer.group_send)(
+                  ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'function' object has no attribute 'group_send'
+Not Found: /instant-booking/barber/status/
+Not Found: /instant-booking/barber/status/
+Not Found: /instant-booking/barber/status/
+Not Found: /instant-booking/barber/status/
+Not Found: /instant-booking/barber/status/
+Not Found: /instant-booking/barber/status/
+Not Found: /instant-booking/barber/status/
+Not Found: /instant-booking/barber/status/
+Not Found: /instant-booking/barber/status/
+Unauthorized: /auth/logout/
+Bad Request: /auth/logout/
+Not Found: /instant-booking/barber/status/
+Not Found: /instant-booking/barber/status/
+Not Found: /instant-booking/barber/status/
+Not Found: /barber/active-booking/
+Not Found: /barber/active-booking/
+Not Found: /barber/active-booking/
+Not Found: /barber/active-booking/
+Not Found: /instant-booking/barber/status/
+Unauthorized: /instant-booking/booking/68/
+Unauthorized: /instant-booking/booking/68/
+Not Found: /instant-booking/barber/status/
+Not Found: /instant-booking/working/status/null
+Not Found: /instant-booking/working/status/null
+Not Found: /instant-booking/working/status/null
+Not Found: /instant-booking/working/status/null
+Not Found: /instant-booking/working/status/null/
+Unauthorized: /customersite/user-location/check/
+Unauthorized: /barbersite/barber-dash/
+Unauthorized: /customersite/user-location/check/
+Unauthorized: /barbersite/barber-dash/
+Unauthorized: /auth/token/refresh/
+Bad Request: /auth/logout/
+Not Found: /instant-booking/working/status/null
+Not Found: /instant-booking/working/status/null
+Not Found: /instant-booking/working/status/null/
+Not Found: /customersite/booking/48/
+Not Found: /customersite/booking/48/
+Not Found: /instant-booking/working/status/null
+Not Found: /instant-booking/working/status/null
+Unauthorized: /barbersite/barber-dash/
+Unauthorized: /customersite/user-location/check/
+Unauthorized: /barbersite/barber-dash/
+Unauthorized: /customersite/user-location/check/
+Bad Request: /auth/logout/
+Unauthorized: /instant-booking/booking/68/
+Unauthorized: /instant-booking/booking/68/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /auth/logout/
+Unauthorized: /auth/token/refresh/
+Not Found: /instant-booking/working/status/null
+Not Found: /instant-booking/working/status/null
+Not Found: /instant-booking/working/status/null/
+Not Found: /instant-booking/working/status/null
+Not Found: /instant-booking/working/status/null
+Not Found: /instant-booking/working/status/null
+Not Found: /instant-booking/working/status/null
+Not Found: /instant-booking/working/status/null/
+Not Found: /instant-booking/working/status/null
+Not Found: /instant-booking/working/status/null
+Not Found: /instant-booking/working/status/null
+Not Found: /instant-booking/working/status/null
+Not Found: /instant-booking/working/status/null
+Not Found: /instant-booking/working/status/null
+Not Found: /instant-booking/working/status/null
+Not Found: /instant-booking/working/status/null
+Method Not Allowed: /instant-booking/working/status/3/
+Method Not Allowed: /instant-booking/working/status/3/
+Method Not Allowed: /instant-booking/working/status/3/
+Method Not Allowed: /instant-booking/working/status/3/
+Unauthorized: /instant-booking/booking/70/
+Unauthorized: /instant-booking/booking/70/
+asal joined group: barber_3
+Anandhurai joined group: customer_1
+Anandhurai joined group: customer_1
+Bad Request: /auth/logout/
+asal joined group: barber_3
+asal joined group: barber_3
+Anandhurai joined group: customer_1
+Anandhurai joined group: customer_1
+Anandhurai joined group: customer_1
+Anandhurai joined group: customer_1
+Anandhurai joined group: customer_1
+asal joined group: barber_3
+Anandhurai joined group: customer_1
+Anandhurai joined group: customer_1
+asal joined group: barber_3
+asal joined group: barber_3
+Anandhurai joined group: customer_1
+Anandhurai joined group: customer_1
+asal joined group: barber_3
+Anandhurai joined group: customer_1
+Anandhurai joined group: customer_1
+asal joined group: barber_3
+Anandhurai joined group: customer_1
+asal joined group: barber_3
+asal joined group: barber_3
+Anandhurai joined group: customer_1
+Not Found: /customersite/booking/71/
+Not Found: /customersite/booking/71/
+asal joined group: barber_3
+asal joined group: barber_3
+asal joined group: barber_3
+Anandhurai joined group: customer_1
+Anandhurai joined group: customer_1

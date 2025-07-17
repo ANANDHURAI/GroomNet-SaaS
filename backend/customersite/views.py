@@ -26,7 +26,9 @@ from.models import Booking ,CustomerWallet
 logger = logging.getLogger(__name__)
 from django.utils import timezone
 from datetime import datetime
-
+from django.utils.timezone import now
+from django.shortcuts import get_object_or_404
+from asgiref.sync import async_to_sync
 
 
 class Home(APIView):
@@ -442,80 +444,97 @@ class CustomerWalletView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-from django.utils.timezone import now
-
 class CompletedServiceView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, booking_id):
-        try:
-            booking = Booking.objects.select_related(
-                'customer', 'address', 'service', 'payment'
-            ).get(id=booking_id)
+        booking = get_object_or_404(
+            Booking.objects.select_related('customer', 'address', 'service', 'payment'),
+            id=booking_id
+        )
+        payment = booking.payment
 
-            payment = booking.payment
-
-            data = {
-                'id': booking.id,
-                'customer_name': booking.customer.name,
-                'customer_phone': booking.customer.phone,
-                'address': f"{booking.address.building}, {booking.address.street}, {booking.address.city}, {booking.address.state} - {booking.address.pincode}",
-                'service': booking.service.name,
-                'price': str(booking.total_amount),
-                'service_amount': str(payment.service_amount),
-                'platform_fee': str(payment.platform_fee),
-                'booking_type': booking.booking_type,
-                'payment_method': payment.payment_method.upper(),
-                'payment_done': payment.payment_status == "SUCCESS",
-            }
-
-            return Response(data, status=status.HTTP_200_OK)
-
-        except Booking.DoesNotExist:
-            return Response(
-                {"error": "Booking not found ❌"},
-                status=status.HTTP_404_NOT_FOUND
-            )
+        data = {
+            'id': booking.id,
+            'customer_name': booking.customer.name,
+            'customer_phone': booking.customer.phone,
+            'address': f"{booking.address.building}, {booking.address.street}, "
+                       f"{booking.address.city}, {booking.address.state} - {booking.address.pincode}",
+            'service': booking.service.name,
+            'price': str(booking.total_amount),
+            'service_amount': str(payment.service_amount),
+            'platform_fee': str(payment.platform_fee),
+            'booking_type': booking.booking_type,
+            'payment_method': payment.payment_method.upper(),
+            'payment_done': payment.payment_status == "SUCCESS",
+            'service_status': booking.service_status,
+            'status': booking.status,
+        }
+        return Response(data)
 
     def post(self, request, booking_id):
-        try:
-            booking = Booking.objects.select_related('payment').get(id=booking_id)
-            payment = booking.payment
+        print("Request Data:", request.data) 
+        action = request.data.get('action')
+        booking = get_object_or_404(Booking, id=booking_id)
 
-            if payment.payment_method == "COD" and payment.payment_status != "SUCCESS":
-                payment.payment_status = "SUCCESS"
-                payment.save()
+        if action == 'request_service':
+            booking.service_status = "REQUESTED"
+            booking.save()
+            
+            async_to_sync(self.channel_layer.group_send)(
+                "service_start_request",
+                {
+                    "type": "send_request_to_customer",
+                    "booking_id": booking_id
+                }
+            )
+            return Response({"status": "Request sent to customer"}, status=200)
 
+        elif action == 'ready':
+            booking.service_status = "READY"
+            booking.save()
+            
+            async_to_sync(self.channel_layer.group_send)(
+                "service_start_request",
+                {
+                    "type": "customer_ready",
+                    "booking_id": booking_id
+                }
+            )
+            return Response({"status": f"Customer response: {action}"}, status=200)
+            
+        elif action == 'wait':
+            booking.service_status = "WAIT"
+            booking.save()
+            
+            async_to_sync(self.channel_layer.group_send)(
+                "service_start_request",
+                {
+                    "type": "customer_wait",
+                    "booking_id": booking_id
+                }
+            )
+            return Response({"status": f"Customer response: {action}"}, status=200)
+            
+        elif action == 'service_completed':
+            booking.service_status = "COMPLETED"
             booking.status = "COMPLETED"
-            booking.is_payment_done = True
             booking.completed_at = now()
             booking.save()
-
-            if payment.payment_method == "COD":
-                earnings = payment.service_amount  
-                message = f"✅ Service completed. You earned ₹{earnings}. Please deposit ₹{payment.platform_fee} platform fee manually."
-            else:
-                earnings = payment.service_amount 
-                message = f"✅ Service completed. You earned ₹{earnings}."
-
-            return Response(
+            
+            async_to_sync(self.channel_layer.group_send)(
+                "service_start_request",
                 {
-                    "message": message,
-                    "earnings": str(earnings),
-                    "platform_fee": str(payment.platform_fee) if payment.payment_method == "COD" else None,
-                    "payment_method": payment.payment_method
-                },
-                status=status.HTTP_200_OK
+                    "type": "send_complete_message_to_customer",
+                    "booking_id": booking_id
+                }
             )
-
-        except Booking.DoesNotExist:
-            return Response(
-                {"error": "Booking not found ❌"},
-                status=status.HTTP_404_NOT_FOUND
-            )
-
-
+            return Response({"status": "Service completion notification sent"}, status=200)
         
+        else:
+            return Response({"error": "Invalid action"}, status=400)
+
+            
 
 
 

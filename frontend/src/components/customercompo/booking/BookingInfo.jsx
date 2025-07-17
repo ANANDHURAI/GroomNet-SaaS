@@ -14,7 +14,7 @@ function BookingInfo({ data, timeLeft }) {
         <div>
           <p><strong>Date:</strong> {data.date}</p>
           <p><strong>Time:</strong> {data.slottime}</p>
-          <p className="text-sm text-blue-600 mt-1">{timeLeft}</p>
+
         </div>
         <div>
           <p><strong>Payment:</strong> {data.payment_method}</p>

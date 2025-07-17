@@ -23,6 +23,12 @@ function ServiceCompletePage() {
         if (response.data.payment_method === 'COD' && response.data.payment_done) {
           setIsCollected(true);
         }
+        if (response.data.payment_done && response.data.status === 'COMPLETED') {
+          setIsCompleted(true);
+          setShowEarnings(true);
+        } else if (response.data.payment_done) {
+          setIsCompleted(false);
+        }
       })
       .catch((error) => {
         console.error("Error fetching service details:", error);
@@ -46,7 +52,8 @@ function ServiceCompletePage() {
         setTimeout(() => setNotification(""), 3000);
         
         apiClient
-          .post(`/instant-booking/service/conformation/${bookingId}/`, {
+          .post(`/instant-booking/service/conformation/${bookingId}/`, 
+            JSON.stringify({ action: "service_completed" }), {
             action: 'service_completed'
           })
           .catch((error) => {
@@ -143,12 +150,10 @@ function ServiceCompletePage() {
                 ✅ Complete Service
               </button>
             ) : (
-              <button
-                className="w-full px-4 py-2 bg-green-600 text-white rounded-lg cursor-not-allowed"
-                disabled
-              >
-                ✅ Service Completed
-              </button>
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <h3 className="font-semibold text-green-800 mb-2">✅ Service Completed</h3>
+                <p className="text-green-700">Service has been marked as completed successfully!</p>
+              </div>
             )}
           </div>
         )}

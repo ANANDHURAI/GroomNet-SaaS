@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
-import { useNavigate, Link } from 'react-router-dom'; // Added Link import
+import { useNavigate, Link } from 'react-router-dom'; 
 import { login } from '../../slices/auth/LoginSlice';
 import apiClient from '../../slices/api/apiIntercepters';
 
@@ -30,6 +30,8 @@ function LoginPage() {
             if (user.user_type === 'customer') {
                 navigate('/home');
             } else if (user.user_type === 'barber') {
+                sessionStorage.setItem('barber_id', user.id);
+
                 if (user.is_active && user.is_verified) {
                     navigate('/barber-dash');
                 } else {
@@ -40,7 +42,8 @@ function LoginPage() {
             }
         } catch (error) {
             console.error('Login error:', error);
-            const errorMessage = error.response?.data?.detail ||
+            const errorMessage =
+                error.response?.data?.detail ||
                 error.response?.data?.message ||
                 'Invalid credentials';
             setError(errorMessage);
@@ -48,6 +51,7 @@ function LoginPage() {
             setLoading(false);
         }
     };
+
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-900 via-blue-800 to-teal-900 flex items-center justify-center p-4">
@@ -80,7 +84,6 @@ function LoginPage() {
                             className="w-full px-4 py-3 bg-white/20 backdrop-blur border border-blue-300/30 rounded-lg text-white placeholder-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-200"
                         />
 
-                        {/* Forgot Password Link */}
                         <div className="flex justify-end">
                             <Link
                                 to="/forget-password"
