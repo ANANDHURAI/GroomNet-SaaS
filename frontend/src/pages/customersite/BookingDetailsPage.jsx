@@ -6,7 +6,6 @@ import Message from '../../components/customercompo/booking/Message';
 import BookingInfo from '../../components/customercompo/booking/BookingInfo';
 import TravelStatus from '../../components/customercompo/booking/TravelStatus';
 import ServiceStatus from '../../components/customercompo/booking/ServiceStatus';
-import ServiceConfirmationPopup from '../../components/customercompo/booking/ServiceConfirmationPopup';
 import ActionButtons from '../../components/customercompo/booking/ActionButtons';
 
 function BookingDetailsPage() {
@@ -20,18 +19,22 @@ function BookingDetailsPage() {
   const [isResponding, setIsResponding] = useState(false);
   const [notification, setNotification] = useState('');
 
+  const fetchBookingDetails = async () => {
+    try {
+      const res = await apiClient.get(`/customersite/booking-details/${id}/`);
+      setData(res.data);
+      calculateTimeLeft(res.data.date, res.data.slottime);
+
+      const bookingIdToUse = res.data.id || res.data.orderid;
+      fetchTravelStatus(bookingIdToUse);
+    } catch (err) {
+      console.error("Booking fetch error", err);
+    }
+  };
+
   useEffect(() => {
-    apiClient.get(`/customersite/booking-details/${id}/`)
-      .then(res => {
-        setData(res.data);
-        calculateTimeLeft(res.data.date, res.data.slottime);
-
-        const bookingIdToUse = res.data.id || res.data.orderid;
-        fetchTravelStatus(bookingIdToUse);
-      })
-      .catch(err => console.error("Booking fetch error", err));
+    fetchBookingDetails();
   }, [id]);
-
 
   useEffect(() => {
     if (data?.booking_status === 'CONFIRMED') {
@@ -78,24 +81,15 @@ function BookingDetailsPage() {
     }
   };
 
-  const handleServiceResponse = (response) => {
-    if (!serviceSocket) return;
-    setIsResponding(true);
-    const message = { action: response, booking_id: data.id || data.orderid };
-    serviceSocket.send(JSON.stringify(message));
-    setTimeout(() => {
-      setIsResponding(false);
-      setShowServicePopup(false);
-      setNotification(response === 'ready'
-        ? '✅ You confirmed you are ready! The barber will start the service.'
-        : '⏳ You requested to wait. The barber will wait for 1 minute.');
-    }, 1000);
-  };
-
   const handleChatClick = () => {
     navigate(`/customer/chat/${id}`, {
       state: { bookingData: data, barberName: data.barbername }
     });
+  };
+
+  const handleCancelSuccess = () => {
+    fetchBookingDetails();
+    setNotification('🚫 Booking cancelled successfully. Refund has been processed to your wallet.');
   };
 
   return (
@@ -118,19 +112,13 @@ function BookingDetailsPage() {
             bookingStatus={data.booking_status}
             onChatClick={handleChatClick}
             bookingId={id}
+            travelStatus={travelStatus?.travel_status}
+            onCancelSuccess={handleCancelSuccess}
           />
         </>
       ) : (
         <div className="text-gray-600">Loading booking details...</div>
       )}
-
-      <ServiceConfirmationPopup
-        show={showServicePopup}
-        onClose={() => setShowServicePopup(false)}
-        onRespond={handleServiceResponse}
-        barberName={data?.barbername}
-        isResponding={isResponding}
-      />
 
       {notification && <Message message={notification} />}
     </CustomerLayout>

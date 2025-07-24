@@ -26,7 +26,11 @@ from.models import Booking ,CustomerWallet
 logger = logging.getLogger(__name__)
 from django.utils import timezone
 from datetime import datetime
+from django.shortcuts import get_object_or_404
+from decimal import Decimal
+from django.db import transaction
 
+from barbersite.models import BarberWallet, WalletTransaction
 
 
 class Home(APIView):
@@ -440,6 +444,60 @@ class CustomerWalletView(APIView):
             
             return Response({'message': 'Amount successfully added to your wallet'}, status=status.HTTP_202_ACCEPTED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class EmergencyCancel(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, booking_id):
+        try:
+            with transaction.atomic():
+                booking = get_object_or_404(Booking, id=booking_id, customer=request.user)
+
+                if booking.status in ['CANCELLED', 'COMPLETED']:
+                    return Response({'error': 'This booking has already been cancelled or completed'},
+                                    status=status.HTTP_400_BAD_REQUEST)
+
+                if booking.travel_status in ['ALMOST_NEAR', 'ARRIVED']:
+                    return Response({'error': "You can't cancel this booking because the barber is almost at or has reached your location"},
+                                    status=status.HTTP_400_BAD_REQUEST)
+
+                payment = booking.payment
+                fine_percentage = Decimal('0.10')
+                fine_amount = booking.total_amount * fine_percentage
+                refund_amount = booking.total_amount - fine_amount
+
+                wallet, _ = CustomerWallet.objects.get_or_create(user=request.user)
+                wallet.account_total_balance += refund_amount
+                wallet.save()
+
+               
+                if booking.barber:
+                    barber_wallet, _ = BarberWallet.objects.get_or_create(barber=booking.barber)
+                    barber_wallet.balance += fine_amount
+                    barber_wallet.save()
+
+                    WalletTransaction.objects.create(
+                        wallet=barber_wallet,
+                        amount=fine_amount,
+                        note=f"Fine received from emergency cancel of booking #{booking.id}"
+                    )
+
+                booking.status = 'CANCELLED'
+                booking.save()
+
+                return Response({
+                    'message': 'Booking cancelled successfully!',
+                    'fine_amount': str(fine_amount),
+                    'refund_amount': str(refund_amount),
+                    'wallet_balance': str(wallet.account_total_balance)
+                }, status=status.HTTP_200_OK)
+
+        except Booking.DoesNotExist:
+            return Response({'error': 'Booking not found'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({'error': f'An error occurred: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 
 

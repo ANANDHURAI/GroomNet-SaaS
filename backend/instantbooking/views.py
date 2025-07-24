@@ -421,7 +421,6 @@ class HandleBarberActions(APIView, BookingMixin):
             )
 
 
-
 class CompletedServiceView(APIView):
     permission_classes = [IsAuthenticated]
 
