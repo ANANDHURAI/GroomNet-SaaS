@@ -262,16 +262,23 @@ class BarberSlotViewSet(viewsets.ViewSet):
 
 
 class BarberAppointments(APIView):
+    permission_classes = [IsAuthenticated]
+
     def get(self, request):
+        if request.user.user_type != 'barber':
+            return Response({"detail": "Unauthorized access."}, status=403)
+
         appointments = Booking.objects.filter(
-            booking_type='SCHEDULE_BOOKING'
-        ).select_related('customer', 'slot', 'address').order_by('-id')
+            booking_type='SCHEDULE_BOOKING',
+            barber=request.user,
+            status__in=['PENDING', 'CONFIRMED',] 
+        )
 
         data = []
         for booking in appointments:
-            time_str = f"{booking.slot.start_time} - {booking.slot.end_time}"
-            date_str = booking.slot.date.strftime('%Y-%m-%d')
-            
+            time_str = f"{booking.slot.start_time} - {booking.slot.end_time}" if booking.slot else "N/A"
+            date_str = booking.slot.date.strftime('%Y-%m-%d') if booking.slot else "N/A"
+
             data.append({
                 'id': booking.id,
                 'customer_name': booking.customer.name,
@@ -283,7 +290,42 @@ class BarberAppointments(APIView):
                 'phone': booking.customer.phone,
                 'service': booking.service.name,
                 'bookingType': booking.booking_type,
-                'bookingTypeDisplay': booking.get_booking_type_display()
+                
+            })
+
+        return Response(data)
+    
+
+class CompletedAppointments(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        if request.user.user_type != 'barber':
+            return Response({"detail": "Unauthorized access."}, status=403)
+
+        appointments = Booking.objects.filter(
+            booking_type='SCHEDULE_BOOKING',
+            barber=request.user,
+            status__in=['COMPLETED'] 
+        )
+
+        data = []
+        for booking in appointments:
+            time_str = f"{booking.slot.start_time} - {booking.slot.end_time}" if booking.slot else "N/A"
+            date_str = booking.slot.date.strftime('%Y-%m-%d') if booking.slot else "N/A"
+
+            data.append({
+                'id': booking.id,
+                'customer_name': booking.customer.name,
+                'time': time_str,
+                'date': date_str,
+                'address': f"{booking.address.street}, {booking.address.city}, {booking.address.pincode}",
+                'price': float(booking.total_amount),
+                'status': booking.status,
+                'phone': booking.customer.phone,
+                'service': booking.service.name,
+                'bookingType': booking.booking_type,
+                
             })
 
         return Response(data)

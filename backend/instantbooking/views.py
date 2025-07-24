@@ -442,7 +442,6 @@ class CompletedServiceView(APIView):
             'booking_type': booking.booking_type,
             'payment_method': payment.payment_method.upper(),
             'payment_done': payment.payment_status == "SUCCESS",
-            'service_status': booking.service_status,
             'status': booking.status,
         }
         return Response(data)

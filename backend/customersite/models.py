@@ -25,15 +25,6 @@ class Booking(models.Model):
         ("ARRIVED", "Arrived"),
     ]
 
-    SERVICE_STATUS_CHOICES = [
-        ("NOT_REQUESTED", "Not Requested"),
-        ("SERVICE_START_REQUESTED", "service start Requested"), 
-        ("READY", "Ready"),
-        ("WAIT", "Wait"),
-        ("IN_PROGRESS", "In Progress"),
-        ("COMPLETED", "Completed")
-    ]
-
     customer = models.ForeignKey(
         User, 
         on_delete=models.CASCADE, 
@@ -50,7 +41,6 @@ class Booking(models.Model):
     service = models.ForeignKey(ServiceModel, on_delete=models.CASCADE)
     slot = models.ForeignKey(BarberSlot, on_delete=models.CASCADE, null=True, blank=True)
     travel_status = models.CharField(max_length=20,choices=TRAVEL_STATUS_CHOICES,default="NOT_STARTED")
-    service_status = models.CharField(max_length=20, choices=SERVICE_STATUS_CHOICES, default="NOT_REQUESTED")
     address = models.ForeignKey(Address, on_delete=models.CASCADE)
     status = models.CharField(max_length=15, choices=BOOKING_STATUS, default="PENDING")
     booking_type = models.CharField(max_length=20 , choices=BOOKING_TYPE_CHOICES , default="INSTANT_BOOKING")

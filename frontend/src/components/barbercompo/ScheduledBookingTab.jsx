@@ -8,7 +8,7 @@ const ScheduledBookingTab = () => (
       <Clock className="w-8 h-8 text-gray-400" />
     </div>
     <h3 className="text-lg font-semibold text-gray-900 mb-2">
-      Scheduled Booking
+      Your Scheduled Booking
     </h3>
     <Appointments/>
   </div>

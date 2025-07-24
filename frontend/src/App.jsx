@@ -56,6 +56,7 @@ import TravelPage from './pages/barbersite/TravelPage'
 import StatusCheaking from './pages/customersite/StatusCheaking'
 import CustomerWallet from './pages/customersite/CustomerWallet'
 import ServiceCompletePage from './pages/barbersite/ServiceCompletePage'
+import CompletedAppointments from './pages/barbersite/CompletedAppointments';
 
 function App() {
   return (
@@ -312,6 +313,7 @@ function App() {
               />
               <Route path="/customer-wallet" element={<CustomerWallet />} />
               <Route path="/barber/service-complete/:bookingId" element={<ServiceCompletePage />}/>
+              <Route path="/completed-appointments" element={<CompletedAppointments />} />
 
 
             </Routes>
