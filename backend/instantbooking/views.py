@@ -17,6 +17,8 @@ import logging
 
 logger = logging.getLogger("django")
 User = get_user_model()
+from django.shortcuts import get_object_or_404
+from django.utils.timezone import now
 
 
 class BookingMixin:
@@ -251,7 +253,6 @@ class ActiveBookingView(APIView):
         return Response(response_data, status=200)
 
 
-
 class HandleBarberActions(APIView, BookingMixin):
     permission_classes = [IsAuthenticated]
 
@@ -316,7 +317,6 @@ class HandleBarberActions(APIView, BookingMixin):
         }, status=200)
 
     def _handle_reject_booking(self, barber, booking_id):
-        """Handle barber rejecting a booking"""
         try:
             booking = Booking.objects.get(
                 id=booking_id,
@@ -328,7 +328,7 @@ class HandleBarberActions(APIView, BookingMixin):
                 'error': 'Booking not found or already processed.'
             }, status=404)
 
-        # Find other available barbers
+
         available_barbers = [
             b for b in self.get_available_barbers_for_booking(booking)
             if b.id != barber.id
@@ -345,7 +345,7 @@ class HandleBarberActions(APIView, BookingMixin):
         }, status=200)
 
     def _notify_customer_booking_accepted(self, booking, barber):
-        """Notify customer that booking was accepted"""
+      
         channel_layer = get_channel_layer()
         
         profile_image_url = None
@@ -370,7 +370,7 @@ class HandleBarberActions(APIView, BookingMixin):
         )
 
     def _notify_other_barbers_remove_booking(self, booking, accepting_barber):
-        """Notify other barbers to remove the booking from their list"""
+      
         channel_layer = get_channel_layer()
         
         other_barbers = User.objects.filter(
@@ -389,7 +389,7 @@ class HandleBarberActions(APIView, BookingMixin):
             )
 
     def _notify_customer_no_barbers_available(self, booking):
-        """Notify customer that no barbers are available"""
+       
         channel_layer = get_channel_layer()
         
         async_to_sync(channel_layer.group_send)(
@@ -402,7 +402,7 @@ class HandleBarberActions(APIView, BookingMixin):
         )
 
     def _notify_barbers_new_booking(self, booking, barbers):
-        """Send new booking notification to barbers"""
+      
         channel_layer = get_channel_layer()
         
         for barber in barbers:

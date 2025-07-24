@@ -244,7 +244,7 @@ function TravelPage() {
                 </button>
               </div>
             ) : (
-              // Show next status button
+             
               nextStatus && (
                 <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
                   <div className="flex items-center justify-between">
