@@ -19,7 +19,8 @@ logger = logging.getLogger("django")
 User = get_user_model()
 from django.shortcuts import get_object_or_404
 from django.utils.timezone import now
-
+from adminsite.models import AdminWallet
+from barbersite.models import BarberWallet , WalletTransaction
 
 class BookingMixin:
     """Mixin to handle common booking operations"""
@@ -419,6 +420,8 @@ class HandleBarberActions(APIView, BookingMixin):
                 }
             )
 
+
+
 class CompletedServiceView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -443,6 +446,7 @@ class CompletedServiceView(APIView):
             'payment_method': payment.payment_method.upper(),
             'payment_done': payment.payment_status == "SUCCESS",
             'status': booking.status,
+            'is_released_to_barber': payment.is_released_to_barber,
         }
         return Response(data)
 
@@ -455,6 +459,54 @@ class CompletedServiceView(APIView):
             booking.completed_at = now()
             booking.save()
 
+            payment = booking.payment
+            if payment.payment_method == "COD":
+                payment_successful = True 
+            else:
+                payment_successful = payment.payment_status == "SUCCESS"
+            
+            not_released_to_barber = not payment.is_released_to_barber
+            if payment_successful and not_released_to_barber:
+                try:
+                    with transaction.atomic():
+                        admin_wallet = AdminWallet.objects.first()
+                        if not admin_wallet:
+                            return Response({"error": "Admin wallet not found"}, status=500)
+                            
+                        barber_wallet, _ = BarberWallet.objects.get_or_create(barber=booking.barber)
+                        amount = payment.service_amount
+                        if admin_wallet.total_earnings >= amount:
+                            admin_wallet.total_earnings -= amount
+                            admin_wallet.save()
+
+                            barber_wallet.balance += amount
+                            barber_wallet.save()
+
+                            WalletTransaction.objects.create(
+                                wallet=barber_wallet,
+                                amount=amount,
+                                note=f"Payment for Booking #{booking.id}"
+                            )
+
+                            payment.is_released_to_barber = True
+                            payment.released_at = now()
+                            if payment.payment_method == "COD":
+                                payment.payment_status = "SUCCESS"
+                            
+                            payment.save()
+                           
+                            booking.is_payment_done = True
+                            booking.save()
+
+                        else:
+                            return Response({
+                                "error": f"Insufficient admin funds. Required: ₹{amount}, Available: ₹{admin_wallet.total_earnings}"
+                            }, status=400)
+
+                except Exception as e:
+                    return Response({"error": f"Payment failed: {str(e)}"}, status=500)
+        
+ 
             channel_layer = get_channel_layer()
             group_name = f"customer_{booking.customer.id}"
 
@@ -466,7 +518,7 @@ class CompletedServiceView(APIView):
                     "message": "Thank you for choosing Groomnet. Your service has been completed.",
                 }
             )
+            return Response({"status": "Service completion and payment done"}, status=200)
 
-            return Response({"status": "Service completion notification sent"}, status=200)
-        else:
-            return Response({"error": "Invalid action"}, status=400)
+        return Response({"error": "Invalid action"}, status=400)
+

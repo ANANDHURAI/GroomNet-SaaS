@@ -51763,3 +51763,127 @@ Not Found: /barbersite/barber/wallet/
 Not Found: /barbersite/barber/wallet/
 Not Found: /barbersite/barber/wallet/
 Not Found: /barbersite/barber/wallet/
+Unauthorized: /profile-service/user-profile/
+Unauthorized: /customersite/home/
+Unauthorized: /customersite/home/
+Unauthorized: /profile-service/user-profile/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /profile-service/user-profile/
+Unauthorized: /profile-service/user-profile/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /profile-service/user-profile/
+Unauthorized: /customersite/home/
+Unauthorized: /profile-service/user-profile/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /customersite/home/
+Unauthorized: /auth/token/refresh/
+Internal Server Error: /adminsite/payment-history/
+Internal Server Error: /adminsite/payment-history/
+Internal Server Error: /adminsite/payment-history/
+Unauthorized: /customersite/categories/
+Unauthorized: /customersite/categories/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /auth/logout/
+Unauthorized: /auth/token/refresh/
+asal joined group: barber_3
+Sent booking 88 to barber 3
+Sent booking 88 to barber 3
+Sent booking 88 to barber 6
+Sent booking 88 to barber 6
+ilak joined group: customer_9
+ilak joined group: customer_9
+User disconnected from group: barber_3
+Method Not Allowed: /instant-booking/complete/service/88/
+Method Not Allowed: /instant-booking/complete/service/88/
+Unauthorized: /instant-booking/complete/service/88/
+Not Found: /static/rest_framework/css/bootstrap.min.css
+Not Found: /static/rest_framework/css/bootstrap-tweaks.css
+Not Found: /static/rest_framework/css/prettify.css
+Not Found: /static/rest_framework/css/default.css
+Not Found: /static/rest_framework/js/jquery-3.7.1.min.js
+Not Found: /static/rest_framework/js/ajax-form.js
+Not Found: /static/rest_framework/js/bootstrap.min.js
+Not Found: /static/rest_framework/js/csrf.js
+Not Found: /static/rest_framework/js/prettify-min.js
+Not Found: /static/rest_framework/js/default.js
+Not Found: /static/rest_framework/js/load-ajax-form.js
+Not Found: /favicon.ico
+Unauthorized: /instant-booking/complete/service/88/
+Unauthorized: /instant-booking/complete/service/88/
+Method Not Allowed: /instant-booking/complete/service/88/
+Method Not Allowed: /instant-booking/complete/service/88/
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Unauthorized: /customersite/booking-details/88/
+Unauthorized: /adminsite/payment-history/
+Unauthorized: /adminsite/admin-wallet/
+Unauthorized: /adminsite/payment-history/
+Unauthorized: /customersite/booking-details/88/
+Unauthorized: /adminsite/admin-wallet/
+Internal Server Error: /adminsite/payment-history/
+Internal Server Error: /adminsite/payment-history/
+asal joined group: barber_3
+User disconnected from group: barber_3
+Internal Server Error: /adminsite/payment-history/
+Internal Server Error: /adminsite/payment-history/
+Internal Server Error: /adminsite/payment-history/
+Internal Server Error: /adminsite/payment-history/
+asal joined group: barber_3
+Internal Server Error: /adminsite/payment-history/
+Internal Server Error: /adminsite/payment-history/
+Sent booking 89 to barber 6
+Sent booking 89 to barber 6
+Sent booking 89 to barber 3
+Sent booking 89 to barber 3
+Sent booking 89 to barber 11
+Sent booking 89 to barber 11
+ilak joined group: customer_9
+ilak joined group: customer_9
+User disconnected from group: barber_3
+Internal Server Error: /adminsite/payment-history/
+Internal Server Error: /adminsite/payment-history/
+ilak joined group: customer_9
+ilak joined group: customer_9
+User disconnected from group: customer_9
+User disconnected from group: customer_9
+Internal Server Error: /adminsite/payment-history/
+Internal Server Error: /adminsite/payment-history/
+Internal Server Error: /adminsite/payment-history/
+Internal Server Error: /adminsite/payment-history/
+Internal Server Error: /adminsite/payment-history/
+asal joined group: barber_3
+Sent booking 90 to barber 6
+Sent booking 90 to barber 6
+Sent booking 90 to barber 3
+Sent booking 90 to barber 3
+Sent booking 90 to barber 11
+Sent booking 90 to barber 11
+ilak joined group: customer_9
+ilak joined group: customer_9
+User disconnected from group: barber_3
+User disconnected from group: customer_9
+User disconnected from group: customer_9
+Internal Server Error: /adminsite/payment-history/
+asal joined group: barber_3
+Internal Server Error: /adminsite/payment-history/
+Internal Server Error: /adminsite/payment-history/
+User disconnected from group: barber_3
+Internal Server Error: /adminsite/payment-history/
+Internal Server Error: /adminsite/payment-history/
+asal joined group: barber_3
+Sent booking 91 to barber 6
+Sent booking 91 to barber 6
+Sent booking 91 to barber 3
+Sent booking 91 to barber 3
+Sent booking 91 to barber 11
+Sent booking 91 to barber 11
+ilak joined group: customer_9
+ilak joined group: customer_9
+User disconnected from group: barber_3
