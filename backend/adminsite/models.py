@@ -2,6 +2,8 @@ from django.db import models
 from django.utils import timezone
 
 
+
+
 class CategoryModel(models.Model):
     name = models.CharField(max_length=100)
     image = models.ImageField(upload_to='categories/')
@@ -23,6 +25,44 @@ class ServiceModel(models.Model):
 
     def __str__(self):
         return f"{self.name} → {self.category.name}"
+    
+
+
+class Coupon(models.Model):
+    code = models.CharField(max_length=20, unique=True)
+    expiry_date = models.DateTimeField()
+    service = models.ForeignKey(ServiceModel, on_delete=models.CASCADE, related_name='coupons')
+    discount_percentage = models.PositiveIntegerField(null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.code} for {self.service.name}"
+
+    def is_valid(self):
+        return timezone.now() < self.expiry_date
+
+    def get_discounted_price(self, original_price):
+        if self.discount_percentage:
+            return original_price - (original_price * self.discount_percentage / 100)
+        return original_price
+
+    
+
+# class Complaints(models.Model):
+
+#     COMPLAINT_STATUS = [
+#         ("REESOLVED" , "resolved"),
+#         ("UNDER_REVIEW","under_review"),
+#         ("PENDING","pending")
+#     ]
+#     complaint_name = models.TextField()
+#     image = models.ImageField()
+#     complaint_status = models.CharField(max_length=20 , choices=COMPLAINT_STATUS , default="PENDING")
+
+
+# class Rating(models.Model):
+#     command = models.TextField()
+#     image = models.ImageField()
+
 
 class AdminWallet(models.Model):
     total_earnings = models.DecimalField(max_digits=10, decimal_places=2, default=0)

@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from authservice.models import User 
-from .models import CategoryModel , ServiceModel , AdminWallet
+from .models import CategoryModel , ServiceModel , AdminWallet , Coupon
 
 class UsersListSerializer(serializers.ModelSerializer):
     profileimage_url = serializers.SerializerMethodField()
@@ -67,3 +67,8 @@ class AdminWalletSerializer(serializers.ModelSerializer):
         model = AdminWallet
         fields = ['id', 'total_earnings', 'last_updated', 'amount']
         read_only_fields = ['id', 'last_updated']
+
+class CouponSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Coupon
+        fields = '__all__'

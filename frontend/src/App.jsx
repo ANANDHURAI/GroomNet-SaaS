@@ -58,6 +58,7 @@ import CustomerWallet from './pages/customersite/CustomerWallet'
 import ServiceCompletePage from './pages/barbersite/ServiceCompletePage'
 import CompletedAppointments from './pages/barbersite/CompletedAppointments';
 import Earnings from './pages/barbersite/Earnings';
+import CouponManagePage from './pages/adminsite/CouponManagePage';
 
 function App() {
   return (
@@ -317,6 +318,7 @@ function App() {
               <Route path="/completed-appointments" element={<CompletedAppointments />} />
 
               <Route path="/barber-earnings" element={<Earnings />} />
+              <Route path="/coupons-management" element={<CouponManagePage />} />
             </Routes>
          </ServiceProvider>
         </BrowserRouter>

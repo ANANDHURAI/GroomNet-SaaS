@@ -16,8 +16,8 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework.generics import ListAPIView
 from rest_framework.decorators import api_view, permission_classes
 from customersite.models import PaymentModel
-from .models import ServiceModel, CategoryModel , AdminWallet 
-
+from .models import ServiceModel, CategoryModel , AdminWallet  ,Coupon
+from .serializers import CouponSerializer
 
 class PendingBarbersRequestsView(APIView):
     permission_classes = [IsAuthenticated]
@@ -302,6 +302,7 @@ class AdminWalletView(APIView):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def payment_history_view(request):
+
     try:
         if request.user.user_type != 'admin':
             return Response({'error': 'Admin access required'}, status=status.HTTP_403_FORBIDDEN)
@@ -335,3 +336,11 @@ def payment_history_view(request):
     except Exception as e:
         print(f"Error in payment_history_view: {str(e)}")
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+
+
+class CouponViewSet(ModelViewSet):
+    permission_classes = [IsAuthenticated]
+    queryset = Coupon.objects.all()
+    serializer_class = CouponSerializer
+    
