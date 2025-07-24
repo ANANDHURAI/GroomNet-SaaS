@@ -12,22 +12,21 @@ function ServiceCompletePage() {
   const [notification, setNotification] = useState("");
   const [showEarnings, setShowEarnings] = useState(false);
 
+  const [socket, setSocket] = useState(null);
+
   useEffect(() => {
     apiClient
-      .get(`/customersite/complete/service/${bookingId}/`)
+      .get(`/instant-booking/complete/service/${bookingId}/`)
       .then((response) => {
         setData(response.data);
         if (response.data.payment_done) {
-          setIsCompleted(true);
-        }
-        if (response.data.payment_method === 'COD' && response.data.payment_done) {
-          setIsCollected(true);
-        }
-        if (response.data.payment_done && response.data.status === 'COMPLETED') {
-          setIsCompleted(true);
-          setShowEarnings(true);
-        } else if (response.data.payment_done) {
-          setIsCompleted(false);
+          setIsCompleted(response.data.status === "COMPLETED");
+          if (response.data.payment_method === 'COD' && response.data.payment_done) {
+            setIsCollected(true);
+          }
+          if (response.data.status === 'COMPLETED') {
+            setShowEarnings(true);
+          }
         }
       })
       .catch((error) => {
@@ -35,47 +34,77 @@ function ServiceCompletePage() {
       });
   }, [bookingId]);
 
+  useEffect(() => {
+  
+    const token = localStorage.getItem("access_token"); 
+    const ws = new WebSocket(
+      `${window.location.protocol === "https:" ? "wss" : "ws"}://${
+        window.location.host
+      }/ws/instant-booking/${bookingId}/?token=${token}`
+    );
+
+    ws.onopen = () => {
+      console.log("WebSocket connected ✅");
+    };
+
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      console.log("WebSocket message:", data);
+
+      if (data.type === "service_completed") {
+        setNotification(data.message);
+        setTimeout(() => setNotification(""), 5000);
+      }
+    };
+
+    ws.onclose = () => {
+      console.log("WebSocket disconnected ❌");
+    };
+
+    setSocket(ws);
+
+    return () => {
+      ws.close();
+    };
+  }, [bookingId]);
+
   const handleCollectAmount = () => {
     setIsCollected(true);
     setNotification("💰 Amount collected from customer!");
-    setTimeout(() => setNotification(""), 2000);
+    setTimeout(() => setNotification(""), 3000);
   };
 
   const handleMarkCompleted = () => {
     apiClient
-      .post(`/customersite/complete/service/${bookingId}/`)
+      .post(`/instant-booking/complete/service/${bookingId}/`, {
+        action: "service_completed",
+      })
       .then((response) => {
         console.log(response.data);
         setIsCompleted(true);
         setShowEarnings(true);
         setNotification("🎉 Service marked as completed!");
-        setTimeout(() => setNotification(""), 3000);
-        
-        apiClient
-          .post(`/instant-booking/service/conformation/${bookingId}/`, 
-            JSON.stringify({ action: "service_completed" }), {
-            action: 'service_completed'
-          })
-          .catch((error) => {
-            console.error("Error sending completion notification:", error);
-          });
+        setTimeout(() => setNotification(""), 5000);
       })
       .catch((error) => {
         console.error("Error completing service:", error);
         setNotification("❌ Failed to mark as completed");
-        setTimeout(() => setNotification(""), 2000);
+        setTimeout(() => setNotification(""), 3000);
       });
   };
 
   const getEarningsAmount = () => {
-    if (data?.payment_method === 'COD') {
-      return data.service_amount; 
+    if (data?.payment_method === "COD") {
+      return data.service_amount;
     }
-    return data?.service_amount || data?.price; 
+    return data?.service_amount || data?.price;
   };
 
   const getCODCollectionAmount = () => {
-    return parseFloat(data?.service_amount || 0) + parseFloat(data?.platform_fee || 0);
+    return (
+      parseFloat(data?.service_amount || 0) +
+      parseFloat(data?.platform_fee || 0)
+    );
   };
 
   if (!data) {
@@ -90,30 +119,51 @@ function ServiceCompletePage() {
     <div className="flex">
       <BarberSidebar />
       <div className="flex-1 max-w-2xl mx-auto mt-10 p-6 bg-white rounded-lg shadow">
-        <h2 className="text-2xl font-bold mb-4 text-green-700">🎉 Service Completion</h2>
+        <h2 className="text-2xl font-bold mb-4 text-green-700">
+          🎉 Service Completion
+        </h2>
 
         <div className="space-y-2 text-gray-700">
-          <p><strong>Booking ID:</strong> {data.id}</p>
-          <p><strong>Customer:</strong> {data.customer_name}</p>
-          <p><strong>Phone:</strong> {data.customer_phone}</p>
-          <p><strong>Address:</strong> {data.address}</p>
-          <p><strong>Service:</strong> {data.service}</p>
-          <p><strong>Total Price:</strong> ₹{data.price}</p>
-          <p><strong>Booking Type:</strong> {data.booking_type}</p>
-          <p><strong>Payment Method:</strong> {data.payment_method}</p>
+          <p>
+            <strong>Booking ID:</strong> {data.id}
+          </p>
+          <p>
+            <strong>Customer:</strong> {data.customer_name}
+          </p>
+          <p>
+            <strong>Phone:</strong> {data.customer_phone}
+          </p>
+          <p>
+            <strong>Address:</strong> {data.address}
+          </p>
+          <p>
+            <strong>Service:</strong> {data.service}
+          </p>
+          <p>
+            <strong>Total Price:</strong> ₹{data.price}
+          </p>
+          <p>
+            <strong>Booking Type:</strong> {data.booking_type}
+          </p>
+          <p>
+            <strong>Payment Method:</strong> {data.payment_method}
+          </p>
         </div>
 
-        {/* COD Flow */}
-        {data.payment_method === 'COD' && (
+        {data.payment_method === "COD" && (
           <div className="mt-6 space-y-4">
             {!isCollected && !isCompleted && (
               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                <h3 className="font-semibold text-yellow-800 mb-2">💰 Collect Amount from Customer</h3>
+                <h3 className="font-semibold text-yellow-800 mb-2">
+                  💰 Collect Amount from Customer
+                </h3>
                 <p className="text-yellow-700 mb-3">
-                  Amount to collect: <strong>₹{getCODCollectionAmount()}</strong>
+                  Amount to collect:{" "}
+                  <strong>₹{getCODCollectionAmount()}</strong>
                   <br />
                   <small className="text-gray-600">
-                    (Service: ₹{data.service_amount} + Platform Fee: ₹{data.platform_fee})
+                    (Service: ₹{data.service_amount} + Platform Fee: ₹
+                    {data.platform_fee})
                   </small>
                 </p>
                 <button
@@ -127,8 +177,12 @@ function ServiceCompletePage() {
 
             {isCollected && !isCompleted && (
               <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                <h3 className="font-semibold text-green-800 mb-2">✅ Amount Collected</h3>
-                <p className="text-green-700 mb-3">Ready to complete the service</p>
+                <h3 className="font-semibold text-green-800 mb-2">
+                  ✅ Amount Collected
+                </h3>
+                <p className="text-green-700 mb-3">
+                  Ready to complete the service
+                </p>
                 <button
                   onClick={handleMarkCompleted}
                   className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
@@ -140,7 +194,8 @@ function ServiceCompletePage() {
           </div>
         )}
 
-        {(data.payment_method === 'WALLET' || data.payment_method === 'STRIPE') && (
+        {(data.payment_method === "WALLET" ||
+          data.payment_method === "STRIPE") && (
           <div className="mt-6">
             {!isCompleted ? (
               <button
@@ -151,32 +206,26 @@ function ServiceCompletePage() {
               </button>
             ) : (
               <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                <h3 className="font-semibold text-green-800 mb-2">✅ Service Completed</h3>
-                <p className="text-green-700">Service has been marked as completed successfully!</p>
+                <h3 className="font-semibold text-green-800 mb-2">
+                  ✅ Service Completed
+                </h3>
+                <p className="text-green-700">
+                  Service has been marked as completed successfully!
+                </p>
               </div>
             )}
           </div>
         )}
 
-       
-        {isCompleted && (
-          <div className="mt-6">
-            <button
-              className="w-full px-4 py-2 bg-green-600 text-white rounded-lg cursor-not-allowed"
-              disabled
-            >
-              ✅ Service Completed
-            </button>
-          </div>
-        )}
-
         {showEarnings && (
           <div className="mt-6 bg-green-50 border border-green-200 rounded-lg p-4">
-            <h3 className="font-semibold text-green-800 mb-2">🎉 Congratulations!</h3>
+            <h3 className="font-semibold text-green-800 mb-2">
+              🎉 Congratulations!
+            </h3>
             <p className="text-green-700 text-lg">
               You have earned: <strong>₹{getEarningsAmount()}</strong>
             </p>
-            {data.payment_method === 'COD' && (
+            {data.payment_method === "COD" && (
               <p className="text-sm text-gray-600 mt-2">
                 Please deposit ₹{data.platform_fee} platform fee manually
               </p>

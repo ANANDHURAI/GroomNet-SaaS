@@ -12,9 +12,7 @@ import {
   User,
   Scissors,
   CreditCard,
-  ChevronRight,
-  Clock,
-  AlertCircle
+  ChevronRight
 } from "lucide-react";
 import Message from "../../components/customercompo/booking/Message";
 
@@ -23,10 +21,6 @@ function TravelPage() {
   const [currentStatus, setCurrentStatus] = useState("NOT_STARTED");
   const [isLoading, setIsLoading] = useState(false);
   const [bookingDetails, setBookingDetails] = useState(null);
-  const [serviceSocket, setServiceSocket] = useState(null);
-  const [serviceStatus, setServiceStatus] = useState("not_requested");
-  const [waitTime, setWaitTime] = useState(0);
-  const [waitTimer, setWaitTimer] = useState(null);
   const [notification, setNotification] = useState(""); 
 
   const navigate = useNavigate();
@@ -85,66 +79,6 @@ function TravelPage() {
     }
   }, [bookingId]);
 
-  useEffect(() => {
-    if (currentStatus === "ARRIVED") {
-      const wsUrl = `ws://localhost:8000/ws/service/conformation/`;
-      const socket = new WebSocket(wsUrl);
-      
-      socket.onopen = () => {
-        console.log("Service WebSocket connected");
-        setServiceSocket(socket);
-      };
-      
-      socket.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        console.log("WebSocket message:", data);
-        
-        if (data.type === 'customer_response') {
-          if (data.status === 'ready') {
-            setServiceStatus('ready');
-            showNotification("✅ Customer is ready! You can start the service.");
-          } else if (data.status === 'wait') {
-            setServiceStatus('wait');
-            setWaitTime(60);
-            startWaitTimer();
-            showNotification("⏳ Customer requested a 1 minute wait.");
-          }
-        }
-      };
-      
-      socket.onclose = () => {
-        console.log("Service WebSocket disconnected");
-        setServiceSocket(null);
-      };
-      
-      socket.onerror = (error) => {
-        console.error("WebSocket error:", error);
-      };
-      
-      return () => {
-        socket.close();
-      };
-    }
-  }, [currentStatus]);
-
-  const startWaitTimer = () => {
-    if (waitTimer) clearInterval(waitTimer);
-    
-    const timer = setInterval(() => {
-      setWaitTime((prev) => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          setServiceStatus('ready');
-          showNotification("✅ Wait time is over! You can now start the service.");
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-    
-    setWaitTimer(timer);
-  };
-
   const updateStatus = async (status) => {
     setIsLoading(true);
     try {
@@ -165,27 +99,9 @@ function TravelPage() {
     }
   };
 
-  const requestServiceStart = async () => {
-    setIsLoading(true);
-    try {
-      await apiClient.post(`/instant-booking/service/conformation/${bookingId}/`, {
-        action: 'request_service'
-      });
-      
-      setServiceStatus('requested');
-      showNotification("✅ Service request sent to customer");
-      
-    } catch (error) {
-      console.error("Failed to request service:", error);
-      showNotification("❌ Failed to send service request");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const showNotification = (message) => {
     setNotification(message);
-    setTimeout(() => setNotification(""), 2000); 
+    setTimeout(() => setNotification(""), 3000); 
   };
 
   const getCurrentStatusIndex = () => {
@@ -209,12 +125,6 @@ function TravelPage() {
       blue: isActive ? "bg-blue-600 border-blue-500" : "bg-blue-100 border-blue-300 text-blue-700"
     };
     return colorMap[color] || colorMap.gray;
-  };
-
-  const formatTime = (seconds) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
   const nextStatus = getNextStatus();
@@ -314,30 +224,47 @@ function TravelPage() {
             </div>
           </div>
 
+          {/* ✅ ARRIVED STATUS */}
           <div className="bg-white rounded-xl shadow-sm border p-6">
             <h2 className="text-xl font-semibold text-gray-800 mb-6">Update Status</h2>
-            
             {currentStatus === "ARRIVED" ? (
-              <div className="space-y-4">
-                <div className="text-center p-8 bg-green-50 rounded-lg border border-green-200">
-                  <CheckCircle className="w-12 h-12 mx-auto mb-4 text-green-600" />
-                  <h3 className="text-xl font-bold text-green-800 mb-2">
-                    You've Arrived!
-                  </h3>
-                  <p className="text-green-600">
-                    Great job! You've successfully reached your customer's location.
-                  </p>
-                </div>
-
-               
-                <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                  <h3 className="text-lg font-semibold text-blue-800 mb-4">Start Service</h3>
-                  
-                  {serviceStatus === 'not_requested' && (
+              <div className="text-center p-8 bg-green-50 rounded-lg border border-green-200">
+                <CheckCircle className="w-12 h-12 mx-auto mb-4 text-green-600" />
+                <h3 className="text-xl font-bold text-green-800 mb-2">
+                  You've Arrived!
+                </h3>
+                <p className="text-green-600 mb-6">
+                  You’ve reached the customer's location. You can now start the service.
+                </p>
+                <button
+                  className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-semibold"
+                  onClick={() => navigate(`/barber/service-complete/${bookingId}`)}
+                >
+                  Start Service Now
+                </button>
+              </div>
+            ) : (
+              // Show next status button
+              nextStatus && (
+                <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="p-2 rounded-full bg-blue-100 text-blue-600">
+                        {nextStatus.icon}
+                      </div>
+                      <div>
+                        <div className="font-semibold text-gray-800">
+                          Next: {nextStatus.label}
+                        </div>
+                        <div className="text-sm text-gray-600">
+                          {nextStatus.description}
+                        </div>
+                      </div>
+                    </div>
                     <button
-                      onClick={requestServiceStart}
+                      onClick={() => updateStatus(nextStatus.key)}
                       disabled={isLoading}
-                      className={`w-full px-6 py-3 rounded-lg font-medium text-white transition-all duration-200 flex items-center justify-center ${
+                      className={`px-6 py-3 rounded-lg font-medium text-white transition-all duration-200 flex items-center ${
                         isLoading
                           ? 'bg-gray-400 cursor-not-allowed'
                           : 'bg-blue-600 hover:bg-blue-700 hover:shadow-lg active:scale-95'
@@ -346,103 +273,18 @@ function TravelPage() {
                       {isLoading ? (
                         <>
                           <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          <span>Requesting...</span>
+                          <span>Updating...</span>
                         </>
                       ) : (
                         <>
-                          <Scissors className="w-4 h-4 mr-2" />
-                          <span>Request to Start Service</span>
+                          <span>Update Status</span>
+                          <ChevronRight className="w-4 h-4 ml-2" />
                         </>
                       )}
                     </button>
-                  )}
-
-                  {serviceStatus === 'requested' && (
-                    <div className="text-center p-4 bg-yellow-50 rounded-lg border border-yellow-200">
-                      <Clock className="w-8 h-8 mx-auto mb-2 text-yellow-600" />
-                      <p className="text-yellow-700 font-medium">
-                        Waiting for customer response...
-                      </p>
-                      <p className="text-sm text-yellow-600 mt-1">
-                        The customer will receive a notification to confirm if they're ready.
-                      </p>
-                    </div>
-                  )}
-
-                  {serviceStatus === 'wait' && (
-                    <div className="text-center p-4 bg-orange-50 rounded-lg border border-orange-200">
-                      <AlertCircle className="w-8 h-8 mx-auto mb-2 text-orange-600" />
-                      <p className="text-orange-700 font-medium">
-                        Customer needs to wait
-                      </p>
-                      <p className="text-sm text-orange-600 mt-1">
-                        Please wait for: <span className="font-bold">{formatTime(waitTime)}</span>
-                      </p>
-                    </div>
-                  )}
-
-                  {serviceStatus === 'ready' && (
-                    <div className="text-center p-4 bg-green-50 rounded-lg border border-green-200">
-                      <CheckCircle className="w-8 h-8 mx-auto mb-2 text-green-600" />
-                      <p className="text-green-700 font-medium">
-                        Customer is ready!
-                      </p>
-                      <p className="text-sm text-green-600 mt-1">
-                        You can now start providing the service.
-                      </p>
-                      <button
-                        className="mt-3 px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-                        onClick={() => navigate(`/barber/service-complete/${bookingId}`)}
-                      >
-                        Start Service Now
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {nextStatus && (
-                  <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
-                        <div className="p-2 rounded-full bg-blue-100 text-blue-600">
-                          {nextStatus.icon}
-                        </div>
-                        <div>
-                          <div className="font-semibold text-gray-800">
-                            Next: {nextStatus.label}
-                          </div>
-                          <div className="text-sm text-gray-600">
-                            {nextStatus.description}
-                          </div>
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => updateStatus(nextStatus.key)}
-                        disabled={isLoading}
-                        className={`px-6 py-3 rounded-lg font-medium text-white transition-all duration-200 flex items-center ${
-                          isLoading
-                            ? 'bg-gray-400 cursor-not-allowed'
-                            : 'bg-blue-600 hover:bg-blue-700 hover:shadow-lg active:scale-95'
-                        }`}
-                      >
-                        {isLoading ? (
-                          <>
-                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                            <span>Updating...</span>
-                          </>
-                        ) : (
-                          <>
-                            <span>Update Status</span>
-                            <ChevronRight className="w-4 h-4 ml-2" />
-                          </>
-                        )}
-                      </button>
-                    </div>
                   </div>
-                )}
-              </div>
+                </div>
+              )
             )}
           </div>
         </div>

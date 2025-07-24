@@ -26,9 +26,7 @@ from.models import Booking ,CustomerWallet
 logger = logging.getLogger(__name__)
 from django.utils import timezone
 from datetime import datetime
-from django.utils.timezone import now
-from django.shortcuts import get_object_or_404
-from asgiref.sync import async_to_sync
+
 
 
 class Home(APIView):
@@ -444,95 +442,6 @@ class CustomerWalletView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class CompletedServiceView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request, booking_id):
-        booking = get_object_or_404(
-            Booking.objects.select_related('customer', 'address', 'service', 'payment'),
-            id=booking_id
-        )
-        payment = booking.payment
-
-        data = {
-            'id': booking.id,
-            'customer_name': booking.customer.name,
-            'customer_phone': booking.customer.phone,
-            'address': f"{booking.address.building}, {booking.address.street}, "
-                       f"{booking.address.city}, {booking.address.state} - {booking.address.pincode}",
-            'service': booking.service.name,
-            'price': str(booking.total_amount),
-            'service_amount': str(payment.service_amount),
-            'platform_fee': str(payment.platform_fee),
-            'booking_type': booking.booking_type,
-            'payment_method': payment.payment_method.upper(),
-            'payment_done': payment.payment_status == "SUCCESS",
-            'service_status': booking.service_status,
-            'status': booking.status,
-        }
-        return Response(data)
-
-    def post(self, request, booking_id):
-        print("Request Data:", request.data) 
-        action = request.data.get('action')
-        booking = get_object_or_404(Booking, id=booking_id)
-
-        if action == 'request_service':
-            booking.service_status = "REQUESTED"
-            booking.save()
-            
-            async_to_sync(self.channel_layer.group_send)(
-                "service_start_request",
-                {
-                    "type": "send_request_to_customer",
-                    "booking_id": booking_id
-                }
-            )
-            return Response({"status": "Request sent to customer"}, status=200)
-
-        elif action == 'ready':
-            booking.service_status = "READY"
-            booking.save()
-            
-            async_to_sync(self.channel_layer.group_send)(
-                "service_start_request",
-                {
-                    "type": "customer_ready",
-                    "booking_id": booking_id
-                }
-            )
-            return Response({"status": f"Customer response: {action}"}, status=200)
-            
-        elif action == 'wait':
-            booking.service_status = "WAIT"
-            booking.save()
-            
-            async_to_sync(self.channel_layer.group_send)(
-                "service_start_request",
-                {
-                    "type": "customer_wait",
-                    "booking_id": booking_id
-                }
-            )
-            return Response({"status": f"Customer response: {action}"}, status=200)
-            
-        elif action == 'service_completed':
-            booking.service_status = "COMPLETED"
-            booking.status = "COMPLETED"
-            booking.completed_at = now()
-            booking.save()
-            
-            async_to_sync(self.channel_layer.group_send)(
-                "service_start_request",
-                {
-                    "type": "send_complete_message_to_customer",
-                    "booking_id": booking_id
-                }
-            )
-            return Response({"status": "Service completion notification sent"}, status=200)
-        
-        else:
-            return Response({"error": "Invalid action"}, status=400)
 
             
 

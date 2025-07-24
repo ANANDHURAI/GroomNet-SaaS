@@ -14,15 +14,14 @@ function FindBarbers() {
     useEffect(() => {
         const urlParams = new URLSearchParams(window.location.search);
         const booking_id = urlParams.get('booking_id');
-        console.log("booking_id from URL:", booking_id);
+        console.log("Booking ID from URL:", booking_id);
 
         if (booking_id) {
             setBookingId(booking_id);
-            
-    
+
             const savedBarberDetails = sessionStorage.getItem(`barberDetails_${booking_id}`);
             const savedStatus = sessionStorage.getItem(`barberStatus_${booking_id}`);
-            
+
             if (savedBarberDetails) {
                 try {
                     setBarberDetails(JSON.parse(savedBarberDetails));
@@ -35,7 +34,7 @@ function FindBarbers() {
                     sessionStorage.removeItem(`barberStatus_${booking_id}`);
                 }
             }
-            
+
             startSearch(booking_id);
         } else {
             setStatus("No booking ID provided");
@@ -46,7 +45,6 @@ function FindBarbers() {
             if (socket) socket.close();
         };
     }, []);
-
 
     useEffect(() => {
         if (barberDetails && bookingId) {
@@ -60,21 +58,25 @@ function FindBarbers() {
         setStatus("Searching for nearby barbers...");
 
         try {
-            const statusResponse = await apiClient.post(`/instant-booking/booking/${booking_id}/`);
+            // Fixed: Use correct endpoint from backend
+            const response = await apiClient.post(`/instant-booking/booking/${booking_id}/`);
             
-            if (statusResponse.data.barber_assigned) {
-                const barberData = statusResponse.data.barber_details;
-                setBarberDetails(barberData);
-                setStatus(`${barberData.name} is your barber!`);
+            // Check if barbers were notified
+            if (response.data.barbers_notified > 0) {
+                setStatus(`Sent request to ${response.data.barbers_notified} barbers. Waiting for responses...`);
+                initializeWebSocket(booking_id);
+            } else {
+                setStatus("❌ No barbers available in your area.");
                 setIsSearching(false);
-                return;
             }
 
-            initializeWebSocket(booking_id);
-
         } catch (error) {
-            console.error("Error starting search:", error);
-            setStatus("Error starting search. Please try again.");
+            console.error("❌ Error starting search:", error);
+            if (error.response?.status === 404) {
+                setStatus("No barbers available at the moment.");
+            } else {
+                setStatus("Error starting search. Please try again.");
+            }
             setIsSearching(false);
         }
     };
@@ -88,56 +90,60 @@ function FindBarbers() {
         }
 
         const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
-        const wsHost = window.location.hostname === "localhost" 
-            ? "localhost:8000" 
+        const wsHost = window.location.hostname === "localhost"
+            ? "localhost:8000"
             : window.location.host;
 
+        // Fixed: Use customer group WebSocket URL (no specific barber_id needed for customer)
         const wsUrl = `${wsScheme}://${wsHost}/ws/instant-booking/${booking_id}/?token=${token}`;
-        console.log("🔗 Connecting to WebSocket:", wsUrl);
+        console.log("🔗 Connecting WebSocket:", wsUrl);
 
         const ws = new WebSocket(wsUrl);
         setSocket(ws);
 
         ws.onopen = () => {
-            console.log("WebSocket connected");
+            console.log("✅ WebSocket connected");
         };
 
         ws.onmessage = (event) => {
             const data = JSON.parse(event.data);
             console.log("📨 WebSocket message:", data);
 
-            if (data.booking_confirmed) {
-                const barberData = {
-                    barber_name: data.barber_name,
-                    barber_phone: data.barber_phone,
-                    barber_profile_image: data.barber_profile,
-                };
-                setBarberDetails(barberData);
-                setStatus(`${data.barber_name} accepted your request!`);
+            if (data.type === "booking_accepted") {
+                // Fixed: Match backend response structure
+                const barberData = data.barber_details;
+                setBarberDetails({
+                    name: barberData.name,
+                    phone: barberData.phone,
+                    profile_image: barberData.profile_image
+                });
+                setStatus(`${barberData.name} accepted your booking!`);
                 setIsSearching(false);
-            } else if (data.no_barbers) {
-                setStatus("No barbers available in your area.");
+            } else if (data.type === "no_barbers_available") {
+                setStatus("❌ No barbers available in your area.");
                 setIsSearching(false);
-            } else if (data.booking_expired) {
-                setStatus("Request expired. No barber accepted in time.");
+            } else if (data.type === "booking_cancelled") {
+                setStatus(`⌛ Booking cancelled: ${data.reason || 'Unknown reason'}`);
                 setIsSearching(false);
-            } else if (data.barbers_count) {
-                setStatus(`Found ${data.barbers_count} barbers. Waiting for acceptance...`);
+            } else if (data.type === "remove_booking") {
+                // This shouldn't happen for customers, but handle gracefully
+                setStatus("Booking was processed by another barber.");
+                setIsSearching(false);
             }
         };
 
         ws.onclose = (e) => {
-            console.log("WebSocket disconnected", e);
+            console.log("⚠️ WebSocket disconnected", e);
             if (isSearching) {
                 setTimeout(() => {
-                    console.log("Reconnecting WebSocket...");
+                    console.log("🔄 Reconnecting WebSocket...");
                     initializeWebSocket(booking_id);
                 }, 3000);
             }
         };
 
         ws.onerror = (error) => {
-            console.error("WebSocket error:", error);
+            console.error("❌ WebSocket error:", error);
             setStatus("Connection error. Trying to reconnect...");
         };
     };
@@ -147,7 +153,7 @@ function FindBarbers() {
             sessionStorage.removeItem(`barberDetails_${bookingId}`);
             sessionStorage.removeItem(`barberStatus_${bookingId}`);
         }
-        
+
         setBarberDetails(null);
         if (bookingId) {
             startSearch(bookingId);
@@ -158,12 +164,12 @@ function FindBarbers() {
         setStatus("Search cancelled");
         setIsSearching(false);
         if (socket) socket.close();
-        
+
         if (bookingId) {
             sessionStorage.removeItem(`barberDetails_${bookingId}`);
             sessionStorage.removeItem(`barberStatus_${bookingId}`);
         }
-        
+
         console.log("Booking cancelled");
     };
 
@@ -192,16 +198,16 @@ function FindBarbers() {
                 {barberDetails && (
                     <div className="flex flex-col items-center space-y-4">
                         <h2 className="text-lg font-semibold text-green-600">
-                            Barber Found!
+                            🎉 Barber Found!
                         </h2>
                         <p className="text-gray-600 text-center">{status}</p>
 
                         <div className="flex items-center space-x-4 p-4 bg-green-50 rounded-lg w-full">
                             <div className="w-16 h-16 rounded-full bg-gray-200 overflow-hidden flex items-center justify-center">
-                                {barberDetails.barber_profile_image ? (
+                                {barberDetails.profile_image ? (
                                     <img
-                                        src={barberDetails.barber_profile_image}
-                                        alt={barberDetails.barber_name}
+                                        src={barberDetails.profile_image}
+                                        alt={barberDetails.name}
                                         className="w-full h-full object-cover"
                                     />
                                 ) : (
@@ -209,23 +215,23 @@ function FindBarbers() {
                                 )}
                             </div>
                             <div className="flex-1">
-                                <h3 className="font-semibold text-lg">{barberDetails.barber_name}</h3>
-                                <p className="text-gray-600">{barberDetails.barber_phone}</p>
+                                <h3 className="font-semibold text-lg">{barberDetails.name}</h3>
+                                <p className="text-gray-600">{barberDetails.phone}</p>
                             </div>
                         </div>
 
                         <div className="flex flex-col space-y-2 w-full">
                             <button
-                                onClick={() => window.location.href = `tel:${barberDetails.barber_phone}`}
+                                onClick={() => window.location.href = `tel:${barberDetails.phone}`}
                                 className="w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
                             >
-                                Call Barber
+                                📞 Call Barber
                             </button>
                             <button
                                 onClick={() => navigate(`/booking-details/${bookingId}`)}
                                 className="w-full px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
                             >
-                                View Booking Details
+                                📋 View Booking Details
                             </button>
                         </div>
                     </div>
@@ -238,7 +244,7 @@ function FindBarbers() {
                             onClick={tryAgain}
                             className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
                         >
-                            Try Again
+                            🔄 Try Again
                         </button>
                     </div>
                 )}
