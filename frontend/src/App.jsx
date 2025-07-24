@@ -57,6 +57,7 @@ import StatusCheaking from './pages/customersite/StatusCheaking'
 import CustomerWallet from './pages/customersite/CustomerWallet'
 import ServiceCompletePage from './pages/barbersite/ServiceCompletePage'
 import CompletedAppointments from './pages/barbersite/CompletedAppointments';
+import Earnings from './pages/barbersite/Earnings';
 
 function App() {
   return (
@@ -315,7 +316,7 @@ function App() {
               <Route path="/barber/service-complete/:bookingId" element={<ServiceCompletePage />}/>
               <Route path="/completed-appointments" element={<CompletedAppointments />} />
 
-
+              <Route path="/barber-earnings" element={<Earnings />} />
             </Routes>
          </ServiceProvider>
         </BrowserRouter>

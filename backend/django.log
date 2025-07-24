@@ -51680,3 +51680,86 @@ User disconnected from group: barber_3
 Not Found: /barbersite/completed-barber-appointments/
 Not Found: /barbersite/completed-barber-appointments/
 Not Found: /barbersite/completed-barber-appointments/
+Unauthorized: /barbersite/completed-barber-appointments/
+Unauthorized: /customersite/booking-details/86/
+Unauthorized: /customersite/booking-history/
+Unauthorized: /barbersite/completed-barber-appointments/
+Unauthorized: /customersite/booking-details/86/
+Unauthorized: /customersite/booking-history/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /barbersite/completed-barber-appointments/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /instant-booking/working/status/3/
+Unauthorized: /instant-booking/working/status/3/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /auth/logout/
+Unauthorized: /auth/token/refresh/
+asal joined group: barber_3
+User disconnected from group: barber_3
+Sent booking 87 to barber 6
+Sent booking 87 to barber 6
+Sent booking 87 to barber 11
+Sent booking 87 to barber 11
+ilak joined group: customer_9
+ilak joined group: customer_9
+asal joined group: barber_3
+User disconnected from group: customer_9
+Sent booking 87 to barber 6
+Sent booking 87 to barber 3
+Sent booking 87 to barber 11
+ilak joined group: customer_9
+ilak joined group: customer_9
+User disconnected from group: barber_3
+User disconnected from group: customer_9
+User disconnected from group: customer_9
+User disconnected from group: customer_9
+asal joined group: barber_3
+asal joined group: barber_3
+User disconnected from group: barber_3
+asal joined group: barber_3
+asal joined group: barber_3
+User disconnected from group: barber_3
+asal joined group: barber_3
+User disconnected from group: barber_3
+asal joined group: barber_3
+User disconnected from group: barber_3
+Not Found: /barbersite/barber/wallet/
+Not Found: /barbersite/barber/wallet/
+Not Found: /barbersite/barber/wallet/
+Not Found: /barbersite/barber/wallet/
+Not Found: /barbersite/barber/wallet/
+Not Found: /barbersite/barber/wallet/
+Not Found: /barbersite/barber/wallet/
+Not Found: /barbersite/barber/wallet/
+Not Found: /barbersite/barber/wallet/
+Not Found: /barbersite/barber/wallet/
+Not Found: /barbersite/barber/wallet/
+Not Found: /barbersite/barber/wallet/
+Not Found: /barbersite/barber/wallet/
+Not Found: /barbersite/barber/wallet/
+Not Found: /barbersite/barber/wallet/
+Not Found: /barbersite/barber/wallet/
+Not Found: /barbersite/barber/wallet/
+Not Found: /barbersite/barber/wallet/
+Unauthorized: /barbersite/barber/wallet/
+Unauthorized: /barbersite/barber/wallet/
+Not Found: /barbersite/barber/wallet/
+Not Found: /barbersite/barber/wallet/
+Not Found: /barbersite/barber/wallet/
+Not Found: /barbersite/barber/wallet/
+Unauthorized: /customersite/home/
+Unauthorized: /profile-service/user-profile/
+Not Found: /barbersite/barber/wallet/
+Unauthorized: /customersite/home/
+Unauthorized: /profile-service/user-profile/
+Unauthorized: /auth/token/refresh/
+Not Found: /barbersite/barber/wallet/
+Unauthorized: /auth/token/refresh/
+Not Found: /barbersite/barber/wallet/
+Not Found: /barbersite/barber/wallet/
+Bad Request: /auth/logout/
+Bad Request: /auth/customer-barber-login/
+Not Found: /barbersite/barber/wallet/
+Not Found: /barbersite/barber/wallet/
+Not Found: /barbersite/barber/wallet/
+Not Found: /barbersite/barber/wallet/

@@ -1,6 +1,14 @@
 
 from django.urls import path , include
-from .views import BarberDashboard,BarberPortfolioView,BarberServiceViewSet,BarberSlotViewSet , BarberAppointments,CompletedAppointments
+from .views import (
+BarberDashboard,
+BarberPortfolioView,
+BarberServiceViewSet,
+BarberSlotViewSet , 
+BarberAppointments,
+CompletedAppointments,
+BarberWalletView
+)
 from rest_framework.routers import DefaultRouter
 
 router = DefaultRouter()
@@ -12,6 +20,7 @@ urlpatterns = [
     path('barber-portfolio/', BarberPortfolioView.as_view(), name='barber-portfolio'),
     path('barber-appointments/', BarberAppointments.as_view(), name='barber-appointments'),
     path('completed-barber-appointments/', CompletedAppointments.as_view(), name='CompletedAppointments'),
+    path('barber/wallet/', BarberWalletView.as_view(), name='barber-wallet'),
     path('', include(router.urls)),
     
 ]

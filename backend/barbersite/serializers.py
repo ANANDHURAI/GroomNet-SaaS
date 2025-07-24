@@ -2,6 +2,7 @@ from rest_framework import serializers
 from .models import Portfolio , BarberService
 from adminsite.serializers import ServiceSerializer
 from .models import BarberSlot, BarberSlotBooking 
+from .models import BarberWallet, WalletTransaction
 
 class BarberSlotSerializer(serializers.ModelSerializer):
     class Meta:
@@ -33,3 +34,16 @@ class BarberServiceSerializer(serializers.ModelSerializer):
         validated_data['barber'] = self.context['request'].user
         return super().create(validated_data)
     
+
+
+class WalletTransactionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = WalletTransaction
+        fields = ['id', 'amount', 'note', 'created_at']
+
+class BarberWalletSerializer(serializers.ModelSerializer):
+    transactions = WalletTransactionSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = BarberWallet
+        fields = ['balance', 'updated_at', 'transactions']

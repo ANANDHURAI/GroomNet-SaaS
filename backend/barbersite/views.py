@@ -18,7 +18,8 @@ import logging
 from customersite.models import Booking
 logger = logging.getLogger(__name__)
 from rest_framework import status
-
+from .models import BarberWallet
+from .serializers import BarberWalletSerializer
 
 
 class BarberDashboard(APIView): 
@@ -331,4 +332,23 @@ class CompletedAppointments(APIView):
         return Response(data)
 
 
+class BarberWalletView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        print(f"User: {request.user}")
+        print(f"User type: {getattr(request.user, 'user_type', 'No user_type attribute')}")
+        
+        if not hasattr(request.user, 'user_type') or request.user.user_type != 'barber':
+            return Response({'detail': 'Access denied'}, status=403)
+
+        try:
+            wallet = BarberWallet.objects.get(barber=request.user)
+            print(f"Wallet found: {wallet}")
+        except BarberWallet.DoesNotExist:
+            print("Wallet not found, creating one...")
+            wallet = BarberWallet.objects.create(barber=request.user, balance=0)
+
+        serializer = BarberWalletSerializer(wallet)
+        return Response(serializer.data)
         
