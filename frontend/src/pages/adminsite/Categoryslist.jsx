@@ -8,7 +8,6 @@ import { CategoryForm } from '../../components/admincompo/categoryCom/CategoryFo
 import { SearchBar } from '../../components/admincompo/categoryCom/SearchBar'
 import { Modal } from '../../components/admincompo/categoryCom/Modal'
 import LoadingSpinner from '../../components/admincompo/LoadingSpinner'
-import { ErrorMessage } from '../../components/admincompo/categoryCom/ErrorMessage'
 import { ConfirmationModal } from '../../components/admincompo/serviceCom/ConfirmationModal'
 
 

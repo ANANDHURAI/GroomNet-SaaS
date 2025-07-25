@@ -341,7 +341,6 @@ def payment_history_view(request):
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
 
-
 class CouponViewSet(ModelViewSet):
     permission_classes = [IsAuthenticated]
     queryset = Coupon.objects.all()
@@ -350,4 +349,32 @@ class CouponViewSet(ModelViewSet):
 
 
 
+from rest_framework import generics
+from customersite.models import Complaints
+from .serializers import ComplaintSerializer
+
+class AdminComplaintListView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    queryset = Complaints.objects.all().order_by('-created_at')
+    serializer_class = ComplaintSerializer
+
+
+class AdminComplaintStatusUpdateView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def patch(self, request, pk):
+        try:
+            complaint = Complaints.objects.get(id=pk)
+        except Complaints.DoesNotExist:
+            return Response({"detail": "Complaint not found"}, status=404)
+
+        new_status = request.data.get('complaint_status')
+
+        if new_status not in dict(Complaints.COMPLAINT_STATUS):
+            return Response({"detail": "Invalid status"}, status=400)
+
+        complaint.complaint_status = new_status
+        complaint.save()
+
+        return Response({"success": True, "new_status": new_status}, status=200)
 

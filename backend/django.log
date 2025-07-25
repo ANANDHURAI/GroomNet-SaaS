@@ -53390,3 +53390,11 @@ Unauthorized: /auth/token/refresh/
 Unauthorized: /adminsite/customers-details/3/
 Unauthorized: /adminsite/customers-details/3/
 Unauthorized: /auth/token/refresh/
+Unauthorized: /auth/logout/
+Unauthorized: /auth/token/refresh/
+Internal Server Error: /adminsite/payment-history/
+Internal Server Error: /adminsite/payment-history/
+Internal Server Error: /adminsite/payment-history/
+Internal Server Error: /adminsite/payment-history/
+asal joined group: barber_3
+User disconnected from group: barber_3

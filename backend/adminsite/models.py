@@ -24,7 +24,8 @@ class ServiceModel(models.Model):
 
     def __str__(self):
         return f"{self.name} → {self.category.name}"
-        
+    
+
 
 class Coupon(models.Model):
     code = models.CharField(max_length=20, unique=True)
@@ -42,22 +43,6 @@ class Coupon(models.Model):
         if self.discount_percentage:
             return original_price - (original_price * self.discount_percentage / 100)
         return original_price
-
-    
-
-# class Complaints(models.Model):
-
-#     COMPLAINT_STATUS = [
-#         ("REESOLVED" , "resolved"),
-#         ("UNDER_REVIEW","under_review"),
-#         ("PENDING","pending")
-#     ]
-#     complaint_name = models.TextField()
-#     image = models.ImageField()
-#     complaint_status = models.CharField(max_length=20 , choices=COMPLAINT_STATUS , default="PENDING")
-
-
-
 
 
 

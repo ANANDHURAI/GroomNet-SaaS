@@ -59,6 +59,7 @@ import CompletedAppointments from './pages/barbersite/CompletedAppointments';
 import Earnings from './pages/barbersite/Earnings';
 import CouponManagePage from './pages/adminsite/CouponManagePage';
 import BarberRatingsPage from './pages/barbersite/BarberRatingsPage';
+import Complaints from './pages/adminsite/Complaints';
 
 function App() {
   return (
@@ -320,6 +321,8 @@ function App() {
               <Route path="/barber-earnings" element={<Earnings />} />
               <Route path="/coupons-management" element={<CouponManagePage />} />
               <Route path="/barber/ratings/" element={<BarberRatingsPage />} />
+              <Route path="/customer-complaints" element={<Complaints />} />
+
             </Routes>
          </ServiceProvider>
         </BrowserRouter>

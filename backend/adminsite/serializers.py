@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from authservice.models import User 
-from .models import CategoryModel , ServiceModel , AdminWallet , Coupon
+from .models import CategoryModel , ServiceModel , AdminWallet , Coupon 
+from customersite.models import Complaints
 
 class UsersListSerializer(serializers.ModelSerializer):
     profileimage_url = serializers.SerializerMethodField()
@@ -73,3 +74,7 @@ class CouponSerializer(serializers.ModelSerializer):
         model = Coupon
         fields = '__all__'
 
+class ComplaintSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Complaints
+        fields = '__all__'

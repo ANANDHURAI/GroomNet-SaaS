@@ -139,5 +139,34 @@ class CustomerWallet(models.Model):
         return f"{self.user.name}'s Wallet - Balance: ₹{self.account_total_balance}"
 
 
+class Complaints(models.Model):
+    COMPLAINT_STATUS = [
+        ("PENDING", "Pending"),                   
+        ("UNDER_REVIEW", "Under Review"),          
+        ("ACTION_TAKEN", "Action Taken"),           
+        ("RESOLVED", "Resolved"),                  
+        ("REJECTED", "Rejected"),                  
+        ("CLOSED", "Closed by Admin")   
+    ]
 
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.CASCADE, 
+        related_name='complaints'
+    )
+    complaint_name = models.CharField(max_length=255)
+    description = models.TextField(blank=True, null=True)
+    image = models.ImageField(upload_to='complaints/', blank=True, null=True)
+    complaint_status = models.CharField(
+        max_length=20,
+        choices=COMPLAINT_STATUS,
+        default="PENDING"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.complaint_name} ({self.user.name}) - {self.complaint_status}"
+
+        
    

@@ -70,6 +70,14 @@ function AdminSidebar() {
           <span className="font-medium">Coupon Management</span>
         </Link>
 
+        <Link 
+          to="/customer-complaints" 
+          className="flex items-center space-x-3 p-3 rounded-lg text-violet-700 hover:bg-black hover:text-white transition-all duration-200 group"
+        >
+          <User className="w-5 h-5 transition-colors" />
+          <span className="font-medium">Complaints</span>
+        </Link>
+
         <Link to="/admin-wallet/">
           <div className="flex items-center space-x-3 p-3 rounded-lg text-violet-700 hover:bg-black hover:text-white transition-all duration-200 cursor-pointer group">
             <Wallet className="w-5 h-5 transition-colors" />
