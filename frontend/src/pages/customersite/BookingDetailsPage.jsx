@@ -7,6 +7,9 @@ import BookingInfo from '../../components/customercompo/booking/BookingInfo';
 import TravelStatus from '../../components/customercompo/booking/TravelStatus';
 import ActionButtons from '../../components/customercompo/booking/ActionButtons';
 import RatingModal from '../../components/customercompo/booking/RatingModal';
+import ComplaintModal from '../../components/customercompo/booking/ComplaintModal';
+import ComplaintStatus from '../../components/customercompo/booking/ComplaintStatus';
+
 
 function BookingDetailsPage() {
   const { id } = useParams();
@@ -18,7 +21,9 @@ function BookingDetailsPage() {
     timeLeft: '',
     notification: '',
     showRatingModal: false,
-    hasRated: false
+    showComplaintModal: false,
+    hasRated: false,
+    hasComplaint: false
   });
 
   const updateState = (updates) => {
@@ -37,7 +42,8 @@ function BookingDetailsPage() {
       if (bookingId) {
         await Promise.all([
           fetchTravelStatus(bookingId),
-          bookingData.booking_status === 'COMPLETED' ? checkExistingRating(bookingId) : Promise.resolve()
+          bookingData.booking_status === 'COMPLETED' ? checkExistingRating(bookingId) : Promise.resolve(),
+          bookingData.booking_status === 'COMPLETED' ? checkExistingComplaint(bookingId) : Promise.resolve()
         ]);
       }
     } catch (err) {
@@ -62,6 +68,17 @@ function BookingDetailsPage() {
     } catch (err) {
       console.warn("Could not check existing ratings", err);
       updateState({ hasRated: false });
+    }
+  };
+
+  const checkExistingComplaint = async (bookingId) => {
+    try {
+      const res = await apiClient.get(`/customersite/complaints/?booking=${bookingId}`);
+      const hasExistingComplaint = res.data && res.data.length > 0;
+      updateState({ hasComplaint: hasExistingComplaint });
+    } catch (err) {
+      console.warn("Could not check existing complaints", err);
+      updateState({ hasComplaint: false });
     }
   };
 
@@ -107,11 +124,19 @@ function BookingDetailsPage() {
     });
   };
 
+  const handleComplaintSuccess = () => {
+    updateState({ 
+      showComplaintModal: false,
+      hasComplaint: true,
+      notification: 'Your complaint has been submitted successfully. We will review it and get back to you soon.'
+    });
+  };
+
   useEffect(() => {
     fetchBookingDetails();
   }, [id]);
 
-  const { data, travelStatus, timeLeft, notification, showRatingModal, hasRated } = state;
+  const { data, travelStatus, timeLeft, notification, showRatingModal, showComplaintModal, hasRated, hasComplaint } = state;
 
   return (
     <CustomerLayout>
@@ -133,7 +158,11 @@ function BookingDetailsPage() {
             onCancelSuccess={handleCancelSuccess}
             onRatingClick={() => updateState({ showRatingModal: true })}
             hasRated={hasRated}
+            onComplaintClick={() => updateState({ showComplaintModal: true })}
+            hasComplaint={hasComplaint}
           />
+
+          
         </>
       ) : (
         <div className="text-gray-600">Loading booking details...</div>
@@ -146,6 +175,14 @@ function BookingDetailsPage() {
           bookingId={data?.id || data?.orderid || id}
           onClose={() => updateState({ showRatingModal: false })}
           onSuccess={handleRatingSuccess}
+        />
+      )}
+
+      {showComplaintModal && (
+        <ComplaintModal
+          bookingId={data?.id || data?.orderid || id}
+          onClose={() => updateState({ showComplaintModal: false })}
+          onSuccess={handleComplaintSuccess}
         />
       )}
     </CustomerLayout>

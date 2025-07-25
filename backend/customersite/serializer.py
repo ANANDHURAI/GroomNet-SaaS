@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from adminsite.models import CategoryModel, ServiceModel
-from .models import Booking , PaymentModel
+from .models import Booking , PaymentModel , Complaints
 from authservice.models import User
 from barbersite.models import BarberSlot
 from profileservice.models import Address
@@ -306,6 +306,13 @@ class RatingSerializer(serializers.ModelSerializer):
         
         return data
 
+
+
+class ComplaintSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Complaints
+        fields = ['id', 'booking', 'complaint_name', 'description', 'image', 'complaint_status', 'created_at']
+        read_only_fields = ['complaint_status', 'created_at', 'id']
 
 
 

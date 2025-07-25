@@ -13,7 +13,8 @@ AddressSerializer,
 BookingCreateSerializer,
 CustomerWalletSerializer,
 LocationSerializer,
-RatingSerializer
+RatingSerializer,
+ComplaintSerializer
 )
 from adminsite.models import CategoryModel , ServiceModel
 import logging
@@ -23,7 +24,7 @@ from django.utils import timezone
 from profileservice.models import Address , UserProfile
 from profileservice.serializers import AddressSerializer
 from authservice.models import User
-from.models import Booking ,CustomerWallet
+from.models import Booking ,CustomerWallet ,Complaints
 logger = logging.getLogger(__name__)
 from django.utils import timezone
 from datetime import datetime
@@ -541,7 +542,30 @@ class RatingListCreateView(generics.ListCreateAPIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
             
+class CreateComplaintView(APIView):
+    permission_classes = [IsAuthenticated]
 
+    def post(self, request, booking_id):
+        booking = get_object_or_404(Booking, id=booking_id, customer=request.user)
+
+        if hasattr(booking, 'complaint'):
+            return Response({"detail": "Complaint already submitted for this booking."}, status=400)
+
+        serializer = ComplaintSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(user=request.user, booking=booking)
+            return Response(serializer.data, status=201)
+        return Response(serializer.errors, status=400)
+
+
+
+class CustomerComplaintsListView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        complaints = Complaints.objects.filter(user=request.user).order_by('-updated_at')
+        serializer = ComplaintSerializer(complaints, many=True)
+        return Response(serializer.data)
 
 
 

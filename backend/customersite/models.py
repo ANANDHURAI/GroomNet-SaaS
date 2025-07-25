@@ -155,6 +155,7 @@ class Complaints(models.Model):
         related_name='complaints'
     )
     complaint_name = models.CharField(max_length=255)
+    booking = models.OneToOneField(Booking, on_delete=models.CASCADE, related_name='complaint', unique=True ,null=True, blank=True )
     description = models.TextField(blank=True, null=True)
     image = models.ImageField(upload_to='complaints/', blank=True, null=True)
     complaint_status = models.CharField(

@@ -1,4 +1,4 @@
-import { MessageSquare, MapPin, XCircle, Star } from 'lucide-react';
+import { MessageSquare, MapPin, XCircle, Star, AlertTriangle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useState } from 'react';
 import apiClient from '../../../slices/api/apiIntercepters';
@@ -10,7 +10,9 @@ function ActionButtons({
   travelStatus, 
   onCancelSuccess,
   onRatingClick,
-  hasRated
+  hasRated,
+  onComplaintClick,
+  hasComplaint
 }) {
   const [isLoading, setIsLoading] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
@@ -38,6 +40,7 @@ function ActionButtons({
                           !['ALMOST_NEAR', 'ARRIVED'].includes(travelStatus);
 
   const canShowRating = bookingStatus === 'COMPLETED';
+  const canShowComplaint = bookingStatus === 'COMPLETED';
   const showChatButton = !['COMPLETED', 'CANCELLED'].includes(bookingStatus);
 
   const ConfirmDialog = () => (
@@ -109,6 +112,21 @@ function ActionButtons({
         >
           <Star size={18} />
           {hasRated ? 'Already Rated' : 'Rate Service'}
+        </button>
+      )}
+
+      {canShowComplaint && (
+        <button
+          onClick={onComplaintClick}
+          disabled={hasComplaint}
+          className={`flex items-center gap-2 px-4 py-2 rounded transition-colors ${
+            hasComplaint 
+              ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
+              : 'bg-red-600 text-white hover:bg-red-700'
+          }`}
+        >
+          <AlertTriangle size={18} />
+          {hasComplaint ? 'Complaint Submitted' : 'File Complaint'}
         </button>
       )}
       

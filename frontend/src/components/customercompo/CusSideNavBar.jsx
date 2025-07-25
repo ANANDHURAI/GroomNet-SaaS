@@ -17,6 +17,9 @@ const CusSideNavBar = () => {
         <Link to="/customer-wallet" className="text-gray-700 hover:text-purple-600">
           Wallet
         </Link>
+        <Link to="/customer/complaints" className="nav-link">
+          My Complaints
+        </Link>
       </nav>
     </div>
   );
