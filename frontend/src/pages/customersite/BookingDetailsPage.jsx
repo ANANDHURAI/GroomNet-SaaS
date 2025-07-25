@@ -7,90 +7,113 @@ import BookingInfo from '../../components/customercompo/booking/BookingInfo';
 import TravelStatus from '../../components/customercompo/booking/TravelStatus';
 import ServiceStatus from '../../components/customercompo/booking/ServiceStatus';
 import ActionButtons from '../../components/customercompo/booking/ActionButtons';
+import RatingModal from '../../components/customercompo/booking/RatingModal';
 
 function BookingDetailsPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [data, setData] = useState(null);
-  const [travelStatus, setTravelStatus] = useState(null);
-  const [timeLeft, setTimeLeft] = useState('');
-  const [serviceSocket, setServiceSocket] = useState(null);
-  const [showServicePopup, setShowServicePopup] = useState(false);
-  const [isResponding, setIsResponding] = useState(false);
-  const [notification, setNotification] = useState('');
+  
+  const [state, setState] = useState({
+    data: null,
+    travelStatus: null,
+    timeLeft: '',
+    notification: '',
+    showRatingModal: false,
+    hasRated: false
+  });
+
+  const updateState = (updates) => {
+    setState(prev => ({ ...prev, ...updates }));
+  };
 
   const fetchBookingDetails = async () => {
     try {
       const res = await apiClient.get(`/customersite/booking-details/${id}/`);
-      setData(res.data);
-      calculateTimeLeft(res.data.date, res.data.slottime);
+      const bookingData = res.data;
+      
+      updateState({ data: bookingData });
+      calculateTimeLeft(bookingData.date, bookingData.slottime);
 
-      const bookingIdToUse = res.data.id || res.data.orderid;
-      fetchTravelStatus(bookingIdToUse);
+      const bookingId = bookingData.id || bookingData.orderid || id;
+      if (bookingId) {
+        await Promise.all([
+          fetchTravelStatus(bookingId),
+          bookingData.booking_status === 'COMPLETED' ? checkExistingRating(bookingId) : Promise.resolve()
+        ]);
+      }
     } catch (err) {
       console.error("Booking fetch error", err);
     }
+  };
+
+  const fetchTravelStatus = async (bookingId) => {
+    try {
+      const res = await apiClient.get(`/customersite/booking/${bookingId}/get-travel-status/`);
+      updateState({ travelStatus: res.data });
+    } catch (err) {
+      console.warn("Travel status not available");
+    }
+  };
+
+  const checkExistingRating = async (bookingId) => {
+    try {
+      const res = await apiClient.get(`/customersite/ratings/?booking=${bookingId}`);
+      // Check if there's any rating for this booking (since it's unique per user-booking combination)
+      const hasExistingRating = res.data && res.data.length > 0;
+      updateState({ hasRated: hasExistingRating });
+    } catch (err) {
+      console.warn("Could not check existing ratings", err);
+      updateState({ hasRated: false });
+    }
+  };
+
+  const calculateTimeLeft = (date, time) => {
+    if (time === "N/A") {
+      updateState({ timeLeft: "No scheduled time (instant booking)" });
+      return;
+    }
+    
+    const serviceTime = new Date(`${date}T${time}`);
+    const now = new Date();
+    const diff = serviceTime - now;
+    
+    if (diff <= 0) {
+      updateState({ timeLeft: "Service is active now" });
+      return;
+    }
+
+    const mins = Math.floor(diff / 60000);
+    const hrs = Math.floor(mins / 60);
+    const rem = mins % 60;
+    updateState({ timeLeft: `${hrs}h ${rem}m remaining` });
+  };
+
+  const handleChatClick = () => {
+    navigate(`/customer/chat/${id}`, {
+      state: { bookingData: state.data, barberName: state.data.barbername }
+    });
+  };
+
+  const handleCancelSuccess = () => {
+    fetchBookingDetails();
+    updateState({ 
+      notification: 'Booking cancelled successfully. Refund has been processed to your wallet.' 
+    });
+  };
+
+  const handleRatingSuccess = () => {
+    updateState({ 
+      showRatingModal: false,
+      hasRated: true,
+      notification: 'Thank you for your rating! Your feedback helps us improve our service.'
+    });
   };
 
   useEffect(() => {
     fetchBookingDetails();
   }, [id]);
 
-  useEffect(() => {
-    if (data?.booking_status === 'CONFIRMED') {
-      const wsUrl = `ws://localhost:8000/ws/service/conformation/`;
-      const socket = new WebSocket(wsUrl);
-
-      socket.onopen = () => setServiceSocket(socket);
-      socket.onmessage = (event) => {
-        const message = JSON.parse(event.data);
-        if (message.type === 'service_request') setShowServicePopup(true);
-        if (message.type === 'serivce_completed') {
-          setNotification('🎉 Service completed! Thank you for choosing our service.');
-        }
-      };
-      socket.onclose = () => setServiceSocket(null);
-      socket.onerror = (error) => console.error("WebSocket error:", error);
-
-      return () => socket.close();
-    }
-  }, [data]);
-
-  const calculateTimeLeft = (date, time) => {
-    if (time === "N/A") {
-      setTimeLeft("No scheduled time (instant booking)");
-      return;
-    }
-    const serviceTime = new Date(`${date}T${time}`);
-    const now = new Date();
-    const diff = serviceTime - now;
-    if (diff <= 0) return setTimeLeft("Service is active now");
-
-    const mins = Math.floor(diff / 60000);
-    const hrs = Math.floor(mins / 60);
-    const rem = mins % 60;
-    setTimeLeft(`${hrs}h ${rem}m remaining`);
-  };
-
-  const fetchTravelStatus = async (bookingId) => {
-    try {
-      const res = await apiClient.get(`/customersite/booking/${bookingId}/get-travel-status/`);
-      setTravelStatus(res.data);
-    } catch (err) {
-      console.warn("Travel status not available");
-    }
-  };
-
-  const handleChatClick = () => {
-    navigate(`/customer/chat/${id}`, {
-      state: { bookingData: data, barberName: data.barbername }
-    });
-  };
-
-  const handleCancelSuccess = () => {
-    fetchBookingDetails();
-    setNotification('🚫 Booking cancelled successfully. Refund has been processed to your wallet.');
-  };
+  const { data, travelStatus, timeLeft, notification, showRatingModal, hasRated } = state;
 
   return (
     <CustomerLayout>
@@ -114,6 +137,8 @@ function BookingDetailsPage() {
             bookingId={id}
             travelStatus={travelStatus?.travel_status}
             onCancelSuccess={handleCancelSuccess}
+            onRatingClick={() => updateState({ showRatingModal: true })}
+            hasRated={hasRated}
           />
         </>
       ) : (
@@ -121,6 +146,14 @@ function BookingDetailsPage() {
       )}
 
       {notification && <Message message={notification} />}
+
+      {showRatingModal && (
+        <RatingModal
+          bookingId={data?.id || data?.orderid || id}
+          onClose={() => updateState({ showRatingModal: false })}
+          onSuccess={handleRatingSuccess}
+        />
+      )}
     </CustomerLayout>
   );
 }

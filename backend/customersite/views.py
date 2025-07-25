@@ -13,6 +13,7 @@ AddressSerializer,
 BookingCreateSerializer,
 CustomerWalletSerializer,
 LocationSerializer,
+RatingSerializer
 )
 from adminsite.models import CategoryModel , ServiceModel
 import logging
@@ -29,7 +30,7 @@ from datetime import datetime
 from django.shortcuts import get_object_or_404
 from decimal import Decimal
 from django.db import transaction
-
+from rest_framework import generics, permissions,serializers
 from barbersite.models import BarberWallet, WalletTransaction
 
 
@@ -499,8 +500,46 @@ class EmergencyCancel(APIView):
             return Response({'error': f'An error occurred: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
+from .models import Rating
 
 
+from rest_framework import generics, permissions, status
+from rest_framework.response import Response
+
+class RatingListCreateView(generics.ListCreateAPIView):
+    serializer_class = RatingSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        booking_id = self.request.query_params.get('booking')
+        barber_id = self.request.query_params.get('barber')
+        
+        queryset = Rating.objects.all()
+        
+        if booking_id:
+            queryset = queryset.filter(booking_id=booking_id, user=self.request.user)
+        elif barber_id:
+            queryset = queryset.filter(barber_id=barber_id)
+        else:
+            queryset = queryset.filter(user=self.request.user)
+            
+        return queryset.order_by('-created_at')
+
+    def perform_create(self, serializer):
+        booking = serializer.validated_data['booking']
+        serializer.save(
+            user=self.request.user,
+            barber=booking.barber
+        )
+
+    def create(self, request, *args, **kwargs):
+        try:
+            return super().create(request, *args, **kwargs)
+        except Exception as e:
+            return Response(
+                {'error': str(e)}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
             
 
 

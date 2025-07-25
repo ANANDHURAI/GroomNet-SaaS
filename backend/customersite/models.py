@@ -3,7 +3,7 @@ from authservice.models import User
 from adminsite.models import ServiceModel
 from barbersite.models import BarberSlot
 from profileservice.models import Address
-
+from django.conf import settings
 
 class Booking(models.Model):
     BOOKING_TYPE_CHOICES = [
@@ -57,6 +57,44 @@ class Booking(models.Model):
     def __str__(self):
         barber_name = self.barber.name if self.barber else "No Barber Assigned"
         return f"{self.customer.name} - {self.service.name} - {barber_name}"
+
+
+class Rating(models.Model):
+    RATING_CHOICES = [(i, i) for i in range(1, 6)]
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='ratings'
+    )
+    booking = models.ForeignKey(
+        'Booking',
+        on_delete=models.CASCADE,
+        related_name='ratings'
+    )
+    barber = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='barber_ratings',
+        limit_choices_to={'user_type': 'barber'},
+        null=True,
+        blank=True
+    )
+    comment = models.TextField(blank=True)
+    image = models.ImageField(upload_to='rating_images/', null=True, blank=True)
+    rating = models.PositiveIntegerField(choices=RATING_CHOICES)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'booking')
+
+    def save(self, *args, **kwargs):
+        if self.booking and not self.barber:
+            self.barber = self.booking.barber
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.user.name} → {self.barber.name if self.barber else 'No Barber'} → Booking #{self.booking.id} ({self.rating})"
 
 
 class PaymentModel(models.Model):

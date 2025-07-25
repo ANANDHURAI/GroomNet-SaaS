@@ -1,7 +1,6 @@
 from django.db import models
 from django.utils import timezone
-
-
+from django.conf import settings
 
 
 class CategoryModel(models.Model):
@@ -25,8 +24,7 @@ class ServiceModel(models.Model):
 
     def __str__(self):
         return f"{self.name} → {self.category.name}"
-    
-
+        
 
 class Coupon(models.Model):
     code = models.CharField(max_length=20, unique=True)
@@ -59,9 +57,8 @@ class Coupon(models.Model):
 #     complaint_status = models.CharField(max_length=20 , choices=COMPLAINT_STATUS , default="PENDING")
 
 
-# class Rating(models.Model):
-#     command = models.TextField()
-#     image = models.ImageField()
+
+
 
 
 class AdminWallet(models.Model):

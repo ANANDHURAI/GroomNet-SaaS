@@ -43,7 +43,6 @@ import CancelledPage from './pages/customersite/CancelledPage'
 import BookingDetailsPage from './pages/customersite/BookingDetailsPage'
 import BookingHistoryPage from './pages/customersite/BookingHistoryPage'
 import AddressList from './pages/customersite/AddressList'
-import BookingStatus from './pages/customersite/BookingStatus'
 import CustomerChatPage from './pages/customersite/CustomerChatPage'
 import CustomerLayout from './components/customercompo/CustomerLayout'
 import AdminWallet from './pages/adminsite/AdminWallet'
@@ -59,6 +58,7 @@ import ServiceCompletePage from './pages/barbersite/ServiceCompletePage'
 import CompletedAppointments from './pages/barbersite/CompletedAppointments';
 import Earnings from './pages/barbersite/Earnings';
 import CouponManagePage from './pages/adminsite/CouponManagePage';
+import BarberRatingsPage from './pages/barbersite/BarberRatingsPage';
 
 function App() {
   return (
@@ -319,6 +319,7 @@ function App() {
 
               <Route path="/barber-earnings" element={<Earnings />} />
               <Route path="/coupons-management" element={<CouponManagePage />} />
+              <Route path="/barber/ratings/" element={<BarberRatingsPage />} />
             </Routes>
          </ServiceProvider>
         </BrowserRouter>

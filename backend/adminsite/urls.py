@@ -9,7 +9,7 @@ from .views import (
     ServiceViewSet,
     AdminWalletView,
     payment_history_view,
-    CouponViewSet
+    CouponViewSet,
 )
 
 router = DefaultRouter()
@@ -29,7 +29,7 @@ urlpatterns = [
     path('users-block/<int:id>/', BlockingView.as_view(), name='users-block'),
     path('admin-wallet/', AdminWalletView.as_view(), name='admin-wallet'),
     path('payment-history/', payment_history_view, name='admin-wallet-payment-history'),
-
+    
     path('', include(router.urls)),
 ]
 

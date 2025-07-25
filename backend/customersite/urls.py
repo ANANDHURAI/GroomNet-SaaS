@@ -18,7 +18,8 @@ from .views import (
     get_booking_details,
     CustomerWalletView,
     check_user_location,
-    EmergencyCancel
+    EmergencyCancel,
+    RatingListCreateView
     
 )
 
@@ -42,5 +43,5 @@ urlpatterns = [
     path('booking/<int:booking_id>/', get_booking_details, name="get_booking_details"),
     path('wallet/', CustomerWalletView.as_view(), name="wallet_details"),
     path('booking/<int:booking_id>/cancel/', EmergencyCancel.as_view(), name="emergency_cancel"),
-    
+    path('ratings/', RatingListCreateView.as_view(), name='rating-list-create'),
 ]

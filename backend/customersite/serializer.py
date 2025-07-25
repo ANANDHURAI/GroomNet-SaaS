@@ -272,6 +272,32 @@ class LocationSerializer(serializers.Serializer):
         }
 
 
+from .models import Rating
+
+class RatingSerializer(serializers.ModelSerializer):
+    user_name = serializers.CharField(source='user.name', read_only=True)
+    service_name = serializers.CharField(source='booking.service.name', read_only=True)
+    barber_name = serializers.CharField(source='barber.name', read_only=True)
+
+    class Meta:
+        model = Rating
+        fields = [
+            'id', 'user', 'user_name', 'booking', 'barber', 'barber_name',
+            'service_name', 'comment', 'rating', 'image', 'created_at'
+        ]
+        read_only_fields = ['user', 'barber', 'created_at']
+
+
+    def validate(self, data):
+        user = self.context['request'].user
+        booking = data['booking']
+        
+        if Rating.objects.filter(user=user, booking=booking).exists():
+            raise serializers.ValidationError("You have already rated this booking.")
+        
+        return data
+
+
 
 
 
