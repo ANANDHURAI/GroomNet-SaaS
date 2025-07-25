@@ -8,7 +8,8 @@ import {
   TicketPercent,
   Wallet, 
   User, 
-  Wrench
+  Wrench,
+  Megaphone 
 } from 'lucide-react';
 import Logout from '../basics/Logout';
 
@@ -74,7 +75,7 @@ function AdminSidebar() {
           to="/customer-complaints-at-admin" 
           className="flex items-center space-x-3 p-3 rounded-lg text-violet-700 hover:bg-black hover:text-white transition-all duration-200 group"
         >
-          <User className="w-5 h-5 transition-colors" />
+          <Megaphone className="w-5 h-5 transition-colors" />
           <span className="font-medium">Complaints</span>
         </Link>
 
