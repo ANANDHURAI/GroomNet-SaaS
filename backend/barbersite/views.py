@@ -372,19 +372,15 @@ class BarberDashboardView(APIView):
         if user.user_type != 'barber':
             return Response({'error': 'Unauthorized'}, status=403)
 
-        # Fetch all bookings for this barber
         bookings = Booking.objects.filter(barber=user)
-
-        # Count booking stats
         total_bookings = bookings.count()
-        completed_bookings = bookings.filter(status='Completed').count()
-        pending_bookings = bookings.filter(status='Pending').count()
+        completed_bookings = bookings.filter(status='COMPLETED').count()
+        cancelled_bookings = bookings.filter(status='CANCELLED').count()
+        
 
-        # Fetch wallet
         wallet = BarberWallet.objects.filter(barber=user).first()
         wallet_balance = wallet.balance if wallet else 0
 
-        # Calculate ratings
         rating_info = Rating.objects.filter(barber=user).aggregate(
             avg_rating=Avg('rating'),
             total_reviews=Count('id')
@@ -395,7 +391,7 @@ class BarberDashboardView(APIView):
         return Response({
             'total_bookings': total_bookings,
             'completed_bookings': completed_bookings,
-            'pending_bookings': pending_bookings,
+            'cancelled_bookings': cancelled_bookings,
             'wallet_balance': wallet_balance,
             'average_rating': round(average_rating, 1),
             'total_reviews': total_reviews

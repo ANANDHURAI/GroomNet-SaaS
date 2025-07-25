@@ -54785,3 +54785,11 @@ Traceback (most recent call last):
     ...<2 lines>...
     )
 django.core.exceptions.FieldError: Cannot resolve keyword 'price' into field. Choices are: address, address_id, barber, barber_id, booking_type, chat_messages, complaint, completed_at, created_at, customer, customer_id, id, is_payment_done, payment, ratings, service, service_id, service_started_at, slot, slot_id, status, total_amount, travel_status, updated_at
+Unauthorized: /customersite/booking-details/94/
+Unauthorized: /customersite/booking-details/94/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /auth/logout/
+Unauthorized: /auth/token/refresh/
+Bad Request: /auth/logout/
+asal joined group: barber_3
+User disconnected from group: barber_3

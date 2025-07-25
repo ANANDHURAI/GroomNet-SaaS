@@ -97,8 +97,8 @@ function BarberDash() {
       icon: <Calendar className="w-6 h-6 text-blue-600" />
     },
     {
-      label: 'Pending Bookings',
-      value: data?.pending_bookings,
+      label: 'Cancelled Bookings',
+      value: data?.cancelled_bookings,
       icon: <Clock className="w-6 h-6 text-yellow-500" />
     },
     {
