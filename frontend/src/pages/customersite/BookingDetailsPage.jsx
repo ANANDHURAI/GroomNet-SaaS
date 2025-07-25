@@ -8,7 +8,6 @@ import TravelStatus from '../../components/customercompo/booking/TravelStatus';
 import ActionButtons from '../../components/customercompo/booking/ActionButtons';
 import RatingModal from '../../components/customercompo/booking/RatingModal';
 import ComplaintModal from '../../components/customercompo/booking/ComplaintModal';
-import ComplaintStatus from '../../components/customercompo/booking/ComplaintStatus';
 
 
 function BookingDetailsPage() {
