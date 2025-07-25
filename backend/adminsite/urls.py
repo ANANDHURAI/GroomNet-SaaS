@@ -11,7 +11,8 @@ from .views import (
     payment_history_view,
     CouponViewSet,
     AdminComplaintListView,
-    AdminComplaintStatusUpdateView
+    AdminComplaintStatusUpdateView,
+    AdminDashboardView
 )
 
 router = DefaultRouter()
@@ -33,6 +34,7 @@ urlpatterns = [
     path('payment-history/', payment_history_view, name='admin-wallet-payment-history'),
     path('complaints/', AdminComplaintListView.as_view(), name='complaint_list'),
     path('complaints/<int:pk>/update-status/', AdminComplaintStatusUpdateView.as_view(), name='complaint_status_update'),
+    path('dashboard/admin/', AdminDashboardView.as_view(), name='admin-dashboard'),
     path('', include(router.urls)),
 ]
 

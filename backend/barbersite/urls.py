@@ -7,7 +7,8 @@ BarberServiceViewSet,
 BarberSlotViewSet , 
 BarberAppointments,
 CompletedAppointments,
-BarberWalletView
+BarberWalletView,
+BarberDashboardView
 )
 from rest_framework.routers import DefaultRouter
 
@@ -21,6 +22,7 @@ urlpatterns = [
     path('barber-appointments/', BarberAppointments.as_view(), name='barber-appointments'),
     path('completed-barber-appointments/', CompletedAppointments.as_view(), name='CompletedAppointments'),
     path('barber/wallet/', BarberWalletView.as_view(), name='barber-wallet'),
+    path('dashboard/barber/', BarberDashboardView.as_view(), name='barber-dashboard'),
     path('', include(router.urls)),
     
 ]

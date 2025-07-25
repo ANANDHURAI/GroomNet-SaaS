@@ -378,3 +378,66 @@ class AdminComplaintStatusUpdateView(APIView):
 
         return Response({"success": True, "new_status": new_status}, status=200)
 
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from django.db.models import Count, Avg, Sum
+from customersite.models import Booking , Rating
+
+
+class AdminDashboardView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        if user.user_type != 'admin':
+            return Response({'error': 'Unauthorized'}, status=403)
+
+        total_users = User.objects.count()
+        total_barbers = User.objects.filter(user_type='barber').count()
+        total_customers = User.objects.filter(user_type='customer').count()
+        total_complaints = Complaints.objects.count()
+        total_categories = CategoryModel.objects.count()
+        total_services = ServiceModel.objects.count()
+
+        total_revenue = PaymentModel.objects.filter(payment_status='SUCCESS').aggregate(
+            total=Sum('platform_fee')
+        )['total'] or 0
+
+        top_booked_services = (
+            Booking.objects.values('service__name')
+            .annotate(count=Count('id'))
+            .order_by('-count')[:5]
+        )
+
+        top_rating_barbers = (
+            Rating.objects.values('barber__id', 'barber__name')
+            .annotate(avg_rating=Avg('rating'), review_count=Count('id'))
+            .order_by('-avg_rating')[:5]
+        )
+
+        top_customers = (
+            Booking.objects.values('customer__id', 'customer__name')
+            .annotate(booking_count=Count('id'))
+            .order_by('-booking_count')[:5]
+        )
+
+        admin_wallet = AdminWallet.objects.first()
+
+        data = {
+            'totals': {
+                'users': total_users,
+                'barbers': total_barbers,
+                'customers': total_customers,
+                'complaints': total_complaints,
+                'categories': total_categories,
+                'services': total_services,
+                'platform_earnings': total_revenue,
+                'admin_wallet_balance': admin_wallet.total_earnings if admin_wallet else 0
+            },
+            'top_booked_services': top_booked_services,
+            'top_rating_barbers': top_rating_barbers,
+            'top_customers': top_customers,
+        }
+        return Response(data)

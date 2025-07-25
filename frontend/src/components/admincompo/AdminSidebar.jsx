@@ -23,6 +23,15 @@ function AdminSidebar() {
       </div>
       
       <nav className="space-y-2">
+
+        <Link 
+          to="/admin-dashboard" 
+          className="flex items-center space-x-3 p-3 rounded-lg text-violet-700 hover:bg-black hover:text-white transition-all duration-200 group"
+        >
+          <Users className="w-5 h-5 transition-colors" />
+          <span className="font-medium">Dashboard</span>
+        </Link>
+
         <Link 
           to="/customers-list" 
           className="flex items-center space-x-3 p-3 rounded-lg text-violet-700 hover:bg-black hover:text-white transition-all duration-200 group"

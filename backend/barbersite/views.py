@@ -15,7 +15,7 @@ from .serializers import BarberSlotSerializer
 from django.db import transaction
 from django.db.models import ProtectedError
 import logging
-from customersite.models import Booking
+from customersite.models import Booking , Rating
 logger = logging.getLogger(__name__)
 from rest_framework import status
 from .models import BarberWallet
@@ -352,3 +352,51 @@ class BarberWalletView(APIView):
         serializer = BarberWalletSerializer(wallet)
         return Response(serializer.data)
         
+
+from django.db.models import Count, Avg
+
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from django.db.models import Avg, Count, Sum
+from customersite.models import Booking, Rating
+
+
+class BarberDashboardView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+
+        if user.user_type != 'barber':
+            return Response({'error': 'Unauthorized'}, status=403)
+
+        # Fetch all bookings for this barber
+        bookings = Booking.objects.filter(barber=user)
+
+        # Count booking stats
+        total_bookings = bookings.count()
+        completed_bookings = bookings.filter(status='Completed').count()
+        pending_bookings = bookings.filter(status='Pending').count()
+
+        # Fetch wallet
+        wallet = BarberWallet.objects.filter(barber=user).first()
+        wallet_balance = wallet.balance if wallet else 0
+
+        # Calculate ratings
+        rating_info = Rating.objects.filter(barber=user).aggregate(
+            avg_rating=Avg('rating'),
+            total_reviews=Count('id')
+        )
+        average_rating = rating_info['avg_rating'] or 0
+        total_reviews = rating_info['total_reviews']
+
+        return Response({
+            'total_bookings': total_bookings,
+            'completed_bookings': completed_bookings,
+            'pending_bookings': pending_bookings,
+            'wallet_balance': wallet_balance,
+            'average_rating': round(average_rating, 1),
+            'total_reviews': total_reviews
+        })
