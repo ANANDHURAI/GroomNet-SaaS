@@ -83,7 +83,6 @@ const SelectBarber = () => {
                     {barber.name}
                   </h3>
 
-                  {/* Show average rating */}
                   <div className="flex items-center text-yellow-500 text-sm mb-2">
                     <Star className="w-4 h-4 mr-1" />
                     <span>

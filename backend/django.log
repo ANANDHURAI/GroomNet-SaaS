@@ -53384,3 +53384,9 @@ asal joined group: barber_3
 User disconnected from group: barber_3
 User disconnected from group: customer_9
 User disconnected from group: customer_9
+Unauthorized: /adminsite/customers-details/3/
+Unauthorized: /adminsite/customers-details/3/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /adminsite/customers-details/3/
+Unauthorized: /adminsite/customers-details/3/
+Unauthorized: /auth/token/refresh/
