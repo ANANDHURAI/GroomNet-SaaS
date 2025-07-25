@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import apiClient from "../../slices/api/apiIntercepters";
 import Message from "../../components/customercompo/booking/Message";
 import BarberSidebar from "../../components/barbercompo/BarberSidebar";
@@ -14,11 +14,16 @@ import {
   CircleCheck,
   HandCoins,
   AlertCircle,
-  CheckCircle
+  CheckCircle,
+  Coins,
+  WalletCards,
+  ArrowRight
 } from "lucide-react";
 
 function ServiceCompletePage() {
   const { bookingId } = useParams();
+  const navigate = useNavigate();
+
   const [data, setData] = useState(null);
   const [isCompleted, setIsCompleted] = useState(false);
   const [isCollected, setIsCollected] = useState(false);
@@ -69,7 +74,7 @@ function ServiceCompletePage() {
 
   const handleCollectAmount = () => {
     setIsCollected(true);
-    setNotification("💰 Amount collected from customer!");
+    setNotification("Amount collected from customer!");
     setTimeout(() => setNotification(""), 3000);
   };
 
@@ -89,6 +94,10 @@ function ServiceCompletePage() {
         setNotification("❌ Failed to mark as completed");
         setTimeout(() => setNotification(""), 3000);
       });
+  };
+
+  const handleEarningsClick = () => {
+    navigate("/barber-earnings");
   };
 
   const getEarningsAmount = () =>
@@ -135,9 +144,7 @@ function ServiceCompletePage() {
                   <HandCoins /> Collect Amount from Customer
                 </h3>
                 <p className="text-yellow-700 mt-2">
-                  Amount to collect:{" "}
-                  <strong>₹{getCODCollectionAmount()}</strong>
-                  <br />
+                  Amount to collect: <strong>₹{getCODCollectionAmount()}</strong><br />
                   <small className="text-gray-600">
                     (Service: ₹{data.service_amount} + Platform Fee: ₹{data.platform_fee})
                   </small>
@@ -146,7 +153,7 @@ function ServiceCompletePage() {
                   onClick={handleCollectAmount}
                   className="mt-4 w-full px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700"
                 >
-                  💰 Mark as Collected
+                  <HandCoins className="inline mr-1" /> Mark as Collected
                 </button>
               </div>
             )}
@@ -161,7 +168,7 @@ function ServiceCompletePage() {
                   onClick={handleMarkCompleted}
                   className="mt-4 w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
                 >
-                  ✅ Complete Service
+                  <CheckCircle className="inline mr-1" /> Complete Service
                 </button>
               </div>
             )}
@@ -175,7 +182,7 @@ function ServiceCompletePage() {
                 onClick={handleMarkCompleted}
                 className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
               >
-                ✅ Complete Service
+                <CheckCircle className="inline mr-1" /> Complete Service
               </button>
             ) : (
               <div className="bg-green-100 border border-green-300 rounded-xl p-4 mt-4">
@@ -183,6 +190,14 @@ function ServiceCompletePage() {
                   <CheckCircle /> Service Completed
                 </h3>
                 <p className="text-green-700">Service marked as completed successfully!</p>
+                <button
+                  onClick={handleEarningsClick}
+                  className="mt-4 px-4 py-2 bg-blue-600 text-white flex items-center justify-center gap-2 rounded-lg hover:bg-blue-700 transition duration-300"
+                >
+                  <WalletCards className="w-5 h-5" />
+                  Go to Earnings
+                  <ArrowRight className="w-4 h-4" />
+                </button>
               </div>
             )}
           </div>
@@ -191,7 +206,7 @@ function ServiceCompletePage() {
         {showEarnings && (
           <div className="mt-8 bg-green-50 border border-green-200 rounded-xl p-4">
             <h3 className="font-semibold text-green-800 flex items-center gap-2 text-xl">
-              🎉 Earnings
+              <Coins /> Earnings
             </h3>
             <p className="text-green-700 text-lg mt-1">
               You have earned: <strong>₹{getEarningsAmount()}</strong>

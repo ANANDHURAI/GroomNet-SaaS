@@ -53354,3 +53354,15 @@ Unauthorized: /auth/token/refresh/
 Unauthorized: /customersite/booking-details/100/
 Unauthorized: /customersite/booking-details/100/
 Unauthorized: /auth/token/refresh/
+Unauthorized: /customersite/booking-details/100/
+Unauthorized: /adminsite/customers-details/3/
+Unauthorized: /customersite/ratings/
+Unauthorized: /customersite/booking-details/100/
+Unauthorized: /adminsite/customers-details/3/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /customersite/ratings/
+Bad Request: /auth/logout/
+asal joined group: barber_3
+User disconnected from group: barber_3
+asal joined group: barber_3

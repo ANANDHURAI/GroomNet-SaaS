@@ -5,7 +5,6 @@ import CustomerLayout from '../../components/customercompo/CustomerLayout';
 import Message from '../../components/customercompo/booking/Message';
 import BookingInfo from '../../components/customercompo/booking/BookingInfo';
 import TravelStatus from '../../components/customercompo/booking/TravelStatus';
-import ServiceStatus from '../../components/customercompo/booking/ServiceStatus';
 import ActionButtons from '../../components/customercompo/booking/ActionButtons';
 import RatingModal from '../../components/customercompo/booking/RatingModal';
 
@@ -58,7 +57,6 @@ function BookingDetailsPage() {
   const checkExistingRating = async (bookingId) => {
     try {
       const res = await apiClient.get(`/customersite/ratings/?booking=${bookingId}`);
-      // Check if there's any rating for this booking (since it's unique per user-booking combination)
       const hasExistingRating = res.data && res.data.length > 0;
       updateState({ hasRated: hasExistingRating });
     } catch (err) {
@@ -125,10 +123,6 @@ function BookingDetailsPage() {
 
           {data.booking_status === 'CONFIRMED' && travelStatus && (
             <TravelStatus travelStatus={travelStatus} />
-          )}
-
-          {data.booking_status === 'CONFIRMED' && travelStatus?.travel_status === 'ARRIVED' && (
-            <ServiceStatus />
           )}
 
           <ActionButtons
