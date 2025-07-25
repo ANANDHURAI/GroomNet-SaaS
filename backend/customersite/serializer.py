@@ -9,11 +9,20 @@ from decimal import Decimal
 from .utils import get_lat_lng_from_address
 from profileservice.models import UserProfile
 import requests
+from django.db.models import Avg
+from customersite.models import Rating
+
 
 class BarberSerializer(serializers.ModelSerializer):
+    average_rating = serializers.SerializerMethodField()
+
     class Meta:
         model = User
-        fields = ['id', 'name', 'email', 'phone', 'profileimage']
+        fields = ['id', 'name', 'email', 'phone', 'profileimage', 'average_rating']
+
+    def get_average_rating(self, obj):
+        avg = Rating.objects.filter(barber=obj).aggregate(avg=Avg('rating'))['avg']
+        return round(avg, 1) if avg is not None else None
     
 
 class AvailableSlotSerializer(serializers.ModelSerializer):
