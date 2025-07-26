@@ -53,3 +53,20 @@ class AdminWallet(models.Model):
     def __str__(self):
         return f"Admin Wallet - ₹{self.total_earnings}"
     
+
+class AdminWalletTransaction(models.Model):
+    TRANSACTION_TYPES = [
+        ('customer_payment', 'Customer Payment'),
+        ('barber_payout', 'Barber Payout'),
+        ('platform_fee', 'Platform Fee'),
+    ]
+
+    wallet = models.ForeignKey(AdminWallet, on_delete=models.CASCADE, related_name="transactions")
+    transaction_type = models.CharField(max_length=50, choices=TRANSACTION_TYPES)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    note = models.CharField(max_length=255, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        sign = '+' if self.transaction_type in ['customer_payment', 'platform_fee'] else '-'
+        return f"{self.get_transaction_type_display()} {sign}₹{self.amount} on {self.created_at.strftime('%Y-%m-%d')}"

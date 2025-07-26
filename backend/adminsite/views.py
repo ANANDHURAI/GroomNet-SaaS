@@ -14,10 +14,9 @@ User = get_user_model()
 logger = logging.getLogger(__name__)
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.generics import ListAPIView
-from rest_framework.decorators import api_view, permission_classes
 from customersite.models import PaymentModel
-from .models import ServiceModel, CategoryModel , AdminWallet  ,Coupon
-from .serializers import CouponSerializer
+from .models import ServiceModel, CategoryModel , AdminWallet  ,Coupon,AdminWalletTransaction
+from .serializers import CouponSerializer , AdminWalletSerializer ,AdminWalletTransactionSerializer
 
 
 
@@ -302,51 +301,19 @@ class AdminWalletView(APIView):
             )
 
 
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def payment_history_view(request):
 
-    try:
-        if request.user.user_type != 'admin':
-            return Response({'error': 'Admin access required'}, status=status.HTTP_403_FORBIDDEN)
-            
-        payments = PaymentModel.objects.select_related(
-            'booking', 
-            'booking__customer', 
-            'booking__barber', 
-            'booking__service', 
-            'booking__service__category'
-        ).order_by('-created_at')
+class AdminWalletTransactionListView(APIView):
+    def get(self, request):
+        transactions = AdminWalletTransaction.objects.all().order_by('-created_at')
+        serializer = AdminWalletTransactionSerializer(transactions, many=True)
+        return Response({"history": serializer.data})
 
-        history = []
-        for pay in payments:
-            booking = pay.booking
-            history.append({
-                'customer': booking.customer.name,
-                'barber': booking.barber.name,
-                'category': booking.service.category.name,
-                'service': booking.service.name,
-                'payment_method': pay.payment_method,
-                'payment_status': pay.payment_status,
-                'service_amount': float(pay.service_amount),
-                'platform_fee': float(pay.platform_fee),
-                'total_amount': float(pay.total_amount),
-                'created_at': pay.created_at,
-            })
-
-        return Response({'history': history}, status=status.HTTP_200_OK)
-
-    except Exception as e:
-        print(f"Error in payment_history_view: {str(e)}")
-        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    
 
 class CouponViewSet(ModelViewSet):
     permission_classes = [IsAuthenticated]
     queryset = Coupon.objects.all()
     serializer_class = CouponSerializer
     
-
 
 
 from rest_framework import generics

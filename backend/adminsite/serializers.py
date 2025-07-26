@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from authservice.models import User 
-from .models import CategoryModel , ServiceModel , AdminWallet , Coupon 
+from .models import CategoryModel , ServiceModel , AdminWallet , Coupon ,AdminWalletTransaction
 from customersite.models import Complaints
 
 class UsersListSerializer(serializers.ModelSerializer):
@@ -78,3 +78,8 @@ class ComplaintSerializer(serializers.ModelSerializer):
     class Meta:
         model = Complaints
         fields = '__all__'
+
+class AdminWalletTransactionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AdminWalletTransaction
+        fields = ['id', 'transaction_type', 'amount', 'note', 'created_at']

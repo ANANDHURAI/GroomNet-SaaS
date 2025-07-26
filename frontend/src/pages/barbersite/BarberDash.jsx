@@ -107,7 +107,7 @@ function BarberDash() {
       icon: <CheckCircle className="w-6 h-6 text-green-500" />
     },
     {
-      label: 'Wallet Balance',
+      label: 'Earnings',
       value: `₹${data?.wallet_balance?.toLocaleString() || 0}`,
       icon: <Wallet className="w-6 h-6 text-emerald-500" />
     },
