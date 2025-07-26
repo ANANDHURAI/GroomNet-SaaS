@@ -55111,3 +55111,32 @@ Not Found: /static/rest_framework/js/csrf.js
 Not Found: /static/rest_framework/js/default.js
 Not Found: /static/rest_framework/js/load-ajax-form.js
 Not Found: /favicon.ico
+Unauthorized: /barber-reg/registration-status/
+Unauthorized: /barber-reg/registration-status/
+Unauthorized: /barber-reg/registration-status/
+Unauthorized: /barber-reg/registration-status/
+asal joined group: barber_3
+Sent booking 103 to barber 3
+Sent booking 103 to barber 3
+Sent booking 103 to barber 11
+Sent booking 103 to barber 11
+ilak joined group: customer_9
+ilak joined group: customer_9
+User disconnected from group: barber_3
+Bad Request: /instant-booking/complete/service/103/
+Unauthorized: /instant-booking/complete/service/103/
+Not Found: /static/rest_framework/css/default.css
+Not Found: /static/rest_framework/css/prettify.css
+Not Found: /static/rest_framework/css/bootstrap.min.css
+Not Found: /static/rest_framework/css/bootstrap-tweaks.css
+Not Found: /static/rest_framework/js/jquery-3.7.1.min.js
+Not Found: /static/rest_framework/js/ajax-form.js
+Not Found: /static/rest_framework/js/bootstrap.min.js
+Not Found: /static/rest_framework/js/prettify-min.js
+Not Found: /static/rest_framework/js/csrf.js
+Not Found: /static/rest_framework/js/default.js
+Not Found: /static/rest_framework/js/load-ajax-form.js
+Bad Request: /instant-booking/complete/service/103/
+User disconnected from group: customer_9
+User disconnected from group: customer_9
+asal joined group: barber_3

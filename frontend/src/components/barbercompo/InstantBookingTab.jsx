@@ -220,7 +220,7 @@ const InstantBookingTab = ({
       if (response.data.status === 'success') {
         setCurrentBooking(prev => ({ ...prev, status: 'CONFIRMED' }));
         setNotification('Booking accepted successfully!');
-        navigate(`/travel-status/${currentBooking.booking_id}`);
+
       }
     } catch (error) {
       console.error('Error accepting booking:', error);
