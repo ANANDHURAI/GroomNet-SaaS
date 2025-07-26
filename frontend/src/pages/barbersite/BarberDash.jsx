@@ -193,7 +193,6 @@ function BarberDash() {
             </div>
           </div>
 
-          {/* Stats Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
             {stats.map((stat, idx) => (
               <div key={idx} className="flex items-center bg-white p-6 rounded-lg shadow border border-gray-200">

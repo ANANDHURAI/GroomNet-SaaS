@@ -58,20 +58,18 @@ function FindBarbers() {
         setStatus("Searching for nearby barbers...");
 
         try {
-            // Fixed: Use correct endpoint from backend
             const response = await apiClient.post(`/instant-booking/booking/${booking_id}/`);
             
-            // Check if barbers were notified
             if (response.data.barbers_notified > 0) {
                 setStatus(`Sent request to ${response.data.barbers_notified} barbers. Waiting for responses...`);
                 initializeWebSocket(booking_id);
             } else {
-                setStatus("❌ No barbers available in your area.");
+                setStatus("No barbers available in your area.");
                 setIsSearching(false);
             }
 
         } catch (error) {
-            console.error("❌ Error starting search:", error);
+            console.error("Error starting search:", error);
             if (error.response?.status === 404) {
                 setStatus("No barbers available at the moment.");
             } else {
@@ -93,8 +91,6 @@ function FindBarbers() {
         const wsHost = window.location.hostname === "localhost"
             ? "localhost:8000"
             : window.location.host;
-
-        // Fixed: Use customer group WebSocket URL (no specific barber_id needed for customer)
         const wsUrl = `${wsScheme}://${wsHost}/ws/instant-booking/${booking_id}/?token=${token}`;
         console.log("🔗 Connecting WebSocket:", wsUrl);
 
@@ -102,7 +98,7 @@ function FindBarbers() {
         setSocket(ws);
 
         ws.onopen = () => {
-            console.log("✅ WebSocket connected");
+            console.log("WebSocket connected");
         };
 
         ws.onmessage = (event) => {
@@ -110,7 +106,6 @@ function FindBarbers() {
             console.log("📨 WebSocket message:", data);
 
             if (data.type === "booking_accepted") {
-                // Fixed: Match backend response structure
                 const barberData = data.barber_details;
                 setBarberDetails({
                     name: barberData.name,
@@ -120,30 +115,30 @@ function FindBarbers() {
                 setStatus(`${barberData.name} accepted your booking!`);
                 setIsSearching(false);
             } else if (data.type === "no_barbers_available") {
-                setStatus("❌ No barbers available in your area.");
+                setStatus("No barbers available in your area.");
                 setIsSearching(false);
             } else if (data.type === "booking_cancelled") {
                 setStatus(`⌛ Booking cancelled: ${data.reason || 'Unknown reason'}`);
                 setIsSearching(false);
             } else if (data.type === "remove_booking") {
-                // This shouldn't happen for customers, but handle gracefully
+                
                 setStatus("Booking was processed by another barber.");
                 setIsSearching(false);
             }
         };
 
         ws.onclose = (e) => {
-            console.log("⚠️ WebSocket disconnected", e);
+            console.log("WebSocket disconnected", e);
             if (isSearching) {
                 setTimeout(() => {
-                    console.log("🔄 Reconnecting WebSocket...");
+                    console.log("Reconnecting WebSocket...");
                     initializeWebSocket(booking_id);
                 }, 3000);
             }
         };
 
         ws.onerror = (error) => {
-            console.error("❌ WebSocket error:", error);
+            console.error(" WebSocket error:", error);
             setStatus("Connection error. Trying to reconnect...");
         };
     };
@@ -198,7 +193,7 @@ function FindBarbers() {
                 {barberDetails && (
                     <div className="flex flex-col items-center space-y-4">
                         <h2 className="text-lg font-semibold text-green-600">
-                            🎉 Barber Found!
+                            Barber Found!
                         </h2>
                         <p className="text-gray-600 text-center">{status}</p>
 

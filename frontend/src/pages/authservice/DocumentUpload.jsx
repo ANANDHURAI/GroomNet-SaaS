@@ -64,7 +64,6 @@ function DocumentUpload() {
 
     const allFilesSelected = files.licence && files.certificate && files.profile_image;
 
-    // File upload configurations
     const fileConfigs = [
         {
             id: 'licence-upload',

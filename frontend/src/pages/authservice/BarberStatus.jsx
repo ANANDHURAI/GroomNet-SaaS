@@ -17,7 +17,7 @@ function BarberStatus() {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    // Check if user is authenticated before fetching status
+   
     const token = sessionStorage.getItem('access_token');
     if (!token) {
       setError('Please login to view registration status.');
@@ -32,8 +32,7 @@ function BarberStatus() {
     try {
       setLoading(true);
       setError('');
-      
-      // Check token before making request
+  
       const token = sessionStorage.getItem('access_token');
       if (!token) {
         throw new Error('No authentication token found');
@@ -77,7 +76,6 @@ function BarberStatus() {
       
       if (status === 401) {
         setError('Authentication failed. Please login again.');
-        // Clear tokens and redirect to login
         sessionStorage.clear();
         setTimeout(() => navigate('/login'), 2000);
       } else if (status === 404) {
@@ -94,7 +92,6 @@ function BarberStatus() {
   };
 
   const handleRefresh = async () => {
-    // Check authentication before refreshing
     const token = sessionStorage.getItem('access_token');
     if (!token) {
       setError('Please login to refresh status.');

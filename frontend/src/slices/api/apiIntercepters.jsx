@@ -43,7 +43,6 @@ apiClient.interceptors.request.use(
         config.headers["Authorization"] = `Bearer ${token}`;
       }
     }
-    console.log('Request URL:', config.url, 'Is Auth Endpoint:', isAuthEndpoint); 
 
     if (config.data instanceof FormData) {
       delete config.headers['Content-Type'];
@@ -70,8 +69,6 @@ apiClient.interceptors.response.use(
         const url = originalRequest.url?.startsWith('/') ? originalRequest.url : `/${originalRequest.url}`;
         return url === endpoint || url.startsWith(endpoint);
       });
-
-      console.log('Is auth endpoint check:', isAuthEndpoint, 'for URL:', originalRequest.url); // Debug log
 
       if (isAuthEndpoint) {
         return Promise.reject(error);

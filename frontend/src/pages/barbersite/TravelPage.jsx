@@ -89,11 +89,11 @@ function TravelPage() {
       
       setCurrentStatus(status);
       const statusLabel = statusFlow.find(s => s.key === status)?.label;
-      showNotification(`✅ Status updated to ${statusLabel}`);
+      showNotification(`Status updated to ${statusLabel}`);
       
     } catch (error) {
       console.error("Failed to update status:", error);
-      showNotification("❌ Failed to update travel status");
+      showNotification("Failed to update travel status");
     } finally {
       setIsLoading(false);
     }
@@ -224,7 +224,7 @@ function TravelPage() {
             </div>
           </div>
 
-          {/* ✅ ARRIVED STATUS */}
+      
           <div className="bg-white rounded-xl shadow-sm border p-6">
             <h2 className="text-xl font-semibold text-gray-800 mb-6">Update Status</h2>
             {currentStatus === "ARRIVED" ? (

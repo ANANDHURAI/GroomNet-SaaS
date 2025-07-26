@@ -4,7 +4,6 @@ import BarberSidebar from '../../components/barbercompo/BarberSidebar';
 import BarberRatings from './BarberRatings';
 
 function BarberRatingsPage() {
-  // Always use session storage for barber ID
   const barberId = sessionStorage.getItem('barber_id');
   
   console.log('BarberRatingsPage - Using session barber_id:', barberId);

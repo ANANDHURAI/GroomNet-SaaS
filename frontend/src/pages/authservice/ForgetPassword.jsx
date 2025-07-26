@@ -22,7 +22,6 @@ function ForgetPassword() {
             });
 
             setSuccess(true);
-            // Navigate to OTP verification page with email
             setTimeout(() => {
                 navigate('/forget-otp', { state: { email: email.trim().toLowerCase() } });
             }, 2000);

@@ -21,6 +21,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
 
     'rest_framework',
     'corsheaders',
@@ -79,8 +80,6 @@ TEMPLATES = [
 WSGI_APPLICATION = 'backend.wsgi.application'
 
 
-# Database
-# https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 DATABASES = {
     'default': {
@@ -90,8 +89,7 @@ DATABASES = {
 }
 
 
-# Password validation
-# https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
+
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -135,6 +133,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",  
     'http://localhost:5173',
+    "http://localhost:8080",
     
 ]
 
@@ -243,10 +242,11 @@ SOCIALACCOUNT_AUTO_SIGNUP = True
 SOCIAL_AUTH_GOOGLE_CLIENT_ID = "137089648588-63scrg565l4a5qqo39i1ibrd96ogptjr.apps.googleusercontent.com"
 SOCIAL_AUTH_GOOGLE_SECRET = "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"
 
+
 ACCOUNT_USER_MODEL_USERNAME_FIELD = None
 ACCOUNT_USERNAME_REQUIRED = False
-
-AUTH_USER_MODEL = 'authservice.User'
-ACCOUNT_AUTHENTICATION_METHOD = 'email'
 ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_EMAIL_VERIFICATION = 'optional'  
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
+
+ACCOUNT_EMAIL_VERIFICATION = 'optional'
+ACCOUNT_CONFIRM_EMAIL_ON_GET = True

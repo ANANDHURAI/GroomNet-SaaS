@@ -91,7 +91,7 @@ function ServiceCompletePage() {
       })
       .catch((error) => {
         console.error("Error completing service:", error);
-        setNotification("❌ Failed to mark as completed");
+        setNotification("Failed to mark as completed");
         setTimeout(() => setNotification(""), 3000);
       });
   };

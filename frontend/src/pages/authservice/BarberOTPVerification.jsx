@@ -5,7 +5,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 
 function BarberOTPVerification({ email: propEmail, onVerificationSuccess, onGoBack }) {
   const location = useLocation();
-  const navigate = useNavigate(); // ✅ For redirecting after success
+  const navigate = useNavigate(); 
   const email = propEmail || location.state?.email;
   
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
@@ -86,7 +86,7 @@ function BarberOTPVerification({ email: propEmail, onVerificationSuccess, onGoBa
       setSuccessMessage('Email verified successfully!');
 
       setTimeout(() => {
-        navigate('/barber-document-upload'); // ✅ Redirect here
+        navigate('/barber-document-upload'); 
       }, 1000);
     } catch (error) {
       const message = error.response?.data?.error || 'Verification failed. Please try again.';

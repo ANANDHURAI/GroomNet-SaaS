@@ -14,7 +14,6 @@ function ResetPassword() {
     const email = location.state?.email;
     const otp = location.state?.otp;
 
-    // Redirect if no email or OTP
     React.useEffect(() => {
         if (!email || !otp) {
             navigate('/forget-password');
@@ -26,14 +25,12 @@ function ResetPassword() {
         setLoading(true);
         setError('');
 
-        // Validate passwords match
         if (newPassword !== confirmPassword) {
             setError('Passwords do not match');
             setLoading(false);
             return;
         }
 
-        // Validate password length
         if (newPassword.length < 6) {
             setError('Password must be at least 6 characters long');
             setLoading(false);
@@ -48,7 +45,6 @@ function ResetPassword() {
             });
 
             setSuccess(true);
-            // Navigate to login after successful reset
             setTimeout(() => {
                 navigate('/login');
             }, 2000);
@@ -65,7 +61,7 @@ function ResetPassword() {
     };
 
     if (!email || !otp) {
-        return null; // Will redirect in useEffect
+        return null; 
     }
 
     return (

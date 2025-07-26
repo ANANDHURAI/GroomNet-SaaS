@@ -301,7 +301,6 @@ class AdminWalletView(APIView):
             )
 
 
-
 class AdminWalletTransactionListView(APIView):
     def get(self, request):
         transactions = AdminWalletTransaction.objects.all().order_by('-created_at')

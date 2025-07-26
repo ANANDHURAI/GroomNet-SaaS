@@ -1,4 +1,4 @@
-# consumers.py
+
 from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
 from django.contrib.auth import get_user_model
@@ -16,7 +16,7 @@ User = get_user_model()
 
 class AuthMixin:
     async def authenticate_user(self, token):
-        """Authenticate user from JWT token"""
+       
         try:
             payload = jwt_decode(token, settings.SECRET_KEY, algorithms=["HS256"])
             user_id = payload.get('user_id')
@@ -27,7 +27,6 @@ class AuthMixin:
             return None
 
     def get_token_from_scope(self):
-        """Extract JWT token from WebSocket query parameters"""
         query_string = self.scope.get("query_string", b"").decode()
         params = parse_qs(query_string)
         token = params.get('token', [None])[0]
@@ -59,10 +58,10 @@ class ConnectionHandler(AuthMixin):
 
         await self.channel_layer.group_add(group_name, self.channel_name)
         logger.info(f"{self.user.name} joined group: {group_name}")
-        return group_name, None  # Success
+        return group_name, None
 
     async def _can_barber_connect(self):
-        """Check if barber can connect to WebSocket"""
+      
         now = timezone.now()
         next_30_minutes = now + timedelta(minutes=30)
 
@@ -120,7 +119,7 @@ class MessageHandler:
         })
 
     async def _handle_status_update(self, user, data, send_callback):
-        """Process status updates from barber"""
+       
         if user.user_type == "barber":
             logger.info(f"Barber {user.id} status update: {data}")
             await send_callback({
@@ -166,7 +165,6 @@ class BookingFlowConsumer(AuthMixin, AsyncWebsocketConsumer):
             logger.info(f"User disconnected from group: {self.group_name}")
 
     async def receive(self, text_data):
-        """Handle incoming messages"""
         try:
             data = json.loads(text_data)
             handler = MessageHandler()

@@ -12,7 +12,6 @@ function ForgetOtp() {
     const location = useLocation();
     const email = location.state?.email;
 
-    // Redirect to forgot password if no email is provided
     React.useEffect(() => {
         if (!email) {
             navigate('/forget-password');
@@ -25,13 +24,11 @@ function ForgetOtp() {
         setError('');
 
         try {
-            // Verify OTP first
             const response = await apiClient.post('/auth/verify-otp/', {
                 email: email,
                 otp: otp
             });
             
-            // If OTP is valid, proceed to reset password page
             navigate('/reset-password', { state: { email, otp } });
         } catch (error) {
             console.error('OTP verification error:', error);
@@ -52,9 +49,8 @@ function ForgetOtp() {
             await apiClient.post('/auth/forgot-password/', {
                 email: email,
             });
-            // Show success message for resend
-            setError(''); // Clear any existing errors
-            // You might want to show a success message here
+            setError(''); 
+            
         } catch (error) {
             console.error('Resend OTP error:', error);
             const errorMessage = error.response?.data?.error ||
@@ -67,7 +63,7 @@ function ForgetOtp() {
     };
 
     if (!email) {
-        return null; // Will redirect in useEffect
+        return null; 
     }
 
     return (

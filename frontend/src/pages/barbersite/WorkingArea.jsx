@@ -77,15 +77,12 @@ const WorkingArea = () => {
 
   return (
     <div className="flex flex-col md:flex-row min-h-screen bg-gray-100">
-      {/* Sidebar */}
       <div className="w-full md:w-64 flex-shrink-0">
         <BarberSidebar />
       </div>
-
-      {/* Main Content */}
       <main className="flex-1 p-4">
         <div className="max-w-5xl mx-auto space-y-4">
-          {/* Tabs */}
+         
           <div className="flex flex-wrap border-b border-gray-300">
             <button
               className={`py-2 px-4 font-medium text-sm md:text-base ${
@@ -110,7 +107,6 @@ const WorkingArea = () => {
             </button>
           </div>
 
-          {/* Online Status Toggle */}
           <div className="bg-white rounded-lg shadow p-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
             <div className="flex items-center gap-2">
               <Power
@@ -128,14 +124,12 @@ const WorkingArea = () => {
             {loading && <span className="text-xs text-gray-400">Updating...</span>}
           </div>
 
-          {/* Notifications */}
           {notification && (
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
               <p className="text-sm text-blue-800">{notification}</p>
             </div>
           )}
 
-          {/* Tab Content */}
           <div>
             {activeTab === 'instant' ? (
               <InstantBookingTab
