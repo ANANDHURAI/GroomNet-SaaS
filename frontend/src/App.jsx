@@ -61,6 +61,7 @@ import CouponManagePage from './pages/adminsite/CouponManagePage';
 import BarberRatingsPage from './pages/barbersite/BarberRatingsPage';
 import Complaints from './pages/adminsite/Complaints';
 import CustomerComplaintsPage from './pages/customersite/CustomerComplaintsPage';
+import BarberOTPVerification from './pages/authservice/BarberOTPVerification';
 
 function App() {
   return (
@@ -324,6 +325,10 @@ function App() {
               <Route path="/barber/ratings/" element={<BarberRatingsPage />} />
               <Route path="/customer-complaints-at-admin" element={<Complaints />} />
               <Route path="/customer/complaints" element={<CustomerComplaintsPage />} />
+
+              <Route path="/barber-otp-verification" element={<BarberOTPVerification />} />
+
+              
 
             </Routes>
          </ServiceProvider>

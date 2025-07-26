@@ -10,6 +10,7 @@ class BarberRequest(models.Model):
     
     REGISTRATION_STEPS = (
         ('personal_details', 'Personal Details'),
+        ('otp_verified', 'OTP Verified'), 
         ('documents_uploaded', 'Documents Uploaded'),
         ('under_review', 'Under Review'),
         ('completed', 'Completed'),
@@ -43,3 +44,12 @@ class BarberRequest(models.Model):
             self.registration_step = 'documents_uploaded'
             self.status = 'pending'
             self.save()
+
+
+class OTPVerification(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    otp = models.CharField(max_length=6)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"OTP for {self.user.email}"

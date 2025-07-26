@@ -55061,3 +55061,53 @@ Authentication error: Signature has expired
 WebSocket rejected: Invalid or expired token
 Authentication error: Signature has expired
 WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Unauthorized: /customersite/booking-history/
+Unauthorized: /adminsite/admin-wallet/
+Unauthorized: /adminsite/admin-wallet/transactions/
+Unauthorized: /customersite/booking-history/
+Unauthorized: /adminsite/admin-wallet/
+Unauthorized: /adminsite/admin-wallet/transactions/
+Bad Request: /auth/logout/
+Unauthorized: /barber-reg/personal-details/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /barber-reg/personal-details/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /barber-reg/personal-details/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /barber-reg/personal-details/
+Unauthorized: /auth/token/refresh/
+Not Found: /barber-reg/upload-documents/
+Not Found: /barbersite/barber-portfolio/
+Not Found: /barbersite/barber-portfolio/
+Bad Request: /barber-reg/verify-otp/
+Bad Request: /barber-reg/verify-otp/
+Bad Request: /barber-reg/verify-otp/
+Unauthorized: /barber-reg/personal-details/
+Unauthorized: /auth/token/refresh/
+Bad Request: /barber-reg/verify-otp/
+Bad Request: /barber-reg/verify-otp/
+Bad Request: /barber-reg/verify-otp/
+Bad Request: /barber-reg/personal-details/
+Unauthorized: /barber-reg/registration-status/
+Unauthorized: /barber-reg/registration-status/
+Unauthorized: /barber-reg/registration-status/
+Not Found: /static/rest_framework/css/prettify.css
+Not Found: /static/rest_framework/css/bootstrap-tweaks.css
+Not Found: /static/rest_framework/css/bootstrap.min.css
+Not Found: /static/rest_framework/js/jquery-3.7.1.min.js
+Not Found: /static/rest_framework/css/default.css
+Not Found: /static/rest_framework/js/ajax-form.js
+Not Found: /static/rest_framework/js/prettify-min.js
+Not Found: /static/rest_framework/js/bootstrap.min.js
+Not Found: /static/rest_framework/js/csrf.js
+Not Found: /static/rest_framework/js/default.js
+Not Found: /static/rest_framework/js/load-ajax-form.js
+Not Found: /favicon.ico

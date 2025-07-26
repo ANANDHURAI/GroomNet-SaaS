@@ -17,6 +17,14 @@ function BarberStatus() {
   const dispatch = useDispatch();
 
   useEffect(() => {
+    // Check if user is authenticated before fetching status
+    const token = sessionStorage.getItem('access_token');
+    if (!token) {
+      setError('Please login to view registration status.');
+      navigate('/login');
+      return;
+    }
+    
     fetchStatus();
   }, []);
 
@@ -24,6 +32,13 @@ function BarberStatus() {
     try {
       setLoading(true);
       setError('');
+      
+      // Check token before making request
+      const token = sessionStorage.getItem('access_token');
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+
       const response = await apiClient.get('barber-reg/registration-status/');
       const data = response.data;
       
@@ -60,7 +75,12 @@ function BarberStatus() {
       console.error('Status fetch error:', err);
       const status = err.response?.status;
       
-      if (status === 404) {
+      if (status === 401) {
+        setError('Authentication failed. Please login again.');
+        // Clear tokens and redirect to login
+        sessionStorage.clear();
+        setTimeout(() => navigate('/login'), 2000);
+      } else if (status === 404) {
         setUserData(null);
         setNextStep('personal_details');
         setCanContinue(true);
@@ -74,6 +94,14 @@ function BarberStatus() {
   };
 
   const handleRefresh = async () => {
+    // Check authentication before refreshing
+    const token = sessionStorage.getItem('access_token');
+    if (!token) {
+      setError('Please login to refresh status.');
+      navigate('/login');
+      return;
+    }
+    
     setRefreshing(true);
     await fetchStatus();
     setRefreshing(false);
@@ -93,7 +121,7 @@ function BarberStatus() {
   const handleTryAgain = () => navigate('/barber-registration');
   
   const handleContinueRegistration = () => {
-    if (nextStep === 'documents_uploaded') {
+    if (nextStep === 'upload_documents') {
       navigate('/barber-document-upload');
     } else {
       navigate('/barber-registration');
@@ -145,6 +173,7 @@ function BarberStatus() {
     
     const stepMap = {
       personal_details: 25,
+      otp_verified: 50,
       documents_uploaded: 75,
       under_review: 90,
       completed: 100
@@ -154,11 +183,11 @@ function BarberStatus() {
   };
 
   const formatStepName = (step) => {
-    return step?.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()) || 'Unknown';
+    return step?.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) || 'Unknown';
   };
 
   const canContinueToDocuments = () => {
-      return canContinue && nextStep === 'upload_documents';
+    return canContinue && nextStep === 'upload_documents';
   };
 
   const statusInfo = getStatusInfo();
@@ -240,7 +269,6 @@ function BarberStatus() {
             <p className="text-center text-sm text-gray-600 mt-2">{progress}% Complete</p>
           </div>
 
-         
           {userData?.admin_comment && (
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
               <h4 className="font-semibold text-yellow-800 mb-2">Admin Comment:</h4>

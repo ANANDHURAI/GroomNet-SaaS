@@ -27,30 +27,53 @@ function BarberPersonalDetails() {
     }
   };
 
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (formData.password !== formData.confirm_password) {
+      setErrors({ confirm_password: 'Passwords do not match' });
+      return;
+    }
+
     setLoading(true);
     setErrors({});
     setSuccessMessage('');
 
     try {
-      const response = await apiClient.post('barber-reg/personal-details/', formData);
-
-      sessionStorage.setItem('access_token', response.data.access);
-      sessionStorage.setItem('refresh_token', response.data.refresh);
-      sessionStorage.setItem('user_type', 'barber');
-      sessionStorage.setItem('user_id', response.data.user_id);
+      console.log('Sending personal details:', formData);
       
-      setSuccessMessage('Personal details submitted successfully!');
+      const response = await apiClient.post('barber-reg/personal-details/', {
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        gender: formData.gender,
+        password: formData.password,
+        confirm_password: formData.confirm_password
+      });
+
+      console.log('Personal details response:', response.data);
+      sessionStorage.setItem('registration_email', formData.email);
+            
+      setSuccessMessage('Account created successfully! Please check your email for OTP.');
       
       setTimeout(() => {
-        navigate('/barber-document-upload');
-      }, 500);
-      
+        navigate('/barber-otp-verification', { state: { email: formData.email } });
+    
+      }, 1000);
+
     } catch (error) {
-      console.error('Registration failed:', error);
+      console.error('Personal details submission failed:', error);
+      console.error('Error response:', error.response?.data);
+      
       if (error.response?.data) {
-        setErrors(error.response.data);
+       
+        const errorData = error.response.data;
+        if (typeof errorData === 'object' && !errorData.error) {
+          setErrors(errorData);
+        } else {
+          setErrors({ general: errorData.error || 'Registration failed. Please try again.' });
+        }
       } else {
         setErrors({ general: 'Registration failed. Please try again.' });
       }

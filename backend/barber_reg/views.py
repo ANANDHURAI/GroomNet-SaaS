@@ -10,11 +10,45 @@ from .serializers import (
     DocumentUploadSerializer,
     BarberRegistrationStatusSerializer
 )
-from .models import BarberRequest
+from .models import BarberRequest, OTPVerification
+
+from django.core.mail import send_mail
+from django.conf import settings
+from django.utils import timezone
+from datetime import timedelta
+import random
+import string
 
 User = get_user_model()
+import logging
+logger = logging.getLogger(__name__)
 
 class BarberPersonalDetailsView(APIView):
+    def generate_otp(self):
+        return ''.join(random.choices(string.digits, k=6))
+
+    def send_otp_email(self, email, name, otp):
+        subject = 'Barber Registration - Email Verification'
+        message = f"""
+        Hi {name},
+
+        Thank you for registering as a barber with us!
+        Your OTP for email verification is: {otp}
+        This OTP is valid for 10 minutes
+        """
+                
+        try:
+            send_mail(
+                subject,
+                message,
+                settings.DEFAULT_FROM_EMAIL,
+                [email],
+                fail_silently=False,
+            )
+        except Exception as e:
+            print(f"Failed to send OTP email: {str(e)}")
+
+
 
     def post(self, request):
         serializer = BarberPersonalDetailsSerializer(data=request.data)
@@ -30,7 +64,7 @@ class BarberPersonalDetailsView(APIView):
                 gender=serializer.validated_data['gender'],
                 password=serializer.validated_data['password'],
                 user_type='barber',
-                is_active=True  
+                is_active=False  
             )
 
          
@@ -40,25 +74,18 @@ class BarberPersonalDetailsView(APIView):
                 status='pending'
             )
 
-          
-            refresh = RefreshToken.for_user(user)
-            access_token = str(refresh.access_token)
+
+            otp = self.generate_otp()
+            OTPVerification.objects.filter(user=user).delete() 
+            OTPVerification.objects.create(user=user, otp=otp)
+            self.send_otp_email(user.email, user.name, otp)
+
 
             return Response({
-                "message": "Personal details submitted successfully. Please upload documents to continue.",
+                "message": "Personal details submitted successfully. Please check your email for OTP verification.",
                 "user_id": user.id,
-                "user_type": user.user_type,
-                "barber_request_id": barber_request.id,
-                "registration_step": barber_request.registration_step,
-                "status": barber_request.status,
-                "access": access_token,
-                "refresh": str(refresh),
-                "user_data": {
-                    "name": user.name,
-                    "email": user.email,
-                    "phone": user.phone,
-                    "gender": user.gender
-                }
+                "email": user.email,
+                "next_step": "otp_verification"
             }, status=status.HTTP_201_CREATED)
 
         except Exception as e:
@@ -68,6 +95,127 @@ class BarberPersonalDetailsView(APIView):
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
 
+class OTPVerificationView(APIView):
+    def post(self, request):
+        logger.info(f"OTP verification request data: {request.data}")
+        logger.info(f"Request content type: {request.content_type}")
+        
+        email = request.data.get('email')
+        otp = request.data.get('otp')
+        
+        logger.info(f"Extracted - Email: {email}, OTP: {otp}")
+        
+        if not email or not otp:
+            logger.warning(f"Missing data - Email: {email}, OTP: {otp}")
+            return Response({
+                'error': 'Email and OTP are required'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            user = User.objects.get(email=email, user_type='barber')
+        except User.DoesNotExist:
+            return Response({
+                'error': 'User not found'
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            otp_record = OTPVerification.objects.get(user=user, otp=otp)
+        except OTPVerification.DoesNotExist:
+            return Response({
+                'error': 'Invalid OTP'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        if otp_record.created_at < timezone.now() - timedelta(minutes=10):
+            otp_record.delete()
+            return Response({
+                'error': 'OTP has expired. Please request a new one.'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        user.is_active = True
+        user.is_verified = True
+        user.save()
+
+        barber_request = user.barber_request
+        barber_request.registration_step = 'otp_verified'
+        barber_request.save()
+
+        otp_record.delete()
+
+        refresh = RefreshToken.for_user(user)
+        access_token = str(refresh.access_token)
+
+        return Response({
+            "message": "Email verified successfully! You can now upload your documents.",
+            "user_id": user.id,
+            "user_type": user.user_type,
+            "access": access_token,
+            "refresh": str(refresh),
+            "next_step": "upload_documents",
+            "user_data": {
+                "name": user.name,
+                "email": user.email,
+                "phone": user.phone,
+                "gender": user.gender
+            }
+        }, status=status.HTTP_200_OK)
+
+
+class ResendOTPView(APIView):
+    def post(self, request):
+        email = request.data.get('email')
+        
+        if not email:
+            return Response({
+                'error': 'Email is required'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            user = User.objects.get(email=email, user_type='barber', is_verified=False)
+        except User.DoesNotExist:
+            return Response({
+                'error': 'User not found or already verified'
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        last_otp = OTPVerification.objects.filter(user=user).order_by('-created_at').first()
+        if last_otp and last_otp.created_at > timezone.now() - timedelta(minutes=1):
+            return Response({
+                'error': 'Please wait at least 1 minute before requesting a new OTP'
+            }, status=status.HTTP_429_TOO_MANY_REQUESTS)
+
+        otp = self._generate_otp()
+        
+        OTPVerification.objects.filter(user=user).delete()
+        
+        OTPVerification.objects.create(user=user, otp=otp)
+        
+        self._send_otp_email(user.email, user.name, otp)
+
+        return Response({
+            "message": "New OTP sent to your email address.",
+        }, status=status.HTTP_200_OK)
+
+    def _generate_otp(self):
+        return ''.join(random.choices(string.digits, k=6))
+
+    def _send_otp_email(self, email, name, otp):
+        subject = 'Barber Registration - New Email Verification Code'
+        message = f"""
+        Hi {name},
+
+        Your new OTP for email verification is: {otp}
+        This OTP is valid for 10 minutes.
+        """
+        
+        try:
+            send_mail(
+                subject,
+                message,
+                settings.DEFAULT_FROM_EMAIL,
+                [email],
+                fail_silently=False,
+            )
+        except Exception as e:
+            print(f"Failed to send OTP email: {str(e)}")
 
 class DocumentUploadView(APIView):
     permission_classes = [IsAuthenticated]
@@ -111,31 +259,48 @@ class DocumentUploadView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+
 class BarberRegistrationStatusView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        user = request.user
         try:
+            user = request.user
+            logger.info(f"Fetching registration status for user: {user.id} - {user.email}")
+            
+            if not hasattr(user, 'barber_request'):
+                logger.info(f"No barber request found for user: {user.id}")
+                return Response({
+                    'message': 'No registration found. Please start with personal details.',
+                    'next_step': 'personal_details',
+                    'can_continue': True,
+                    'user_data': None
+                }, status=status.HTTP_404_NOT_FOUND)
+            
             barber_request = user.barber_request
             serializer = BarberRegistrationStatusSerializer(user)
             
-            return Response({
+            response_data = {
                 'user_data': serializer.data,
                 'next_step': self._get_next_step(barber_request),
                 'can_continue': self._can_continue_registration(barber_request)
-            }, status=status.HTTP_200_OK)
+            }
             
-        except BarberRequest.DoesNotExist:
+            logger.info(f"Successfully retrieved status for user: {user.id}")
+            return Response(response_data, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            logger.error(f"Error fetching registration status for user {request.user.id}: {str(e)}")
             return Response({
-                'message': 'No registration found. Please start with personal details.',
-                'next_step': 'personal_details',
-                'can_continue': True
-            }, status=status.HTTP_404_NOT_FOUND)
+                'message': 'An error occurred while fetching registration status.',
+                'error': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
     def _get_next_step(self, barber_request):
-
+        """Determine the next step based on current registration state"""
         if barber_request.registration_step == 'personal_details':
+            return 'otp_verification'
+        elif barber_request.registration_step == 'otp_verified':
             return 'upload_documents'
         elif barber_request.registration_step == 'documents_uploaded':
             return 'wait_for_approval'
@@ -146,6 +311,5 @@ class BarberRegistrationStatusView(APIView):
         return 'unknown'
     
     def _can_continue_registration(self, barber_request):
+        """Check if user can continue with registration process"""
         return barber_request.status not in ['approved', 'rejected']
-
-

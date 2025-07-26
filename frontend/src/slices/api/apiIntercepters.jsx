@@ -26,14 +26,16 @@ const authEndpoints = [
   '/auth/token/',
   '/auth/otp-verification/',
   '/barber-reg/personal-details/',
+  '/barber-reg/verify-otp/',  
+  '/barber-reg/resend-otp/',  
   '/barber-reg/registration-status/'
 ];
-
 apiClient.interceptors.request.use(
   (config) => {
-    const isAuthEndpoint = authEndpoints.some(endpoint =>
-      config.url?.includes(endpoint)
-    );
+    const isAuthEndpoint = authEndpoints.some(endpoint => {
+      const url = config.url?.startsWith('/') ? config.url : `/${config.url}`;
+      return url === endpoint || url.startsWith(endpoint);
+    });
 
     if (!isAuthEndpoint) {
       const token = sessionStorage.getItem("access_token");
@@ -41,6 +43,7 @@ apiClient.interceptors.request.use(
         config.headers["Authorization"] = `Bearer ${token}`;
       }
     }
+    console.log('Request URL:', config.url, 'Is Auth Endpoint:', isAuthEndpoint); 
 
     if (config.data instanceof FormData) {
       delete config.headers['Content-Type'];
@@ -56,14 +59,19 @@ apiClient.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
+    console.log('Response error for URL:', originalRequest.url, 'Status:', error.response?.status);
+
     if (error.response?.status === 401 && !originalRequest._retry) {
       if (originalRequest.url?.includes("/token/refresh/")) {
         return Promise.reject(error); 
       }
 
-      const isAuthEndpoint = authEndpoints.some(endpoint =>
-        originalRequest.url?.includes(endpoint)
-      );
+      const isAuthEndpoint = authEndpoints.some(endpoint => {
+        const url = originalRequest.url?.startsWith('/') ? originalRequest.url : `/${originalRequest.url}`;
+        return url === endpoint || url.startsWith(endpoint);
+      });
+
+      console.log('Is auth endpoint check:', isAuthEndpoint, 'for URL:', originalRequest.url); // Debug log
 
       if (isAuthEndpoint) {
         return Promise.reject(error);
