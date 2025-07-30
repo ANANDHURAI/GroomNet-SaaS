@@ -30,3 +30,5 @@ class BarberProfileView(RetrieveAPIView):
 
     def get_queryset(self):
         return UserProfile.objects.all()
+    
+

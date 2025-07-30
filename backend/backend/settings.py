@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'dj_rest_auth',
     'dj_rest_auth.registration',
+    
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
@@ -119,13 +120,9 @@ USE_I18N = True
 USE_TZ = True
 
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
 
-# Default primary key field type
-# https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
@@ -133,7 +130,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",  
     'http://localhost:5173',
-    "http://localhost:8080",
+    "http://localhost:8000",
+    "http://127.0.0.1:3000",
     
 ]
 
@@ -226,27 +224,48 @@ CHANNEL_LAYERS = {
 GOOGLE_MAPS_API_KEY = os.getenv("GOOGLE_MAPS_API_KEY")
 
 SITE_ID = 1
+
+
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
+        'APP': {
+            'client_id': '137089648588-63scrg565l4a5qqo39i1ibrd96ogptjr.apps.googleusercontent.com',
+            'secret': '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',
+            'key': ''
+        },
         'SCOPE': [
             'profile',
             'email',
         ],
-        'AUTH_PARAMS': {
-            'access_type': 'online',
-        },
-        'OAUTH_PKCE_ENABLED': True,
     }
 }
-SOCIALACCOUNT_AUTO_SIGNUP = True
-SOCIAL_AUTH_GOOGLE_CLIENT_ID = "137089648588-63scrg565l4a5qqo39i1ibrd96ogptjr.apps.googleusercontent.com"
-SOCIAL_AUTH_GOOGLE_SECRET = "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"
 
 
-ACCOUNT_USER_MODEL_USERNAME_FIELD = None
-ACCOUNT_USERNAME_REQUIRED = False
+
+ACCOUNT_EMAIL_VERIFICATION = "none"
 ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_AUTHENTICATION_METHOD = 'email'
+ACCOUNT_AUTHENTICATION_METHOD = "email"
+ACCOUNT_USERNAME_REQUIRED = False
 
-ACCOUNT_EMAIL_VERIFICATION = 'optional'
-ACCOUNT_CONFIRM_EMAIL_ON_GET = True
+
+
+
+
+
+
+CORS_ALLOW_CREDENTIALS = True
+
+GOOGLE_OAUTH2_CLIENT_ID = os.getenv('GOOGLE_OAUTH2_CLIENT_ID')
+GOOGLE_OAUTH2_CLIENT_SECRET = os.getenv('GOOGLE_OAUTH2_CLIENT_SECRET')
+BASE_APP_URL = os.getenv('BASE_APP_URL', 'http://localhost:5173')
+BASE_API_URL = os.getenv('BASE_API_URL', 'http://localhost:8000')
+
+
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
+)
+
+REST_AUTH_REGISTER_SERIALIZERS = {
+    'REGISTER_SERIALIZER': 'authservice.serializers.CustomRegisterSerializer'
+}
