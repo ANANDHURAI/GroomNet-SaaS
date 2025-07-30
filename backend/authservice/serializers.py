@@ -122,29 +122,3 @@ class GoogleAuthResponseSerializer(serializers.Serializer):
     given_name = serializers.CharField()
     family_name = serializers.CharField(required=False)
 
-# authservice/serializers.py
-from allauth.account.adapter import get_adapter
-from allauth.account.utils import setup_user_email
-from dj_rest_auth.registration.serializers import RegisterSerializer
-from rest_framework import serializers
-
-
-class CustomRegisterSerializer(RegisterSerializer):
-    name = serializers.CharField(max_length=100)
-    gender = serializers.ChoiceField(choices=[('male', 'Male'), ('female', 'Female'), ('other', 'Other')])
-    user_type = serializers.ChoiceField(choices=[('customer', 'Customer'), ('barber', 'Barber')])
-
-    def get_cleaned_data(self):
-        data = super().get_cleaned_data()
-        data['name'] = self.validated_data.get('name', '')
-        data['gender'] = self.validated_data.get('gender', '')
-        data['user_type'] = self.validated_data.get('user_type', 'customer')
-        return data
-
-    def save(self, request):
-        user = super().save(request)
-        user.name = self.cleaned_data.get('name')
-        user.gender = self.cleaned_data.get('gender')
-        user.user_type = self.cleaned_data.get('user_type')
-        user.save()
-        return user

@@ -156,12 +156,6 @@ function CustomerComplaintsPage() {
               <FileText size={16} />
               <span>Booking ID: #{complaint.booking}</span>
             </div>
-            {complaint.updated_at !== complaint.created_at && (
-              <div className="flex items-center gap-2 text-sm text-gray-600 md:col-span-2">
-                <Clock size={16} />
-                <span>Last Updated: {formatDate(complaint.updated_at)}</span>
-              </div>
-            )}
           </div>
 
           <div>
@@ -171,16 +165,18 @@ function CustomerComplaintsPage() {
             </p>
           </div>
 
-          {complaint.image && (
-            <div>
-              <h4 className="font-medium text-gray-900 mb-2">Attached Image</h4>
+          <div>
+            <h4 className="font-medium text-gray-900 mb-2">Attached Image</h4>
+            {complaint.image ? (
               <img 
-                src={complaint.image} 
+                src={`http://localhost:8000${complaint.image}`} 
                 alt="Complaint attachment" 
                 className="max-w-full h-64 object-contain rounded-lg border border-gray-200"
               />
-            </div>
-          )}
+            ) : (
+              <p className="text-gray-600 italic">No image for this complaint.</p>
+            )}
+          </div>
 
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
             <h4 className="font-medium text-blue-900 mb-2">Status Information</h4>

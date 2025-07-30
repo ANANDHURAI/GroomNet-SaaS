@@ -18,105 +18,71 @@ class CreateStripeCheckoutSession(APIView):
             booking_id = request.data.get("booking_id")
             
             if not booking_id:
-                logger.error("No booking_id provided")
                 return Response(
                     {"error": "booking_id is required"}, 
                     status=status.HTTP_400_BAD_REQUEST
                 )
             
-            try:
-                booking = get_object_or_404(Booking, id=booking_id, customer=request.user)
-                logger.info(f"Found booking {booking_id} for user {request.user.id}")
-            except Exception as e:
-                logger.error(f"Booking not found: {booking_id}, user: {request.user.id}, error: {str(e)}")
-                return Response(
-                    {"error": "Booking not found or access denied"}, 
-                    status=status.HTTP_404_NOT_FOUND
-                )
-            
-            try:
-                payment = PaymentModel.objects.get(booking=booking)
-                logger.info(f"Found payment record for booking {booking_id}")
-            except PaymentModel.DoesNotExist:
-                logger.error(f"PaymentModel not found for booking {booking_id}")
-                return Response(
-                    {"error": "Payment record not found for this booking"}, 
-                    status=status.HTTP_404_NOT_FOUND
-                )
-            
-            
-            try:
-                total_amount = payment.total_amount 
-                unit_amount = int(total_amount * 100)
-                logger.info(f"Calculated unit_amount: {unit_amount} paisa for booking {booking_id}")
-                
-                if unit_amount <= 0:
-                    logger.error(f"Invalid unit_amount: {unit_amount}")
-                    return Response(
-                        {"error": "Invalid payment amount"}, 
-                        status=status.HTTP_400_BAD_REQUEST
-                    )
-            except Exception as e:
-                logger.error(f"Error calculating amount: {str(e)}")
-                return Response(
-                    {"error": "Error calculating payment amount"}, 
-                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
-                )
-            
+            booking = get_object_or_404(Booking, id=booking_id, customer=request.user)
+            payment = PaymentModel.objects.get(booking=booking)
            
+            total_amount = payment.final_amount
+            unit_amount = int(total_amount * 100)
+            
+            if unit_amount <= 0:
+                return Response(
+                    {"error": "Invalid payment amount"}, 
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
             barber_name = "Barber"
             if hasattr(booking.barber, 'name') and booking.barber.name:
                 barber_name = booking.barber.name
-            elif hasattr(booking.barber, 'username') and booking.barber.username:
-                barber_name = booking.barber.username
             
-            try:
-                checkout_session = stripe.checkout.Session.create(
-                    payment_method_types=['card'], 
-                    line_items=[{
-                        'price_data': {
-                            'currency': 'inr',
-                            'unit_amount': unit_amount,
-                            'product_data': {
-                                'name': booking.service.name,
-                                'description': f"Booking with {barber_name} - Service: {booking.service.name}",
-                            },
+            description = f"Booking with {barber_name} - Service: {booking.service.name}"
+            if payment.discount > 0:
+                description += f" (Discount Applied: ₹{payment.discount})"
+            
+            checkout_session = stripe.checkout.Session.create(
+                payment_method_types=['card'], 
+                line_items=[{
+                    'price_data': {
+                        'currency': 'inr',
+                        'unit_amount': unit_amount,
+                        'product_data': {
+                            'name': booking.service.name,
+                            'description': description,
                         },
-                        'quantity': 1,
-                    }],
-                    mode='payment',
-                    success_url=f"http://localhost:5173/booking-success?session_id={{CHECKOUT_SESSION_ID}}",
-                    cancel_url="http://localhost:5173/payment-cancelled",
-                    metadata={
-                        "booking_id": str(booking.id),
-                        "customer_id": str(request.user.id),
-                        "payment_id": str(payment.id),
-                    }
-                )
+                    },
+                    'quantity': 1,
+                }],
+                mode='payment',
+                success_url=f"http://localhost:5173/booking-success?session_id={{CHECKOUT_SESSION_ID}}",
+                cancel_url="http://localhost:5173/payment-cancelled",
+                metadata={
+                    "booking_id": str(booking.id),
+                    "customer_id": str(request.user.id),
+                    "payment_id": str(payment.id),
+                }
+            )
+            
+            return Response({
+                "sessionId": checkout_session.id, 
+                "stripe_public_key": settings.STRIPE_PUBLISHABLE_KEY,
+                "url": checkout_session.url,
+                "amount": float(total_amount),
+                "original_amount": float(payment.service_amount + payment.platform_fee),
+                "discount": float(payment.discount),
+                "currency": "INR"
+            })
                 
-                logger.info(f"Created Stripe session {checkout_session.id} for booking {booking_id}")
-                
-                return Response({
-                    "sessionId": checkout_session.id, 
-                    "stripe_public_key": settings.STRIPE_PUBLISHABLE_KEY,
-                    "url": checkout_session.url,
-                    "amount": float(total_amount),
-                    "currency": "INR"
-                })
-                
-            except stripe.error.StripeError as e:
-                logger.error(f"Stripe error: {str(e)}")
-                return Response(
-                    {"error": f"Payment service error: {str(e)}"}, 
-                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
-                )
-        
         except Exception as e:
-            logger.error(f"Unexpected error in CreateStripeCheckoutSession: {str(e)}")
+            logger.error(f"Stripe error: {str(e)}")
             return Response(
-                {"error": "An unexpected error occurred"}, 
+                {"error": "Payment service error"}, 
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
 
 class VerifyPayment(APIView):
     def post(self, request):

@@ -178,6 +178,9 @@ class AddressListCreateView(generics.ListCreateAPIView):
         return Address.objects.filter(user=self.request.user)
 
 
+from adminsite.models import Coupon
+from django.utils import timezone
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def booking_summary(request):
@@ -185,6 +188,7 @@ def booking_summary(request):
     address_id = request.data.get('address_id')
     barber_id = request.data.get('barber_id')
     slot_id = request.data.get('slot_id')
+    coupon_code = request.data.get('coupon_code')  # Optional
 
     try:
         service = ServiceModel.objects.get(id=service_id)
@@ -203,7 +207,6 @@ def booking_summary(request):
         }
 
         if barber_id and slot_id:
-            print("📆 Schedule booking: Fetching barber and slot details")
             try:
                 barber = User.objects.get(id=barber_id, user_type='barber')
                 slot = BarberSlot.objects.get(id=slot_id, is_booked=False)
@@ -218,35 +221,50 @@ def booking_summary(request):
                     'end_time': slot.end_time,
                 }
             except User.DoesNotExist:
-                print("❌ Barber not found")
                 return Response({"error": "Barber not found."}, status=404)
-            except BarberSlot.DoesNotExist:
-                print("❌ Slot not found or already booked")
-                return Response({"error": "Slot not found or already booked."}, status=404)
         else:
-            print("⚡ Instant booking: Skipping barber and slot details")
+            print("Instant booking: Skipping barber and slot details")
 
         service_amount = float(service.price)
         platform_fee = round(0.05 * service_amount, 2)
-        total_amount = round(service_amount + platform_fee, 2)
+        total_amount = service_amount + platform_fee
+
+        discount = 0
+        coupon_info = None
+
+        if coupon_code:
+            try:
+                coupon = Coupon.objects.get(code=coupon_code, service=service)
+
+                if not coupon.is_valid():
+                    return Response({"error": "Coupon has expired."}, status=400)
+
+                discount = round(service_amount * (coupon.discount_percentage / 100), 2)
+                total_amount -= discount
+                coupon_info = {
+                    "code": coupon.code,
+                    "discount_percentage": coupon.discount_percentage,
+                    "discount_amount": discount,
+                }
+
+            except Coupon.DoesNotExist:
+                return Response({"error": "Invalid or inapplicable coupon."}, status=400)
 
         summary.update({
-            'service_amount': service_amount,
+            'service_amount': round(service_amount, 2),
             'platform_fee': platform_fee,
-            'total_amount': total_amount,
+            'discount': discount,
+            'total_amount': round(total_amount, 2),
+            'coupon': coupon_info,
         })
 
-        print(f"✅ Returning booking summary: {summary}")
         return Response(summary)
 
     except ServiceModel.DoesNotExist:
-        print("❌ Service not found")
         return Response({"error": "Service not found."}, status=404)
     except Address.DoesNotExist:
-        print("❌ Address not found")
         return Response({"error": "Address not found."}, status=404)
     except Exception as e:
-        print(f"❌ Unexpected error in booking_summary: {str(e)}")
         return Response({"error": str(e)}, status=400)
 
 
@@ -559,14 +577,26 @@ class CreateComplaintView(APIView):
 
 
 
+# class CustomerComplaintsListView(APIView):
+#     permission_classes = [IsAuthenticated]
+    
+#     def get(self, request):
+#         complaints = Complaints.objects.filter(user=request.user).order_by('-updated_at')
+#         serializer = ComplaintSerializer(complaints, many=True)
+#         return Response(serializer.data)
+
 class CustomerComplaintsListView(APIView):
     permission_classes = [IsAuthenticated]
     
     def get(self, request):
-        complaints = Complaints.objects.filter(user=request.user).order_by('-updated_at')
-        serializer = ComplaintSerializer(complaints, many=True)
-        return Response(serializer.data)
+        booking_id = request.query_params.get('booking')
+        complaints = Complaints.objects.filter(user=request.user)
 
+        if booking_id:
+            complaints = complaints.filter(booking_id=booking_id)
+
+        serializer = ComplaintSerializer(complaints.order_by('-updated_at'), many=True)
+        return Response(serializer.data)
 
 
 

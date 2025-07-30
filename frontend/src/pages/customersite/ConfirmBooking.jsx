@@ -10,10 +10,11 @@ export const ConfirmBooking = () => {
   const [confirming, setConfirming] = useState(false);
   const [bookingData, setBookingData] = useState(null);
   const [bookingType, setBookingType] = useState("");
+  const [couponCode, setCouponCode] = useState("");
+  const [couponError, setCouponError] = useState(null);
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
-
     const typeFromSession = sessionStorage.getItem("bookingType");
     const normalizedType = (typeFromSession || "SCHEDULE_BOOKING").toUpperCase();
     setBookingType(normalizedType);
@@ -25,31 +26,25 @@ export const ConfirmBooking = () => {
       address_id: urlParams.get("address_id"),
     };
 
-    console.log("DEBUG: Booking Data ->", currentBookingData);
-    console.log("DEBUG: Booking Type ->", normalizedType);
+    setBookingData(currentBookingData);
 
-    
     if (
       !currentBookingData.service_id ||
       !currentBookingData.address_id ||
       (normalizedType !== "INSTANT_BOOKING" && (!currentBookingData.barber_id || !currentBookingData.slot_id))
     ) {
-      console.error("Missing booking info:", {
-        ...currentBookingData,
-        bookingType: normalizedType,
-      });
       setError("Missing booking information. Please start from the beginning.");
       setLoading(false);
       return;
     }
 
-    setBookingData(currentBookingData);
     fetchBookingSummary(currentBookingData, normalizedType);
   }, []);
 
-  const fetchBookingSummary = async (data, type) => {
+  const fetchBookingSummary = async (data, type, coupon = "") => {
     try {
       setLoading(true);
+      setCouponError(null);
 
       const payload = {
         service_id: data.service_id,
@@ -61,19 +56,30 @@ export const ConfirmBooking = () => {
         payload.slot_id = data.slot_id;
       }
 
-      console.log("DEBUG: API Payload ->", payload);
+      if (coupon.trim()) {
+        payload.coupon_code = coupon.trim();
+      }
 
       const response = await apiClient.post("/customersite/booking-summary/", payload);
-
-      console.log("Booking Summary Response:", response.data);
-
       setBookingSummary(response.data);
     } catch (error) {
-      console.error("Error fetching booking summary:", error);
-      setError("Failed to load booking details. Please try again.");
+      if (error.response?.data?.error) {
+        setCouponError(error.response.data.error);
+      } else {
+        setError("Failed to load booking details. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleApplyCoupon = () => {
+    if (!couponCode.trim()) {
+      setCouponError("Please enter a coupon code.");
+      return;
+    }
+
+    fetchBookingSummary(bookingData, bookingType, couponCode);
   };
 
   const handleConfirmBooking = async () => {
@@ -90,16 +96,13 @@ export const ConfirmBooking = () => {
 
       window.location.href = paymentUrl.toString();
     } catch (error) {
-      console.error("Error confirming booking:", error);
       alert("Failed to confirm booking. Please try again.");
     } finally {
       setConfirming(false);
     }
   };
 
-  const handleBack = () => {
-    window.history.back();
-  };
+  const handleBack = () => window.history.back();
 
   if (loading) {
     return (
@@ -131,10 +134,7 @@ export const ConfirmBooking = () => {
       <Navbar />
       <div className="max-w-3xl mx-auto px-4 py-6">
         <div className="flex items-center mb-8">
-          <button
-            onClick={handleBack}
-            className="flex items-center text-gray-600 hover:text-gray-800 mr-4"
-          >
+          <button onClick={handleBack} className="flex items-center text-gray-600 hover:text-gray-800 mr-4">
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div className="flex-1 text-center">
@@ -178,9 +178,7 @@ export const ConfirmBooking = () => {
                   <Calendar className="w-6 h-6 text-orange-600" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-800">
-                    {bookingSummary.slot.date}
-                  </h3>
+                  <h3 className="font-semibold text-gray-800">{bookingSummary.slot.date}</h3>
                   <div className="flex items-center text-sm text-gray-600 mt-1">
                     <Clock className="w-4 h-4 mr-1" />
                     {bookingSummary.slot.start_time} - {bookingSummary.slot.end_time}
@@ -204,6 +202,26 @@ export const ConfirmBooking = () => {
             </div>
           </div>
 
+          <div className="space-y-2 border-t pt-4">
+            <label className="text-sm font-medium text-gray-700">Apply Coupon Code</label>
+            <div className="flex space-x-2">
+              <input
+                type="text"
+                value={couponCode}
+                onChange={(e) => setCouponCode(e.target.value)}
+                className="flex-1 border px-3 py-2 rounded text-sm"
+                placeholder="Enter coupon"
+              />
+              <button
+                onClick={handleApplyCoupon}
+                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+              >
+                Apply
+              </button>
+            </div>
+            {couponError && <p className="text-red-600 text-sm">{couponError}</p>}
+          </div>
+
           <div className="border-t pt-4 space-y-2">
             <div className="flex justify-between text-gray-700">
               <span>Service Price</span>
@@ -213,6 +231,12 @@ export const ConfirmBooking = () => {
               <span>Platform Fee (5%)</span>
               <span>₹{bookingSummary.platform_fee}</span>
             </div>
+            {bookingSummary.discount > 0 && (
+              <div className="flex justify-between text-green-700">
+                <span>Discount ({bookingSummary.coupon.code})</span>
+                <span>-₹{bookingSummary.discount}</span>
+              </div>
+            )}
             <div className="flex justify-between text-lg font-semibold text-gray-900 border-t pt-2">
               <span>Total Amount</span>
               <span>₹{bookingSummary.total_amount}</span>

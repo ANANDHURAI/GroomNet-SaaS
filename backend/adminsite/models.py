@@ -1,6 +1,8 @@
 from django.db import models
 from django.utils import timezone
 from django.conf import settings
+from authservice.models import User
+from decimal import Decimal
 
 
 class CategoryModel(models.Model):
@@ -27,22 +29,40 @@ class ServiceModel(models.Model):
     
 
 
+class CouponUsage(models.Model):
+    """Track coupon usage per customer"""
+    customer = models.ForeignKey(User, on_delete=models.CASCADE)
+    coupon = models.ForeignKey('Coupon', on_delete=models.CASCADE)
+    used_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        unique_together = ['customer', 'coupon']
+
 class Coupon(models.Model):
     code = models.CharField(max_length=20, unique=True)
     expiry_date = models.DateTimeField()
     service = models.ForeignKey(ServiceModel, on_delete=models.CASCADE, related_name='coupons')
     discount_percentage = models.PositiveIntegerField(null=True, blank=True)
+    max_usage_per_customer = models.PositiveIntegerField(default=2)
+    is_active = models.BooleanField(default=True)
 
     def __str__(self):
         return f"{self.code} for {self.service.name}"
 
     def is_valid(self):
-        return timezone.now() < self.expiry_date
+        return timezone.now() < self.expiry_date and self.is_active
 
-    def get_discounted_price(self, original_price):
+    def can_user_use_coupon(self, user):
+        """Check if user can still use this coupon"""
+        usage_count = CouponUsage.objects.filter(customer=user, coupon=self).count()
+        return usage_count < self.max_usage_per_customer
+
+    def get_discount_amount(self, total_amount):
+        """Calculate discount amount from total"""
         if self.discount_percentage:
-            return original_price - (original_price * self.discount_percentage / 100)
-        return original_price
+            discount = (total_amount * Decimal(str(self.discount_percentage)) / Decimal('100'))
+            return discount.quantize(Decimal('0.01'))
+        return Decimal('0.00')
 
 
 
