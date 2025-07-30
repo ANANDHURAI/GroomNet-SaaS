@@ -49,67 +49,89 @@ class ChatConsumer(AsyncWebsocketConsumer):
         
         print(f"Memory: User {user_id} is OFFLINE for booking {booking_id}")
         return False
+    
+    async def send_initial_status(self):
+        """Send initial status information to the newly connected user"""
+        try:
+            other_user_id = await database_sync_to_async(self.get_other_user_id)(
+                self.booking, self.user.id
+            )
+            other_user_online = await database_sync_to_async(self.get_user_online_status)(
+                self.booking_id, other_user_id
+            )
+
+            await self.send(text_data=json.dumps({
+                'type': 'user_status',
+                'is_online': other_user_online
+            }))
+            print(f"WebSocket[{self.connection_id}]: Sent initial status - other user online: {other_user_online}")
+        except Exception as e:
+            print(f"WebSocket[{self.connection_id}]: Error sending initial status: {e}")
 
     def get_other_user_id(self, booking, current_user_id):
         if booking.customer_id == current_user_id:
             return booking.barber_id
         return booking.customer_id
-
+    
     async def connect(self):
         print("WebSocket: Trying to connect...")
 
         self.booking_id = self.scope['url_route']['kwargs']['booking_id']
         self.room_group_name = f'chat_{self.booking_id}'
-        print(f"WebSocket: Booking ID - {self.booking_id}")
+        
+        # Add connection ID for debugging
+        import uuid
+        self.connection_id = str(uuid.uuid4())[:8]
+        print(f"WebSocket[{self.connection_id}]: Booking ID - {self.booking_id}")
 
         self.user = AnonymousUser()
 
         query_string = self.scope.get('query_string', b'').decode()
-        print(f"WebSocket: Query string - {query_string}")
+        print(f"WebSocket[{self.connection_id}]: Query string - {query_string}")
 
         token = None
         if 'token=' in query_string:
             token = query_string.split('token=')[1].split('&')[0]
-            print(f"WebSocket: Token found - {token}")
+            print(f"WebSocket[{self.connection_id}]: Token found")
 
         if token:
             try:
                 UntypedToken(token)
-                print("WebSocket: Token is valid")
+                print(f"WebSocket[{self.connection_id}]: Token is valid")
 
                 decoded_data = jwt_decode(token, settings.SECRET_KEY, algorithms=["HS256"])
                 user_id = decoded_data.get("user_id")
-                print(f"WebSocket: Decoded user ID - {user_id}")
+                print(f"WebSocket[{self.connection_id}]: Decoded user ID - {user_id}")
                 
                 if user_id:
                     self.user = await database_sync_to_async(User.objects.get)(id=user_id)
-                    print(f"WebSocket: User authenticated - ID: {self.user.id}, Name: {self.user.name}")
+                    print(f"WebSocket[{self.connection_id}]: User authenticated - ID: {self.user.id}, Name: {self.user.name}")
                 else:
-                    print("WebSocket: User ID not found in token")
+                    print(f"WebSocket[{self.connection_id}]: User ID not found in token")
                     await self.close(code=4001)
                     return
-                    
+                        
             except (InvalidToken, TokenError, User.DoesNotExist, Exception) as e:
-                print(f"WebSocket: Token validation error: {e}")
+                print(f"WebSocket[{self.connection_id}]: Token validation error: {e}")
                 await self.close(code=4001)
                 return
         else:
-            print("WebSocket: No token provided")
+            print(f"WebSocket[{self.connection_id}]: No token provided")
             await self.close(code=4001)
             return
 
         self.booking = await self.get_booking(self.booking_id)
         if not self.booking:
-            print("WebSocket: Booking does not exist")
-            await self.close()
+            print(f"WebSocket[{self.connection_id}]: Booking does not exist")
+            await self.close(code=4002)
             return
 
-        print(f"WebSocket: Booking found - ID: {self.booking.id}, Status: {self.booking.status}")
+        print(f"WebSocket[{self.connection_id}]: Booking found - ID: {self.booking.id}, Status: {self.booking.status}")
 
         authorized = await self.is_user_in_booking(self.booking, self.user)
         if not authorized:
-            print("WebSocket: User not authorized for this booking")
-            await self.close()
+            print(f"WebSocket[{self.connection_id}]: User not authorized for this booking")
+            await self.close(code=4003)
             return
 
         await self.channel_layer.group_add(
@@ -118,25 +140,17 @@ class ChatConsumer(AsyncWebsocketConsumer):
         )
 
         await self.accept()
-        print(f"WebSocket: Connection accepted and joined group {self.room_group_name}")
+        print(f"WebSocket[{self.connection_id}]: Connection accepted and joined group {self.room_group_name}")
 
+        # Set user online status
         await database_sync_to_async(self.set_user_online_status)(
             self.booking_id, self.user.id, True
         )
 
-        other_user_id = await database_sync_to_async(self.get_other_user_id)(
-            self.booking, self.user.id
-        )
-        other_user_online = await database_sync_to_async(self.get_user_online_status)(
-            self.booking_id, other_user_id
-        )
+        # Send initial status to this user
+        await self.send_initial_status()
 
-        await self.send(text_data=json.dumps({
-            'type': 'user_status',
-            'is_online': other_user_online
-        }))
-        print(f"WebSocket: Sent other user online status: {other_user_online}")
-
+        # Broadcast this user's online status to others in the room
         await self.channel_layer.group_send(
             self.room_group_name,
             {
@@ -145,9 +159,13 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 'is_online': True
             }
         )
-        print("WebSocket: Broadcasted user online status")
+        print(f"WebSocket[{self.connection_id}]: Broadcasted user online status")
 
+        # Start heartbeat task
         self.heartbeat_task = asyncio.create_task(self.heartbeat())
+        print(f"WebSocket[{self.connection_id}]: Heartbeat task started")
+
+
 
     async def disconnect(self, close_code):
         print(f"WebSocket: Starting disconnect process with code {close_code}")
@@ -182,13 +200,19 @@ class ChatConsumer(AsyncWebsocketConsumer):
         try:
             while True:
                 await asyncio.sleep(30)
-                await database_sync_to_async(self.set_user_online_status)(
-                    self.booking_id, self.user.id, True
-                )
-                print(f"Heartbeat: Updated online status for user {self.user.id}")
+                if hasattr(self, 'user') and hasattr(self, 'booking_id'):
+                    await database_sync_to_async(self.set_user_online_status)(
+                        self.booking_id, self.user.id, True
+                    )
+                    print(f"Heartbeat[{getattr(self, 'connection_id', 'unknown')}]: Updated status for user {self.user.id}")
+                else:
+                    break
         except asyncio.CancelledError:
-            print("Heartbeat: Task cancelled")
+            print(f"Heartbeat[{getattr(self, 'connection_id', 'unknown')}]: Task cancelled")
             pass
+        except Exception as e:
+            print(f"Heartbeat[{getattr(self, 'connection_id', 'unknown')}]: Error {e}")
+            
 
     @database_sync_to_async
     def create_chat_message(self, booking, user, message_text):
@@ -267,8 +291,12 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 'message': 'Failed to send message'
             }))
 
+
     async def chat_message(self, event):
         message_data = event['message_data']
+    
+        await asyncio.sleep(0.1)
+        
         await self.send(text_data=json.dumps({
             'type': 'message',
             'data': message_data

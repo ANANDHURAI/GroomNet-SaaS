@@ -364,3 +364,15 @@ Unauthorized: /adminsite/complaints/
 Unauthorized: /auth/token/refresh/
 Unauthorized: /auth/logout/
 Unauthorized: /auth/token/refresh/
+Bad Request: /auth/customer-barber-login/
+Anand Raj joined group: barber_3
+User disconnected from group: barber_3
+Bad Request: /customersite/create-booking/
+Internal Server Error: /payment-service/verify-payment/
+Anand Raj joined group: barber_3
+User disconnected from group: barber_3
+Bad Request: /auth/logout/
+Anand Raj joined group: barber_3
+User disconnected from group: barber_3
+Anand Raj joined group: barber_3
+User disconnected from group: barber_3

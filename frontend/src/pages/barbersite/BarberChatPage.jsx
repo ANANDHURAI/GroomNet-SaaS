@@ -53,51 +53,64 @@ function BarberChatPage() {
       }
     };
 
+    const connectWebSocket = () => {
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const token = sessionStorage.getItem('access_token');
+      const wsUrl = `${protocol}//localhost:8000/ws/chat/${bookingId}/?token=${token}`;
+      
+      websocketRef.current = new WebSocket(wsUrl);
+
+      websocketRef.current.onopen = () => {
+        console.log('WebSocket connected');
+      };
+
+      websocketRef.current.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        
+        const userStatus = handleWebSocketMessage(data);
+        if (userStatus !== undefined) {
+          setIsOtherUserOnline(userStatus);
+          return;
+        }
+        
+        if (data.type === 'message') {
+          setMessages(prevMessages => {
+            const messageExists = prevMessages.some(msg => msg.id === data.data.id);
+            if (messageExists) {
+              return prevMessages;
+            }
+            // Force re-render by creating new array
+            return [...prevMessages, { ...data.data }];
+          });
+        } else if (data.type === 'error') {
+          console.error('WebSocket error:', data.message);
+        }
+      };
+
+      websocketRef.current.onclose = (event) => {
+        console.log('WebSocket disconnected', event.code, event.reason);
+        // Reconnect after 3 seconds if not manually closed
+        if (event.code !== 1000) {
+          setTimeout(() => {
+            if (websocketRef.current?.readyState === WebSocket.CLOSED) {
+              console.log('Attempting to reconnect...');
+              connectWebSocket();
+            }
+          }, 3000);
+        }
+      };
+
+      websocketRef.current.onerror = (error) => {
+        console.error('WebSocket error:', error);
+      };
+    };
+
     fetchInitialData();
-
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const token = sessionStorage.getItem('access_token');
-    const wsUrl = `${protocol}//localhost:8000/ws/chat/${bookingId}/?token=${token}`;
-    
-    websocketRef.current = new WebSocket(wsUrl);
-
-    websocketRef.current.onopen = () => {
-      console.log('WebSocket connected');
-    };
-
-    websocketRef.current.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      
-      const userStatus = handleWebSocketMessage(data);
-      if (userStatus !== undefined) {
-        setIsOtherUserOnline(userStatus);
-        return;
-      }
-      
-      if (data.type === 'message') {
-        setMessages(prevMessages => {
-          const messageExists = prevMessages.some(msg => msg.id === data.data.id);
-          if (messageExists) {
-            return prevMessages;
-          }
-          return [...prevMessages, data.data];
-        });
-      } else if (data.type === 'error') {
-        alert(data.message);
-      }
-    };
-
-    websocketRef.current.onclose = () => {
-      console.log('WebSocket disconnected');
-    };
-
-    websocketRef.current.onerror = (error) => {
-      console.error('WebSocket error:', error);
-    };
+    connectWebSocket();
 
     return () => {
       if (websocketRef.current) {
-        websocketRef.current.close();
+        websocketRef.current.close(1000, 'Component unmounting');
       }
     };
   }, [bookingId, handleWebSocketMessage]);
@@ -106,19 +119,38 @@ function BarberChatPage() {
     e.preventDefault();
     if (!newMessage.trim() || sending) return;
 
+    const messageText = newMessage.trim();
     setSending(true);
+    
     try {
+      // Check if WebSocket is ready
+      if (!websocketRef.current) {
+        throw new Error('WebSocket not initialized');
+      }
 
-      if (websocketRef.current && websocketRef.current.readyState === WebSocket.OPEN) {
-        websocketRef.current.send(JSON.stringify({
-          message: newMessage.trim()
-        }));
+      // Wait for connection if it's connecting
+      let attempts = 0;
+      while (websocketRef.current.readyState === WebSocket.CONNECTING && attempts < 10) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+        attempts++;
+      }
+
+      if (websocketRef.current.readyState === WebSocket.OPEN) {
+        websocketRef.current.send(JSON.stringify({ message: messageText }));
         setNewMessage('');
       } else {
-        throw new Error('WebSocket not connected');
+        // Fallback to HTTP API if WebSocket fails
+        console.log('WebSocket not available, using HTTP fallback');
+        const response = await apiClient.post(`/chat-service/chat/${bookingId}/messages/`, {
+          message: messageText
+        });
+        
+        // Add message to local state immediately
+        setMessages(prev => [...prev, response.data]);
+        setNewMessage('');
       }
     } catch (error) {
-      console.error('Error sending message:', error);
+      console.error('Send error:', error);
       alert('Failed to send message. Please try again.');
     } finally {
       setSending(false);

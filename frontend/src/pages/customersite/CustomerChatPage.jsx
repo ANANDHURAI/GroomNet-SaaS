@@ -26,6 +26,7 @@ function CustomerChatPage() {
     scrollToBottom();
   }, [messages]);
 
+
   useEffect(() => {
     const fetchInitialData = async () => {
       try {
@@ -43,57 +44,137 @@ function CustomerChatPage() {
       }
     };
 
-    fetchInitialData();
+    let reconnectAttempts = 0;
+    const maxReconnectAttempts = 5;
+    let reconnectTimeout;
 
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const token = sessionStorage.getItem('access_token');
-    const wsUrl = `${protocol}//localhost:8000/ws/chat/${bookingId}/?token=${token}`;
-
-    websocketRef.current = new WebSocket(wsUrl);
-
-    websocketRef.current.onopen = () => console.log('WebSocket connected');
-    websocketRef.current.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-
-      const userStatus = handleWebSocketMessage(data);
-      if (userStatus !== undefined) {
-        setIsOtherUserOnline(userStatus);
+    const connectWebSocket = () => {
+      if (reconnectAttempts >= maxReconnectAttempts) {
+        console.log('Max reconnection attempts reached');
         return;
       }
 
-      if (data.type === 'message') {
-        setMessages(prev => {
-          const exists = prev.some(msg => msg.id === data.data.id);
-          return exists ? prev : [...prev, data.data];
-        });
-      } else if (data.type === 'error') {
-        alert(data.message);
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const token = sessionStorage.getItem('access_token');
+      const wsUrl = `${protocol}//localhost:8000/ws/chat/${bookingId}/?token=${token}`;
+
+      // Close existing connection if any
+      if (websocketRef.current) {
+        websocketRef.current.close();
       }
+
+      websocketRef.current = new WebSocket(wsUrl);
+
+      websocketRef.current.onopen = () => {
+        console.log('WebSocket connected');
+        reconnectAttempts = 0; // Reset on successful connection
+      };
+
+      websocketRef.current.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+
+          // Handle typing and user status
+          const userStatus = handleWebSocketMessage(data);
+          if (userStatus !== undefined) {
+            setIsOtherUserOnline(userStatus);
+            return;
+          }
+
+          if (data.type === 'message') {
+            setMessages(prev => {
+              // Check if message already exists
+              const exists = prev.some(msg => msg.id === data.data.id);
+              if (exists) {
+                return prev;
+              }
+              // Add new message
+              return [...prev, data.data];
+            });
+          } else if (data.type === 'user_status') {
+            setIsOtherUserOnline(data.is_online);
+          } else if (data.type === 'error') {
+            console.error('WebSocket error:', data.message);
+          }
+        } catch (error) {
+          console.error('Error parsing WebSocket message:', error);
+        }
+      };
+
+      websocketRef.current.onclose = (event) => {
+        console.log('WebSocket disconnected', event.code, event.reason);
+        
+        // Don't reconnect if it was a normal closure or auth failure
+        if (event.code === 1000 || event.code === 4001 || event.code === 4002 || event.code === 4003) {
+          return;
+        }
+
+        // Attempt to reconnect with exponential backoff
+        reconnectAttempts++;
+        const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), 30000);
+        
+        console.log(`Reconnecting in ${delay}ms (attempt ${reconnectAttempts})`);
+        reconnectTimeout = setTimeout(() => {
+          connectWebSocket();
+        }, delay);
+      };
+
+      websocketRef.current.onerror = (error) => {
+        console.error('WebSocket error:', error);
+      };
     };
 
-    websocketRef.current.onclose = () => console.log('WebSocket disconnected');
-    websocketRef.current.onerror = (error) => console.error('WebSocket error:', error);
+    fetchInitialData();
+    connectWebSocket();
 
     return () => {
-      if (websocketRef.current) websocketRef.current.close();
+      if (reconnectTimeout) {
+        clearTimeout(reconnectTimeout);
+      }
+      if (websocketRef.current) {
+        websocketRef.current.close(1000, 'Component unmounting');
+      }
     };
   }, [bookingId, handleWebSocketMessage]);
+
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
     if (!newMessage.trim() || sending) return;
 
+    const messageText = newMessage.trim();
     setSending(true);
+    
     try {
-      if (websocketRef.current && websocketRef.current.readyState === WebSocket.OPEN) {
-        websocketRef.current.send(JSON.stringify({ message: newMessage.trim() }));
+      // Check if WebSocket is ready
+      if (!websocketRef.current) {
+        throw new Error('WebSocket not initialized');
+      }
+
+      // Wait for connection if it's connecting
+      let attempts = 0;
+      while (websocketRef.current.readyState === WebSocket.CONNECTING && attempts < 10) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+        attempts++;
+      }
+
+      if (websocketRef.current.readyState === WebSocket.OPEN) {
+        websocketRef.current.send(JSON.stringify({ message: messageText }));
         setNewMessage('');
       } else {
-        throw new Error('WebSocket not connected');
+        // Fallback to HTTP API if WebSocket fails
+        console.log('WebSocket not available, using HTTP fallback');
+        const response = await apiClient.post(`/chat-service/chat/${bookingId}/messages/`, {
+          message: messageText
+        });
+        
+        // Add message to local state immediately
+        setMessages(prev => [...prev, response.data]);
+        setNewMessage('');
       }
     } catch (error) {
       console.error('Send error:', error);
-      alert('Failed to send message. Try again.');
+      alert('Failed to send message. Please try again.');
     } finally {
       setSending(false);
     }
