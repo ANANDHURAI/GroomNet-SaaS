@@ -134,7 +134,6 @@ class Complaints(models.Model):
     def __str__(self):
         return f"{self.complaint_name} ({self.user.name}) - {self.complaint_status}"
 
-        
 class Rating(models.Model):
     RATING_CHOICES = [(i, i) for i in range(1, 6)]
 

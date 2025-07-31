@@ -4,7 +4,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from customersite.models import Booking, PaymentModel
-from adminsite.models import AdminWallet
+from adminsite.models import AdminWallet,AdminWalletTransaction
 from django.shortcuts import get_object_or_404
 from django.db import transaction
 import logging
@@ -107,7 +107,7 @@ class VerifyPayment(APIView):
                         payment.payment_method = 'STRIPE'
                         payment.save()
 
-                        self.add_to_admin_wallet(payment.total_amount)
+                        self.add_to_admin_wallet(payment.total_amount, booking_id)
 
                         logger.info(f"Payment verified and admin wallet updated for booking {booking_id}")
 
@@ -118,20 +118,28 @@ class VerifyPayment(APIView):
             logger.error(f"Error in payment verification: {str(e)}")
             return Response({"error": str(e)}, status=500)
     
-    def add_to_admin_wallet(self, amount):
+    def add_to_admin_wallet(self, amount, booking_id=None):
         try:
-            admin_wallet, created = AdminWallet.objects.get_or_create(
+            admin_wallet, _ = AdminWallet.objects.get_or_create(
                 id=1,
                 defaults={'total_earnings': 0}
             )
             admin_wallet.total_earnings += amount
             admin_wallet.save()
-            
+
+            AdminWalletTransaction.objects.create(
+                wallet=admin_wallet,
+                amount=amount,
+                note=f"Booking #{booking_id} - STRIPE payment received"
+            )
+
             logger.info(f"Added ₹{amount} to admin wallet. New total: ₹{admin_wallet.total_earnings}")
-            
         except Exception as e:
             logger.error(f"Error adding to admin wallet: {str(e)}")
             raise
+
+
+
 
 class CreateWalletStripeCheckoutSession(APIView):
     permission_classes = [IsAuthenticated]

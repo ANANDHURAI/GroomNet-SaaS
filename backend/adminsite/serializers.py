@@ -82,4 +82,4 @@ class ComplaintSerializer(serializers.ModelSerializer):
 class AdminWalletTransactionSerializer(serializers.ModelSerializer):
     class Meta:
         model = AdminWalletTransaction
-        fields = ['id', 'transaction_type', 'amount', 'note', 'created_at']
+        fields = ['id', 'amount', 'note', 'created_at']

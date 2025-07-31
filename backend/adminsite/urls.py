@@ -8,11 +8,11 @@ from .views import (
     CategoryViewSet, 
     ServiceViewSet,
     AdminWalletView,
-    AdminWalletTransactionListView,
     CouponViewSet,
     AdminComplaintListView,
     AdminComplaintStatusUpdateView,
-    AdminDashboardView
+    AdminDashboardView,
+    AdminWalletTransactionHistoryView
 )
 
 router = DefaultRouter()
@@ -31,7 +31,7 @@ urlpatterns = [
     path('barber-details/<int:barber_id>/', BarberDetailsView.as_view(), name='barber-details'),
     path('users-block/<int:id>/', BlockingView.as_view(), name='users-block'),
     path('admin-wallet/', AdminWalletView.as_view(), name='admin-wallet'),
-    path('admin-wallet/transactions/', AdminWalletTransactionListView.as_view(), name='admin-wallet-transactions'),
+    path('admin-wallet/transactions/', AdminWalletTransactionHistoryView.as_view(), name='admin-wallet-transactions'),
     path('complaints/', AdminComplaintListView.as_view(), name='complaint_list'),
     path('complaints/<int:pk>/update-status/', AdminComplaintStatusUpdateView.as_view(), name='complaint_status_update'),
     path('dashboard/admin/', AdminDashboardView.as_view(), name='admin-dashboard'),

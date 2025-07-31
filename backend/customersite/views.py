@@ -16,7 +16,7 @@ LocationSerializer,
 RatingSerializer,
 ComplaintSerializer
 )
-from adminsite.models import CategoryModel , ServiceModel
+from adminsite.models import CategoryModel , ServiceModel,AdminWallet,AdminWalletTransaction
 import logging
 from barbersite.models import BarberSlot, BarberService
 from django.contrib.auth.models import User
@@ -491,6 +491,15 @@ class EmergencyCancel(APIView):
                 wallet.account_total_balance += refund_amount
                 wallet.save()
 
+                admin_wallet, _ = AdminWallet.objects.get_or_create(id=1, defaults={'total_earnings': Decimal('0.00')})
+                admin_wallet.total_earnings -= refund_amount  
+                admin_wallet.save()
+
+                AdminWalletTransaction.objects.create(
+                    wallet=admin_wallet,
+                    amount=-refund_amount, 
+                    note=f"Booking #{booking.id}- Refund issued to customer for emergency cancel of booking "
+                )
                
                 if booking.barber:
                     barber_wallet, _ = BarberWallet.objects.get_or_create(barber=booking.barber)
@@ -502,7 +511,6 @@ class EmergencyCancel(APIView):
                         amount=fine_amount,
                         note=f"Fine received from emergency cancel of booking #{booking.id}"
                     )
-
                 booking.status = 'CANCELLED'
                 booking.save()
 

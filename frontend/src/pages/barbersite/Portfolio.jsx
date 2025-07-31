@@ -1,18 +1,19 @@
-import React, { useEffect, useState } from 'react'
-import BarberSidebar from '../../components/barbercompo/BarberSidebar'
-import apiClient from '../../slices/api/apiIntercepters'
-import { ProfileDisplay } from '../../components/profilecompo/ProfileDisplay'
-import { ProfileField } from '../../components/profilecompo/ProfileField'
-import { ProfileInput } from '../../components/profilecompo/ProfileInput'
-import { User, MapPin, Calendar, Globe, Edit2, Save, X, Star } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+import React, { useEffect, useState } from 'react';
+import BarberSidebar from '../../components/barbercompo/BarberSidebar';
+import apiClient from '../../slices/api/apiIntercepters';
+import { ProfileDisplay } from '../../components/profilecompo/ProfileDisplay';
+import { ProfileField } from '../../components/profilecompo/ProfileField';
+import { ProfileInput } from '../../components/profilecompo/ProfileInput';
+import { User, MapPin, Calendar, Globe, Edit2, Save, X, Star } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 function Portfolio() {
-    const [data, setData] = useState(null)
-    const [loading, setLoading] = useState(true)
-    const [error, setError] = useState('')
-    const [success, setSuccess] = useState('')
-    const [isEditing, setIsEditing] = useState(false)
+    const [data, setData] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
+    const [success, setSuccess] = useState('');
+    const [isEditing, setIsEditing] = useState(false);
+    const [isNewBarber, setIsNewBarber] = useState(false); // NEW
 
     const [formData, setFormData] = useState({
         expert_at: '',
@@ -20,62 +21,64 @@ function Portfolio() {
         experience_years: '',
         travel_radius_km: '',
         is_available: true
-    })
+    });
 
-    const navigate = useNavigate()
+    const navigate = useNavigate();
 
     useEffect(() => {
-        fetchPortfolio()
-    }, [])
+        fetchPortfolio();
+    }, []);
 
     const fetchPortfolio = async () => {
         try {
-            setLoading(true)
-            const response = await apiClient.get('/barbersite/barber-portfolio/')
-            setData(response.data)
+            setLoading(true);
+            const response = await apiClient.get('/barbersite/barber-portfolio/');
+            setData(response.data);
             setFormData({
                 expert_at: response.data.expert_at || '',
                 current_location: response.data.current_location || '',
                 experience_years: response.data.experience_years || '',
                 travel_radius_km: response.data.travel_radius_km || '',
                 is_available: response.data.is_available !== undefined ? response.data.is_available : true
-            })
+            });
         } catch (error) {
             if (error.response?.status === 404) {
-                setIsEditing(true)
+                setIsEditing(true);
+                setIsNewBarber(true); // NEW
             } else {
-                setError('Failed to load portfolio. Please try again.')
+                setError('Failed to load portfolio. Please try again.');
             }
         } finally {
-            setLoading(false)
+            setLoading(false);
         }
-    }
+    };
 
     const handleInputChange = (field, value) => {
-        setFormData(prev => ({ ...prev, [field]: value }))
-    }
+        setFormData(prev => ({ ...prev, [field]: value }));
+    };
 
     const handleSave = async () => {
         if (!formData.expert_at.trim() || !formData.current_location.trim()) {
-            setError('Expertise and Location are required')
-            return
+            setError('Expertise and Location are required');
+            return;
         }
 
         try {
-            const response = await apiClient.put('/barbersite/barber-portfolio/', formData)
-            setData(response.data)
-            setIsEditing(false)
-            setError('')
-            setSuccess('Portfolio saved successfully!')
-            setTimeout(() => setSuccess(''), 2000)
+            const response = await apiClient.put('/barbersite/barber-portfolio/', formData);
+            setData(response.data);
+            setIsEditing(false);
+            setIsNewBarber(false); // Hide message after save
+            setError('');
+            setSuccess('Portfolio saved successfully!');
+            setTimeout(() => setSuccess(''), 2000);
         } catch (error) {
-            const errorMsg = error.response?.data?.detail || 
-                Object.values(error.response?.data || {}).flat().join(', ') || 
-                'Failed to save portfolio. Please try again.'
-            setError(errorMsg)
-            setSuccess('')
+            const errorMsg = error.response?.data?.detail ||
+                Object.values(error.response?.data || {}).flat().join(', ') ||
+                'Failed to save portfolio. Please try again.';
+            setError(errorMsg);
+            setSuccess('');
         }
-    }
+    };
 
     const handleCancel = () => {
         if (data) {
@@ -85,11 +88,11 @@ function Portfolio() {
                 experience_years: data.experience_years || '',
                 travel_radius_km: data.travel_radius_km || '',
                 is_available: data.is_available !== undefined ? data.is_available : true
-            })
+            });
         }
-        setIsEditing(false)
-        setError('')
-    }
+        setIsEditing(false);
+        setError('');
+    };
 
     if (loading) {
         return (
@@ -99,7 +102,7 @@ function Portfolio() {
                     Loading...
                 </div>
             </div>
-        )
+        );
     }
 
     return (
@@ -145,6 +148,25 @@ function Portfolio() {
                             )}
                         </div>
                     </div>
+
+                    {isNewBarber && (
+                        <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded mb-4" role="alert">
+                            <div className="flex items-center">
+                                <svg
+                                    className="w-5 h-5 mr-2 text-yellow-500"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                >
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 1010 10A10 10 0 0012 2z" />
+                                </svg>
+                                <p className="text-sm font-medium">
+                                    Welcome! It looks like you haven’t set up your portfolio yet. Please update your portfolio to get started and be visible to customers.
+                                </p>
+                            </div>
+                        </div>
+                    )}
 
                     {error && <div className="bg-red-100 text-red-700 px-4 py-2 rounded mb-4">{error}</div>}
                     {success && <div className="bg-green-100 text-green-700 px-4 py-2 rounded mb-4">{success}</div>}
@@ -228,7 +250,6 @@ function Portfolio() {
                                 <button
                                     onClick={() => {
                                         const barberId = sessionStorage.getItem('barber_id');
-                                        console.log('Session barber_id:', barberId);
                                         if (barberId) {
                                             navigate('/barber/ratings/');
                                         } else {
@@ -247,7 +268,7 @@ function Portfolio() {
                 </div>
             </div>
         </div>
-    )
+    );
 }
 
-export default Portfolio
+export default Portfolio;

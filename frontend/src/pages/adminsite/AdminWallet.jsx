@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import apiClient from '../../slices/api/apiIntercepters';
 import AdminSidebar from '../../components/admincompo/AdminSidebar';
+import { Calendar, Wallet, Activity } from 'lucide-react';
 
 function AdminWallet() {
     const [walletData, setWalletData] = useState(null);
@@ -81,7 +82,10 @@ function AdminWallet() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                         <div className="bg-gradient-to-r from-green-400 to-blue-500 text-white p-6 rounded-lg shadow-md">
-                            <h2 className="text-xl font-semibold mb-2">💰 Total Earnings</h2>
+                            <div className="flex items-center gap-2 mb-2">
+                                <Wallet className="w-5 h-5" />
+                                <h2 className="text-xl font-semibold">Total Earnings</h2>
+                            </div>
                             <p className="text-3xl font-bold">
                                 {formatCurrency(walletData?.total_earnings)}
                             </p>
@@ -91,55 +95,40 @@ function AdminWallet() {
                         </div>
                     </div>
 
-                    <div className="bg-gray-50 rounded-lg p-6 mb-8">
-                        <h3 className="text-xl font-semibold text-gray-800 mb-4">📈 Payment Activity</h3>
-                        {walletData?.last_updated && (
-                            <div className="mt-4 p-3 bg-blue-100 rounded">
-                                <p className="text-sm font-medium text-blue-800">
-                                    Last transaction processed: {formatDate(walletData.last_updated)}
-                                </p>
+                    <div className="bg-gray-50 rounded-lg p-6">
+                        <div className="flex items-center gap-2 mb-4">
+                            <Activity className="w-5 h-5 text-gray-700" />
+                            <h3 className="text-xl font-semibold text-gray-800">Transaction History</h3>
+                        </div>
+
+                        {paymentHistory.length === 0 ? (
+                            <div className="text-gray-500 text-sm text-center">No transactions found.</div>
+                        ) : (
+                            <div className="space-y-4">
+                                {paymentHistory.map((txn) => {
+                                    const isExpense = txn.note?.toLowerCase().includes('payout') ||
+                                                      txn.note?.toLowerCase().includes('refund');
+                                    const amountClass = isExpense ? 'text-red-600' : 'text-green-600';
+                                    const sign = isExpense ? '-' : '+';
+                                    
+                                    return (
+                                        <div key={txn.id} className="flex items-center justify-between border-b pb-2">
+                                            <div>
+                                                <div className={`text-lg font-semibold ${amountClass}`}>
+                                                    {sign}{formatCurrency(Math.abs(txn.amount))}
+                                                </div>
+                                                <div className="text-sm text-gray-600">{txn.note}</div>
+                                            </div>
+                                            <div className="text-sm text-gray-500 flex items-center">
+                                                <Calendar className="w-4 h-4 mr-1" />
+                                                {formatDate(txn.created_at)}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
                             </div>
                         )}
                     </div>
-
-                    {/* <div className="bg-white shadow-md rounded-lg p-6 mt-6">
-                        <h3 className="text-xl font-bold text-gray-800 mb-4">Wallet Transaction History</h3>
-                        {paymentHistory.length === 0 ? (
-                            <p className="text-gray-600">No transactions found.</p>
-                        ) : (
-                            <div className="overflow-x-auto">
-                                <table className="min-w-full text-sm text-left text-gray-700">
-                                    <thead className="bg-gray-100">
-                                        <tr>
-                                            <th className="px-4 py-2">Type</th>
-                                            <th className="px-4 py-2">Amount</th>
-                                            <th className="px-4 py-2">Note</th>
-                                            <th className="px-4 py-2">Date</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {paymentHistory.map((txn, index) => {
-                                            const isCredit = txn.transaction_type === 'customer_payment' || txn.transaction_type === 'platform_fee';
-                                            const sign = isCredit ? '+' : '-';
-                                            const color = isCredit ? 'text-green-600' : 'text-red-600';
-                                            return (
-                                                <tr key={index} className="border-b">
-                                                    <td className="px-4 py-2 capitalize">
-                                                        {txn.transaction_type.replace('_', ' ')}
-                                                    </td>
-                                                    <td className={`px-4 py-2 font-semibold ${color}`}>
-                                                        {sign}{formatCurrency(txn.amount)}
-                                                    </td>
-                                                    <td className="px-4 py-2">{txn.note || '-'}</td>
-                                                    <td className="px-4 py-2">{formatDate(txn.created_at)}</td>
-                                                </tr>
-                                            );
-                                        })}
-                                    </tbody>
-                                </table>
-                            </div>
-                        )}
-                    </div> */}
                 </div>
             </div>
         </div>

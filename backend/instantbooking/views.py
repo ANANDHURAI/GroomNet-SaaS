@@ -19,7 +19,7 @@ logger = logging.getLogger("django")
 User = get_user_model()
 from django.shortcuts import get_object_or_404
 from django.utils.timezone import now
-from adminsite.models import AdminWallet
+from adminsite.models import AdminWallet,AdminWalletTransaction
 from barbersite.models import BarberWallet , WalletTransaction
 
 class BookingMixin:
@@ -485,6 +485,12 @@ class CompletedServiceView(APIView):
                                 wallet=barber_wallet,
                                 amount=amount,
                                 note=f"Payment for Booking #{booking.id}"
+                            )
+
+                            AdminWalletTransaction.objects.create(
+                                wallet=admin_wallet,
+                                amount=amount,
+                                note=f"Payout to Barber ({booking.barber.name}) for Booking #{booking.id}"
                             )
 
                             payment.is_released_to_barber = True

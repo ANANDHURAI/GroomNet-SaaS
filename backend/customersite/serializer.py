@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from adminsite.models import CategoryModel, ServiceModel
+from adminsite.models import CategoryModel, ServiceModel,AdminWalletTransaction
 from .models import Booking , PaymentModel , Complaints
 from authservice.models import User
 from barbersite.models import BarberSlot
@@ -117,8 +117,6 @@ class BookingCreateSerializer(serializers.ModelSerializer):
 
         discount = Decimal('0.00')
         coupon_obj = None
-
-        # Enhanced coupon validation (same as before but with better error handling)
         if coupon_code:
             try:
                 coupon = Coupon.objects.get(
@@ -154,18 +152,13 @@ class BookingCreateSerializer(serializers.ModelSerializer):
                 wallet = CustomerWallet.objects.select_for_update().get(user=customer)
                 if wallet.account_total_balance < total_amount:
                     raise serializers.ValidationError({"payment_method": "Insufficient wallet balance."})
-                
 
                 wallet.account_total_balance -= total_amount
                 wallet.save()
-                
-                admin_wallet, created = AdminWallet.objects.get_or_create(
-                    id=1,
-                    defaults={'total_earnings': Decimal('0.00')}
-                )
+
+                admin_wallet, _ = AdminWallet.objects.get_or_create(id=1, defaults={'total_earnings': Decimal('0.00')})
                 admin_wallet.total_earnings += total_amount
                 admin_wallet.save()
-             
 
             status_value = 'PENDING' if booking_type == "INSTANT_BOOKING" else 'CONFIRMED'
 
@@ -188,11 +181,19 @@ class BookingCreateSerializer(serializers.ModelSerializer):
                 discount=discount,
                 final_amount=total_amount,
             )
+            if payment_method == "WALLET":
+                AdminWalletTransaction.objects.create(
+                    wallet=admin_wallet,
+                    amount=total_amount,
+                    note=f"Booking #{booking.id} - WALLET payment received"
+                )
             
             if coupon_obj:
                 CouponUsage.objects.create(customer=customer, coupon=coupon_obj)
                
         return booking
+
+
 
 class BookingSummarySerializer(serializers.ModelSerializer):
     service_name = serializers.CharField(source='service.name', read_only=True)

@@ -376,3 +376,139 @@ Anand Raj joined group: barber_3
 User disconnected from group: barber_3
 Anand Raj joined group: barber_3
 User disconnected from group: barber_3
+Anand Raj joined group: barber_3
+User disconnected from group: barber_3
+Anand Raj joined group: barber_3
+User disconnected from group: barber_3
+Anand Raj joined group: barber_3
+User disconnected from group: barber_3
+Bad Request: /auth/customer-barber-login/
+Bad Request: /auth/admin-login/
+Anand Raj joined group: barber_3
+Sent booking 14 to barber 3
+Sent booking 14 to barber 3
+ilakkiya joined group: customer_2
+ilakkiya joined group: customer_2
+Internal Server Error: /payment-service/verify-payment/
+User disconnected from group: barber_3
+User disconnected from group: customer_2
+User disconnected from group: customer_2
+Internal Server Error: /customersite/create-booking/
+Traceback (most recent call last):
+  File "D:\NewGroomNet-clean\venv\Lib\site-packages\asgiref\sync.py", line 518, in thread_handler
+    raise exc_info[1]
+  File "D:\NewGroomNet-clean\venv\Lib\site-packages\django\core\handlers\exception.py", line 42, in inner
+    response = await get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\NewGroomNet-clean\venv\Lib\site-packages\asgiref\sync.py", line 518, in thread_handler
+    raise exc_info[1]
+  File "D:\NewGroomNet-clean\venv\Lib\site-packages\django\core\handlers\base.py", line 253, in _get_response_async
+    response = await wrapped_callback(
+               ^^^^^^^^^^^^^^^^^^^^^^^
+        request, *callback_args, **callback_kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\NewGroomNet-clean\venv\Lib\site-packages\asgiref\sync.py", line 468, in __call__
+    ret = await asyncio.shield(exec_coro)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python313\Lib\concurrent\futures\thread.py", line 59, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "D:\NewGroomNet-clean\venv\Lib\site-packages\asgiref\sync.py", line 522, in thread_handler
+    return func(*args, **kwargs)
+  File "D:\NewGroomNet-clean\venv\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "D:\NewGroomNet-clean\venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\NewGroomNet-clean\venv\Lib\site-packages\rest_framework\views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "D:\NewGroomNet-clean\venv\Lib\site-packages\rest_framework\views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "D:\NewGroomNet-clean\venv\Lib\site-packages\rest_framework\views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "D:\NewGroomNet-clean\venv\Lib\site-packages\rest_framework\views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "D:\NewGroomNet-clean\venv\Lib\site-packages\rest_framework\generics.py", line 194, in post
+    return self.create(request, *args, **kwargs)
+           ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\NewGroomNet-clean\backend\customersite\views.py", line 289, in create
+    booking = serializer.save()
+  File "D:\NewGroomNet-clean\venv\Lib\site-packages\rest_framework\serializers.py", line 210, in save
+    self.instance = self.create(validated_data)
+                    ~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "D:\NewGroomNet-clean\backend\customersite\serializer.py", line 166, in create
+    note=f"Booking #{booking.id} - WALLET payment received"
+                     ^^^^^^^
+UnboundLocalError: cannot access local variable 'booking' where it is not associated with a value
+Internal Server Error: /customersite/create-booking/
+Traceback (most recent call last):
+  File "D:\NewGroomNet-clean\venv\Lib\site-packages\asgiref\sync.py", line 518, in thread_handler
+    raise exc_info[1]
+  File "D:\NewGroomNet-clean\venv\Lib\site-packages\django\core\handlers\exception.py", line 42, in inner
+    response = await get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\NewGroomNet-clean\venv\Lib\site-packages\asgiref\sync.py", line 518, in thread_handler
+    raise exc_info[1]
+  File "D:\NewGroomNet-clean\venv\Lib\site-packages\django\core\handlers\base.py", line 253, in _get_response_async
+    response = await wrapped_callback(
+               ^^^^^^^^^^^^^^^^^^^^^^^
+        request, *callback_args, **callback_kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\NewGroomNet-clean\venv\Lib\site-packages\asgiref\sync.py", line 468, in __call__
+    ret = await asyncio.shield(exec_coro)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python313\Lib\concurrent\futures\thread.py", line 59, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "D:\NewGroomNet-clean\venv\Lib\site-packages\asgiref\sync.py", line 522, in thread_handler
+    return func(*args, **kwargs)
+  File "D:\NewGroomNet-clean\venv\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "D:\NewGroomNet-clean\venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\NewGroomNet-clean\venv\Lib\site-packages\rest_framework\views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "D:\NewGroomNet-clean\venv\Lib\site-packages\rest_framework\views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "D:\NewGroomNet-clean\venv\Lib\site-packages\rest_framework\views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "D:\NewGroomNet-clean\venv\Lib\site-packages\rest_framework\views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "D:\NewGroomNet-clean\venv\Lib\site-packages\rest_framework\generics.py", line 194, in post
+    return self.create(request, *args, **kwargs)
+           ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\NewGroomNet-clean\backend\customersite\views.py", line 289, in create
+    booking = serializer.save()
+  File "D:\NewGroomNet-clean\venv\Lib\site-packages\rest_framework\serializers.py", line 210, in save
+    self.instance = self.create(validated_data)
+                    ~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "D:\NewGroomNet-clean\backend\customersite\serializer.py", line 166, in create
+    note=f"Booking #{booking.id} - WALLET payment received"
+                     ^^^^^^^
+UnboundLocalError: cannot access local variable 'booking' where it is not associated with a value
+Unauthorized: /instant-booking/working/status/3/
+Unauthorized: /instant-booking/working/status/3/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /customersite/booking-summary/
+Unauthorized: /customersite/booking-summary/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /customersite/addresses/
+Unauthorized: /customersite/addresses/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /auth/logout/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /barbersite/barber-appointments/
+Unauthorized: /barbersite/barber-appointments/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /auth/logout/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /adminsite/admin-wallet/
+Unauthorized: /adminsite/admin-wallet/transactions/
+Unauthorized: /adminsite/admin-wallet/
+Unauthorized: /adminsite/admin-wallet/transactions/
+Bad Request: /auth/logout/

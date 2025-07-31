@@ -301,11 +301,13 @@ class AdminWalletView(APIView):
             )
 
 
-class AdminWalletTransactionListView(APIView):
+class AdminWalletTransactionHistoryView(APIView):
+    permission_classes = [IsAuthenticated]
+
     def get(self, request):
         transactions = AdminWalletTransaction.objects.all().order_by('-created_at')
         serializer = AdminWalletTransactionSerializer(transactions, many=True)
-        return Response({"history": serializer.data})
+        return Response({'history': serializer.data})
 
 
 class CouponViewSet(ModelViewSet):
