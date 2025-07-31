@@ -512,3 +512,6 @@ Unauthorized: /adminsite/admin-wallet/transactions/
 Unauthorized: /adminsite/admin-wallet/
 Unauthorized: /adminsite/admin-wallet/transactions/
 Bad Request: /auth/logout/
+Internal Server Error: /payment-service/verify-payment/
+Anand Raj joined group: barber_3
+User disconnected from group: barber_3

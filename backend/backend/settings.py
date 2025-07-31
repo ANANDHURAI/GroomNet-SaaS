@@ -8,11 +8,11 @@ load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-a6tjyxxc^46bt%zb)yo7%@qzug@_jct$_98y9=gozf8x@&8t=l'
+SECRET_KEY = os.getenv("SECRET_KEY")
+DEBUG = os.getenv("DEBUG", "False") == "True"
 
-DEBUG = True
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "").split(",")
 
-ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -171,8 +171,8 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = "anandhurai2004@gmail.com"
-EMAIL_HOST_PASSWORD = "xbwa wsej afpn mope"
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
 
 
 LOGGING = {
@@ -202,12 +202,11 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 
-
 STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
 STRIPE_PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY")
 
 
-# ASGI_APPLICATION = 'backend.asgi.application'
+ASGI_APPLICATION = 'backend.asgi.application'
 
 CHANNEL_LAYERS = {
     'default': {
@@ -219,9 +218,6 @@ CHANNEL_LAYERS = {
         },
     },
 }
-
-
-GOOGLE_MAPS_API_KEY = os.getenv("GOOGLE_MAPS_API_KEY")
 
 SITE_ID = 1
 
@@ -251,11 +247,13 @@ ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*"]
 
 CORS_ALLOW_CREDENTIALS = True
 
-GOOGLE_OAUTH2_CLIENT_ID = os.getenv('GOOGLE_OAUTH2_CLIENT_ID')
-GOOGLE_OAUTH2_CLIENT_SECRET = os.getenv('GOOGLE_OAUTH2_CLIENT_SECRET')
+GOOGLE_MAPS_API_KEY = os.getenv("GOOGLE_MAPS_API_KEY")
+GOOGLE_OAUTH2_CLIENT_ID = os.getenv("GOOGLE_OAUTH2_CLIENT_ID")
+GOOGLE_OAUTH2_CLIENT_SECRET = os.getenv("GOOGLE_OAUTH2_CLIENT_SECRET")
+
+
 BASE_APP_URL = os.getenv('BASE_APP_URL', 'http://localhost:5173')
 BASE_API_URL = os.getenv('BASE_API_URL', 'http://localhost:8000')
-
 
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
