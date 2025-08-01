@@ -142,7 +142,8 @@ def available_dates(request):
     
     return Response({"available_dates": list(dates)})
 
-
+from datetime import timedelta
+from django.utils.timezone import make_aware, is_naive
 class AvailableSlotListView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = AvailableSlotSerializer
@@ -150,24 +151,57 @@ class AvailableSlotListView(generics.ListAPIView):
     def get_queryset(self):
         barber_id = self.request.query_params.get('barber_id')
         date_str = self.request.query_params.get('date')
-        
+
         if not barber_id or not date_str:
             return BarberSlot.objects.none()
 
+        # Convert date string to date object
         date_obj = datetime.strptime(date_str, "%Y-%m-%d").date()
-        today = datetime.now().date()  
-        current_time = datetime.now().time()
+        now = datetime.now()
 
-        queryset = BarberSlot.objects.filter(
+        # Get instant bookings for the day
+        instant_bookings = Booking.objects.filter(
+            barber_id=barber_id,
+            status__in=["CONFIRMED", "PENDING"],
+            booking_type="INSTANT_BOOKING",
+            created_at__date=date_obj
+        )
+
+        booking_ranges = []
+        for booking in instant_bookings:
+            start_dt = booking.service_started_at or booking.created_at
+            if is_naive(start_dt):
+                start_dt = make_aware(start_dt)
+            duration = timedelta(minutes=booking.service.duration_minutes)
+            end_dt = start_dt + duration
+            booking_ranges.append((start_dt, end_dt))
+
+        slots = BarberSlot.objects.filter(
             barber_id=barber_id,
             date=date_obj,
             is_booked=False
         )
 
-        if date_obj == today:
-            queryset = queryset.filter(start_time__gt=current_time)
+        if date_obj == now.date():
+            slots = slots.filter(start_time__gt=now.time())
 
-        return queryset.order_by('start_time')
+
+        def slot_conflicts(slot, booking_start, booking_end):
+            slot_start = datetime.combine(slot.date, slot.start_time)
+            slot_end = datetime.combine(slot.date, slot.end_time)
+            if is_naive(slot_start):
+                slot_start = make_aware(slot_start)
+            if is_naive(slot_end):
+                slot_end = make_aware(slot_end)
+            return slot_start < booking_end and booking_start < slot_end
+
+        filtered_slots = []
+        for slot in slots:
+            if not any(slot_conflicts(slot, b_start, b_end) for b_start, b_end in booking_ranges):
+                filtered_slots.append(slot.id)
+
+        return slots.filter(id__in=filtered_slots).order_by('start_time')
+
 
 
 class AddressListCreateView(generics.ListCreateAPIView):

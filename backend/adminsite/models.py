@@ -28,9 +28,8 @@ class ServiceModel(models.Model):
         return f"{self.name} → {self.category.name}"
     
 
-
 class CouponUsage(models.Model):
-    """Track coupon usage per customer"""
+
     customer = models.ForeignKey(User, on_delete=models.CASCADE)
     coupon = models.ForeignKey('Coupon', on_delete=models.CASCADE)
     used_at = models.DateTimeField(auto_now_add=True)
@@ -53,12 +52,10 @@ class Coupon(models.Model):
         return timezone.now() < self.expiry_date and self.is_active
 
     def can_user_use_coupon(self, user):
-        """Check if user can still use this coupon"""
         usage_count = CouponUsage.objects.filter(customer=user, coupon=self).count()
         return usage_count < self.max_usage_per_customer
 
     def get_discount_amount(self, total_amount):
-        """Calculate discount amount from total"""
         if self.discount_percentage:
             discount = (total_amount * Decimal(str(self.discount_percentage)) / Decimal('100'))
             return discount.quantize(Decimal('0.01'))

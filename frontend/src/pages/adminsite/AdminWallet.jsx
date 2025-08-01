@@ -78,7 +78,7 @@ function AdminWallet() {
             </div>
             <div className="flex-1 p-6">
                 <div className="bg-white shadow-lg rounded-lg p-6">
-                    <h1 className="text-3xl font-bold text-gray-800 mb-6">Admin Wallet</h1>
+                    <h1 className="text-3xl font-bold text-gray-800 mb-6">GroomNet Admin Wallet</h1>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                         <div className="bg-gradient-to-r from-green-400 to-blue-500 text-white p-6 rounded-lg shadow-md">
