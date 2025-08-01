@@ -22,21 +22,17 @@ from django.utils.timezone import now
 from adminsite.models import AdminWallet,AdminWalletTransaction
 from barbersite.models import BarberWallet , WalletTransaction
 
-class BookingMixin:
-    """Mixin to handle common booking operations"""
-    
+class BookingMixin: 
     @staticmethod
     def has_active_instant_booking(barber):
-        """Check if barber has any active instant booking"""
         return Booking.objects.filter(
             barber=barber,
-            booking_type="INSTANT_BOOKING",
+            booking_type=["INSTANT_BOOKING","SCHEDULE_BOOKING"],
             status__in=["PENDING", "CONFIRMED"]
         ).exists()
     
     @staticmethod
     def has_conflicting_scheduled_booking(barber, start_time=None, end_time=None):
-        """Check if barber has conflicting scheduled bookings"""
         now = timezone.now()
         
         if start_time is None:
@@ -53,7 +49,6 @@ class BookingMixin:
     
     @staticmethod
     def get_available_barbers_for_booking(booking):
-        """Get all available barbers for a specific booking"""
         potential_barbers = User.objects.filter(
             user_type='barber',
             is_online=True,
@@ -63,11 +58,8 @@ class BookingMixin:
         available_barbers = []
         
         for barber in potential_barbers:
-            # Skip if barber has active instant booking
             if BookingMixin.has_active_instant_booking(barber):
                 continue
-            
-            # Skip if barber has conflicting scheduled bookings
             if BookingMixin.has_conflicting_scheduled_booking(barber):
                 continue
             
@@ -95,7 +87,6 @@ class MakingFindingBarberRequest(APIView, BookingMixin):
                     status=status.HTTP_404_NOT_FOUND
                 )
 
-            # Send booking request to all available barbers
             self._notify_barbers_new_booking(booking, available_barbers)
 
             return Response(
@@ -168,14 +159,11 @@ class DoggleStatusView(APIView, BookingMixin):
             return Response({'message': 'Invalid action provided.'}, status=400)
 
     def _handle_go_online(self, barber):
-        """Handle barber going online"""
-        # Check for active instant bookings
         if self.has_active_instant_booking(barber):
             return Response({
                 'message': 'You already have an active instant booking. Complete it before going online again.'
             }, status=400)
 
-        # Check for upcoming scheduled bookings in next 30 minutes
         if self.has_conflicting_scheduled_booking(barber):
             return Response({
                 'message': 'You have a scheduled booking in the next 30 minutes. Cannot go online for instant bookings.'
@@ -186,7 +174,6 @@ class DoggleStatusView(APIView, BookingMixin):
         return Response({'message': 'Barber is now online.'}, status=200)
 
     def _handle_go_offline(self, barber):
-        """Handle barber going offline"""
         if self.has_active_instant_booking(barber):
             return Response({
                 'message': 'You cannot go offline while you have an active instant booking.'

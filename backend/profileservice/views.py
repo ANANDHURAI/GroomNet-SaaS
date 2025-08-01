@@ -17,14 +17,6 @@ class UserProfileView(RetrieveUpdateAPIView):
     def get_object(self):
         profile, _ = UserProfile.objects.get_or_create(user=self.request.user)
         return profile
-
-class AddressListView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        addresses = Address.objects.filter(user=request.user).order_by('-is_default', '-created_at')
-        serializer = AddressSerializer(addresses, many=True)
-        return Response(serializer.data)
     
 class AddressViewSet(ModelViewSet):
     serializer_class = AddressSerializer

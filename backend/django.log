@@ -796,3 +796,18 @@ Unauthorized: /auth/token/refresh/
 Unauthorized: /profile-service/addresses/
 Unauthorized: /profile-service/addresses/
 Unauthorized: /auth/token/refresh/
+Unauthorized: /profile-service/addresses/
+Unauthorized: /auth/logout/
+Unauthorized: /profile-service/addresses/
+Unauthorized: /auth/token/refresh/
+Anand Raj joined group: barber_3
+User disconnected from group: barber_3
+Anand Raj joined group: barber_3
+Sent booking 23 to barber 3
+Sent booking 23 to barber 3
+ilakkiya joined group: customer_2
+ilakkiya joined group: customer_2
+User disconnected from group: barber_3
+User disconnected from group: customer_2
+User disconnected from group: customer_2
+Bad Request: /instant-booking/complete/service/20/

@@ -142,8 +142,13 @@ def available_dates(request):
     
     return Response({"available_dates": list(dates)})
 
-from datetime import timedelta
-from django.utils.timezone import make_aware, is_naive
+
+
+
+from datetime import timedelta, datetime
+from django.utils.timezone import make_aware, is_naive, now
+from django.utils import timezone
+
 class AvailableSlotListView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = AvailableSlotSerializer
@@ -155,26 +160,36 @@ class AvailableSlotListView(generics.ListAPIView):
         if not barber_id or not date_str:
             return BarberSlot.objects.none()
 
-        # Convert date string to date object
         date_obj = datetime.strptime(date_str, "%Y-%m-%d").date()
-        now = datetime.now()
+        current_time = timezone.now()
 
-        # Get instant bookings for the day
+        cutoff_time = current_time - timedelta(hours=12)
+        
         instant_bookings = Booking.objects.filter(
             barber_id=barber_id,
             status__in=["CONFIRMED", "PENDING"],
             booking_type="INSTANT_BOOKING",
-            created_at__date=date_obj
+            created_at__gte=cutoff_time
         )
 
         booking_ranges = []
         for booking in instant_bookings:
-            start_dt = booking.service_started_at or booking.created_at
+            if booking.service_started_at:
+                start_dt = booking.service_started_at
+            else:
+                start_dt = booking.created_at
+          
             if is_naive(start_dt):
                 start_dt = make_aware(start_dt)
+
             duration = timedelta(minutes=booking.service.duration_minutes)
             end_dt = start_dt + duration
-            booking_ranges.append((start_dt, end_dt))
+         
+            booking_date = start_dt.date()
+            end_date = end_dt.date()
+            
+            if booking_date == date_obj or end_date == date_obj:
+                booking_ranges.append((start_dt, end_dt))
 
         slots = BarberSlot.objects.filter(
             barber_id=barber_id,
@@ -182,25 +197,38 @@ class AvailableSlotListView(generics.ListAPIView):
             is_booked=False
         )
 
-        if date_obj == now.date():
-            slots = slots.filter(start_time__gt=now.time())
+        if date_obj == current_time.date():
+            buffer_time = current_time + timedelta(minutes=30)
+            current_time_only = buffer_time.time()
+            slots = slots.filter(start_time__gt=current_time_only)
 
-
-        def slot_conflicts(slot, booking_start, booking_end):
+        def slot_conflicts_with_booking(slot, booking_start, booking_end):
             slot_start = datetime.combine(slot.date, slot.start_time)
             slot_end = datetime.combine(slot.date, slot.end_time)
+            
             if is_naive(slot_start):
                 slot_start = make_aware(slot_start)
             if is_naive(slot_end):
                 slot_end = make_aware(slot_end)
-            return slot_start < booking_end and booking_start < slot_end
 
-        filtered_slots = []
+            buffer = timedelta(minutes=15)
+            booking_start_buffered = booking_start - buffer
+            booking_end_buffered = booking_end + buffer
+          
+            return slot_start < booking_end_buffered and booking_start_buffered < slot_end
+
+        available_slots = []
         for slot in slots:
-            if not any(slot_conflicts(slot, b_start, b_end) for b_start, b_end in booking_ranges):
-                filtered_slots.append(slot.id)
+            has_conflict = False
+            for booking_start, booking_end in booking_ranges:
+                if slot_conflicts_with_booking(slot, booking_start, booking_end):
+                    has_conflict = True
+                    break
+            
+            if not has_conflict:
+                available_slots.append(slot.id)
 
-        return slots.filter(id__in=filtered_slots).order_by('start_time')
+        return slots.filter(id__in=available_slots).order_by('start_time')
 
 
 
