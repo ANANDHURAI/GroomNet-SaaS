@@ -42,7 +42,7 @@ import BarberChatPage from './pages/barbersite/BarberChatPage'
 import CancelledPage from './pages/customersite/CancelledPage'
 import BookingDetailsPage from './pages/customersite/BookingDetailsPage'
 import BookingHistoryPage from './pages/customersite/BookingHistoryPage'
-import AddressList from './pages/customersite/AddressList'
+// import AddressList from './pages/customersite/AddressList'
 import CustomerChatPage from './pages/customersite/CustomerChatPage'
 import CustomerLayout from './components/customercompo/CustomerLayout'
 import AdminWallet from './pages/adminsite/AdminWallet'
@@ -65,6 +65,7 @@ import BarberOTPVerification from './pages/authservice/BarberOTPVerification';
 import BarberProfile from './pages/barbersite/BarberProfile';
 import AdminProfile from './pages/adminsite/AdminProfile';
 import CustomerProfile from './pages/customersite/CustomerProfile';
+import AddressPage from './pages/customersite/AddressPage';
 
 function App() {
   return (
@@ -297,7 +298,7 @@ function App() {
 
               <Route path="/booking-history" element={<BookingHistoryPage />} />
               <Route path="/booking-details/:id" element={<BookingDetailsPage />} />
-              <Route path="/my-addresses" element={<AddressList />} />
+              <Route path="/my-addresses" element={<AddressPage />} />
 
               <Route path="/admin-wallet/" element={<AdminWallet />} />
               <Route path="/find-barber/" element={<FindBarbers />} />

@@ -6,6 +6,8 @@ from .serializers import UserProfileSerializer,AddressSerializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.generics import RetrieveAPIView
+from rest_framework.viewsets import ModelViewSet
+from rest_framework.exceptions import PermissionDenied
 
 class UserProfileView(RetrieveUpdateAPIView):
     serializer_class = UserProfileSerializer
@@ -23,6 +25,27 @@ class AddressListView(APIView):
         addresses = Address.objects.filter(user=request.user).order_by('-is_default', '-created_at')
         serializer = AddressSerializer(addresses, many=True)
         return Response(serializer.data)
+    
+class AddressViewSet(ModelViewSet):
+    serializer_class = AddressSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Address.objects.filter(user=self.request.user).order_by('-is_default', '-created_at')
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+    def perform_update(self, serializer):
+        address = self.get_object()
+        if address.user != self.request.user:
+            raise PermissionDenied("You do not have permission to edit this address.")
+        serializer.save()
+
+    def perform_destroy(self, instance):
+        if instance.user != self.request.user:
+            raise PermissionDenied("You do not have permission to delete this address.")
+        instance.delete()
     
 class BarberProfileView(RetrieveAPIView):
     serializer_class = UserProfileSerializer

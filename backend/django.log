@@ -771,3 +771,28 @@ Traceback (most recent call last):
     return slot_start < b_end and b_start < slot_end
            ^^^^^^^^^^^^^^^^^^
 TypeError: can't compare offset-naive and offset-aware datetimes
+Anand Raj joined group: barber_3
+User disconnected from group: barber_3
+Not Found: /profile-service/addresses/5/
+Not Found: /profile-service/addresses/4/
+Sent booking 22 to barber 3
+Sent booking 22 to barber 3
+ilakkiya joined group: customer_2
+ilakkiya joined group: customer_2
+Anand Raj joined group: barber_3
+User disconnected from group: customer_2
+Sent booking 22 to barber 3
+ilakkiya joined group: customer_2
+ilakkiya joined group: customer_2
+User disconnected from group: barber_3
+User disconnected from group: customer_2
+User disconnected from group: customer_2
+User disconnected from group: customer_2
+Not Found: /profile-service/addresses/2/
+Not Found: /profile-service/addresses/4/
+Unauthorized: /profile-service/addresses/
+Unauthorized: /profile-service/addresses/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /profile-service/addresses/
+Unauthorized: /profile-service/addresses/
+Unauthorized: /auth/token/refresh/

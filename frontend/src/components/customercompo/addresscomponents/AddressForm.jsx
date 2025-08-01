@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
-const AddressForm = ({ onSave, onCancel, saving }) => {
+const AddressForm = ({ onSave, onCancel, saving, defaultData }) => {
   const [formData, setFormData] = useState({
     name: '',
     mobile: '',
@@ -13,6 +13,23 @@ const AddressForm = ({ onSave, onCancel, saving }) => {
     is_default: false,
   });
 
+  // If defaultData is provided (edit mode), pre-fill the form
+  useEffect(() => {
+    if (defaultData) {
+      setFormData({
+        name: defaultData.name || '',
+        mobile: defaultData.mobile || '',
+        building: defaultData.building || '',
+        street: defaultData.street || '',
+        city: defaultData.city || '',
+        district: defaultData.district || '',
+        state: defaultData.state || '',
+        pincode: defaultData.pincode || '',
+        is_default: defaultData.is_default || false,
+      });
+    }
+  }, [defaultData]);
+
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
@@ -24,6 +41,7 @@ const AddressForm = ({ onSave, onCancel, saving }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     onSave(formData, () => {
+      // Reset form after save (for new address only)
       setFormData({
         name: '',
         mobile: '',
@@ -39,8 +57,11 @@ const AddressForm = ({ onSave, onCancel, saving }) => {
   };
 
   return (
-    <div className="bg-white rounded-lg p-4 mt-4">
-      <h2 className="text-lg font-semibold mb-4">Add New Address</h2>
+    <div className="bg-white rounded-lg p-4 mt-4 shadow">
+      <h2 className="text-lg font-semibold mb-4">
+        {defaultData ? 'Edit Address' : 'Add New Address'}
+      </h2>
+
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-2 gap-3">
           <input
@@ -144,7 +165,7 @@ const AddressForm = ({ onSave, onCancel, saving }) => {
             disabled={saving}
             className="flex-1 bg-blue-600 text-white rounded-lg p-3 font-medium hover:bg-blue-700 transition-colors disabled:opacity-50"
           >
-            {saving ? 'Saving...' : 'Save Address'}
+            {saving ? 'Saving...' : defaultData ? 'Update Address' : 'Save Address'}
           </button>
         </div>
       </form>
