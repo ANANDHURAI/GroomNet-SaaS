@@ -515,3 +515,11 @@ Bad Request: /auth/logout/
 Internal Server Error: /payment-service/verify-payment/
 Anand Raj joined group: barber_3
 User disconnected from group: barber_3
+Anand Raj joined group: barber_3
+User disconnected from group: barber_3
+Anand Raj joined group: barber_3
+User disconnected from group: barber_3
+Bad Request: /profile-service/user-profile/
+Bad Request: /profile-service/user-profile/
+Bad Request: /profile-service/user-profile/
+Bad Request: /profile-service/user-profile/

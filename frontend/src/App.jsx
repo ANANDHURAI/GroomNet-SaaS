@@ -11,7 +11,7 @@ import AdminDasboard from './pages/adminsite/AdminDasboard'
 import CustomersList from './pages/adminsite/CustomersList'
 import UsersDetails from './pages/adminsite/UsersDeatails'
 import Landing from './pages/commonpages/LandingPage'
-import ProfilePage from './pages/commonpages/ProfilePage'
+// import ProfilePage from './pages/commonpages/ProfilePage'
 import BarberPersDetails from './pages/authservice/BarberPersDetails'
 import DocumentUpload from './pages/authservice/DocumentUpload'
 import BarberStatus from './pages/authservice/BarberStatus'
@@ -19,7 +19,7 @@ import VerificationPage from './pages/adminsite/VericationPage'
 import BarberDash from './pages/barbersite/BarberDash'
 import BarbersList from './pages/adminsite/BarbersList'
 import BarberDetails from './pages/adminsite/BarberDetails'
-import Portfolio from './pages/barbersite/Portfolio'
+import Portfolio from './pages/barbersite/Portfolio';
 import Categoryslist from './pages/adminsite/Categoryslist'
 import Servicelist from './pages/adminsite/Servicelist'
 import BookServices from './pages/barbersite/BookServices'
@@ -62,6 +62,9 @@ import BarberRatingsPage from './pages/barbersite/BarberRatingsPage';
 import Complaints from './pages/adminsite/Complaints';
 import CustomerComplaintsPage from './pages/customersite/CustomerComplaintsPage';
 import BarberOTPVerification from './pages/authservice/BarberOTPVerification';
+import BarberProfile from './pages/barbersite/BarberProfile';
+import AdminProfile from './pages/adminsite/AdminProfile';
+import CustomerProfile from './pages/customersite/CustomerProfile';
 
 function App() {
   return (
@@ -78,7 +81,7 @@ function App() {
               <Route path="/otp" element={<OtpPage />} />
               <Route path="/barber-personal" element={<BarberPersDetails />} />
               <Route path="/barber-document-upload" element={<DocumentUpload />} />
-              <Route path="/profile" element={<ProfilePage />} />
+              {/* <Route path="/profile" element={<ProfilePage />} /> */}
               <Route path="/barber-status" element={<BarberStatus />} />
 
               <Route 
@@ -327,7 +330,10 @@ function App() {
               <Route path="/customer/complaints" element={<CustomerComplaintsPage />} />
 
               <Route path="/barber-otp-verification" element={<BarberOTPVerification />} />
-
+              <Route path="/barber-profile" element={<BarberProfile />} />
+              <Route path="/admin-profile" element={<AdminProfile />} />
+              <Route path="/customer-profile" element={<CustomerProfile />} />
+              
               
 
             </Routes>

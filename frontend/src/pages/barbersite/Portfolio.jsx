@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import BarberSidebar from '../../components/barbercompo/BarberSidebar';
 import apiClient from '../../slices/api/apiIntercepters';
 import { ProfileDisplay } from '../../components/profilecompo/ProfileDisplay';
-import { ProfileField } from '../../components/profilecompo/ProfileField';
+import ProfileField from '../../components/profilecompo/ProfileField';
 import { ProfileInput } from '../../components/profilecompo/ProfileInput';
 import { User, MapPin, Calendar, Globe, Edit2, Save, X, Star } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -13,7 +13,7 @@ function Portfolio() {
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
     const [isEditing, setIsEditing] = useState(false);
-    const [isNewBarber, setIsNewBarber] = useState(false); // NEW
+    const [isNewBarber, setIsNewBarber] = useState(false); 
 
     const [formData, setFormData] = useState({
         expert_at: '',

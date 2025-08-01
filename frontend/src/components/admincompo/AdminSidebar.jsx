@@ -96,7 +96,7 @@ function AdminSidebar() {
         </Link>
 
         <Link 
-          to="/profile" 
+          to="/admin-profile" 
           className="flex items-center space-x-3 p-3 rounded-lg text-violet-700 hover:bg-black hover:text-white transition-all duration-200 group"
         >
           <User className="w-5 h-5 transition-colors" />
