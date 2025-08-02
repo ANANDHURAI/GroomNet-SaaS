@@ -20,7 +20,6 @@ function Earnings() {
   const navigate = useNavigate();
   const location = useLocation();
   
-  // Check if we're on the working area page
   const isOnWorkingAreaPage = location.pathname.includes('/instant-booking');
   
   useEffect(() => {

@@ -2,9 +2,17 @@ import React, { useEffect, useState } from 'react';
 import apiClient from '../../slices/api/apiIntercepters';
 import { Calendar, Clock, Phone, MapPin, BadgeCheck } from 'lucide-react';
 import BarberSidebar from '../../components/barbercompo/BarberSidebar';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { useBooking } from '../../contexts/BookingContext';
+import GlobalBookingNotifier from '../../components/notification/GlobalBookingNotifier';
 
 function CompletedAppointments() {
   const [appointments, setAppointments] = useState([]);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { currentBooking, notification, setNotification } = useBooking();
+  
+  const isOnWorkingAreaPage = location.pathname.includes('/instant-booking');
 
   useEffect(() => {
     const fetchCompletedAppointments = async () => {
@@ -24,7 +32,14 @@ function CompletedAppointments() {
       <div className="w-64 hidden md:block bg-white border-r border-gray-200">
         <BarberSidebar />
       </div>
-
+      <GlobalBookingNotifier
+        currentBooking={currentBooking}
+        notification={notification}
+        setNotification={setNotification}
+        navigate={navigate}
+        location={location}
+        isOnWorkingAreaPage={isOnWorkingAreaPage}
+      />
       <div className="flex-1 p-4 md:p-6 overflow-y-auto w-full">
         <h1 className="text-2xl font-bold text-gray-800 mb-6">Completed Appointments</h1>
 

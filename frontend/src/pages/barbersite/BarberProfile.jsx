@@ -4,12 +4,21 @@ import BarberSidebar from '../../components/barbercompo/BarberSidebar';
 import ProfileCard from '../../components/profilecompo/ProfileCard';
 import ProfileField from '../../components/profilecompo/ProfileField';
 import LoadingSpinner from '../../components/profilecompo/LoadingSpinner';
+import GlobalBookingNotifier from '../../components/notification/GlobalBookingNotifier';
+import { useBooking } from '../../contexts/BookingContext';
+import { useNavigate,useLocation } from 'react-router-dom';
 
 function BarberProfile() {
   const [profile, setProfile] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editedProfile, setEditedProfile] = useState({});
   const [loading, setLoading] = useState(true);
+
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { currentBooking, notification, setNotification } = useBooking();
+  
+  const isOnWorkingAreaPage = location.pathname.includes('/instant-booking');
 
   useEffect(() => {
     fetchProfile();
@@ -84,16 +93,12 @@ function BarberProfile() {
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
-      // Create a preview URL for immediate display
       const previewUrl = URL.createObjectURL(file);
-      
-      // Update the profile state with preview
       setProfile(prev => ({
         ...prev,
         profileimage: previewUrl
       }));
-      
-      // Store the file for actual upload when saving
+
       setEditedProfile(prev => ({
         ...prev,
         profileImageFile: file,
@@ -110,11 +115,17 @@ function BarberProfile() {
 
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-      {/* Sidebar */}
       <div className="w-64 bg-[#0c1b2c] text-white shadow-2xl">
         <BarberSidebar />
       </div>
-
+      <GlobalBookingNotifier
+        currentBooking={currentBooking}
+        notification={notification}
+        setNotification={setNotification}
+        navigate={navigate}
+        location={location}
+        isOnWorkingAreaPage={isOnWorkingAreaPage}
+      />
       <div className="flex-1 p-8">
         <div className="max-w-4xl mx-auto">
           <div className="mb-8">

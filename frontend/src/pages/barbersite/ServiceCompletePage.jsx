@@ -4,26 +4,13 @@ import apiClient from "../../slices/api/apiIntercepters";
 import Message from "../../components/customercompo/booking/Message";
 import BarberSidebar from "../../components/barbercompo/BarberSidebar";
 import {
-  Phone,
-  User,
-  Home,
-  Scissors,
-  Gift,
-  Wallet,
-  BadgeCheck,
-  CircleCheck,
-  HandCoins,
-  AlertCircle,
-  CheckCircle,
-  Coins,
-  WalletCards,
-  ArrowRight
+  Phone, User, Home, Scissors, Gift, BadgeCheck, CircleCheck, HandCoins,
+  AlertCircle, CheckCircle, Coins, WalletCards, ArrowRight, MapPin
 } from "lucide-react";
 
 function ServiceCompletePage() {
   const { bookingId } = useParams();
   const navigate = useNavigate();
-
   const [data, setData] = useState(null);
   const [isCompleted, setIsCompleted] = useState(false);
   const [isCollected, setIsCollected] = useState(false);
@@ -36,8 +23,7 @@ function ServiceCompletePage() {
   }, [bookingId]);
 
   const fetchServiceDetails = () => {
-    apiClient
-      .get(`/instant-booking/complete/service/${bookingId}/`)
+    apiClient.get(`/instant-booking/complete/service/${bookingId}/`)
       .then((response) => {
         setData(response.data);
         if (response.data.payment_done) {
@@ -59,214 +45,240 @@ function ServiceCompletePage() {
 
   const handleCollectAmount = () => {
     setLoading(true);
-    
-    // Send COD collection acknowledgment to backend
-    apiClient.post(`/instant-booking/complete/service/${bookingId}/`, {
-      action: 'collect_cod'
-    })
-      .then((response) => {
+    apiClient.post(`/instant-booking/complete/service/${bookingId}/`, { action: 'collect_cod' })
+      .then(() => {
         setIsCollected(true);
-        setNotification("Amount collected from customer! You can now complete the service.");
+        setNotification("Amount collected successfully!");
         setTimeout(() => setNotification(""), 5000);
       })
       .catch((error) => {
-        console.error("Error recording COD collection:", error);
-        setNotification("Failed to record amount collection");
+        setNotification("Failed to record collection");
         setTimeout(() => setNotification(""), 3000);
       })
-      .finally(() => {
-        setLoading(false);
-      });
+      .finally(() => setLoading(false));
   };
 
   const handleMarkCompleted = () => {
     setLoading(true);
-    
-    apiClient.post(`/instant-booking/complete/service/${bookingId}/`, {
-      action: 'complete_service'
-    })
-      .then((response) => {
+    apiClient.post(`/instant-booking/complete/service/${bookingId}/`, { action: 'complete_service' })
+      .then(() => {
         setIsCompleted(true);
         setShowEarnings(true);
-        setNotification("Service marked as completed successfully!");
+        setNotification("Service completed successfully!");
         setTimeout(() => setNotification(""), 5000);
-        
-        // Refresh data to get updated status
         fetchServiceDetails();
       })
       .catch((error) => {
-        console.error("Error completing service:", error);
-        const errorMessage = error.response?.data?.error || "Failed to mark as completed";
+        const errorMessage = error.response?.data?.error || "Failed to complete service";
         setNotification(errorMessage);
         setTimeout(() => setNotification(""), 5000);
       })
-      .finally(() => {
-        setLoading(false);
-      });
+      .finally(() => setLoading(false));
   };
 
-  const handleEarningsClick = () => {
-    navigate("/barber-earnings");
-  };
-
-  const getEarningsAmount = () =>
-    data?.payment_method === "COD"
-      ? data.service_amount
-      : data?.service_amount || data?.price;
-
-  const getCODCollectionAmount = () =>
-    parseFloat(data?.service_amount || 0) +
-    parseFloat(data?.platform_fee || 0);
+  const getCODAmount = () => parseFloat(data?.service_amount || 0) + parseFloat(data?.platform_fee || 0);
+  const getEarnings = () => data?.service_amount || data?.price;
 
   if (!data) {
     return (
-      <div className="flex justify-center items-center h-screen">
-        <p className="text-gray-600 text-lg animate-pulse">Loading service details...</p>
+      <div className="flex">
+        <BarberSidebar />
+        <div className="flex-1 flex items-center justify-center min-h-screen">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="flex">
-      <BarberSidebar />
-      <div className="flex-1 max-w-2xl mx-auto mt-10 p-6 bg-white rounded-2xl shadow-xl">
-        <h2 className="text-3xl font-bold text-green-700 flex items-center gap-2 mb-6">
-          <BadgeCheck className="text-green-600" /> Service Completion
-        </h2>
+    <div className="flex min-h-screen bg-gray-50">
+    <BarberSidebar />
+    <div className="flex-1 ml-0 md:ml-64 px-4 py-6 md:px-6">
+      <div className="max-w-6xl mx-auto space-y-6">
+          <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-6 text-white shadow-lg">
+            <div className="flex items-center gap-3 mb-2">
+              <BadgeCheck size={32} />
+              <h1 className="text-2xl font-bold leading-snug">Service Completion</h1>
+            </div>
+            <p className="opacity-90 text-sm md:text-base">Complete your service and manage payments</p>
+          </div>
 
-        <div className="grid gap-3 text-gray-800 text-base">
-          <p className="flex items-center gap-2"><Gift className="text-green-500" /> <strong>Booking ID:</strong> {data.id}</p>
-          <p className="flex items-center gap-2"><User className="text-blue-500" /> <strong>Customer:</strong> {data.customer_name}</p>
-          <p className="flex items-center gap-2"><Phone className="text-purple-500" /> <strong>Phone:</strong> {data.customer_phone}</p>
-          <p className="flex items-center gap-2"><Home className="text-orange-500" /> <strong>Address:</strong> {data.address}</p>
-          <p className="flex items-center gap-2"><Scissors className="text-pink-500" /> <strong>Service:</strong> {data.service}</p>
-          <p><strong>Total Price:</strong> ₹{data.price}</p>
-          <p><strong>Booking Type:</strong> {data.booking_type}</p>
-          <p><strong>Payment Method:</strong> {data.payment_method}</p>
+          <div className="grid lg:grid-cols-3 gap-6">
+            {/* Left Section */}
+            <div className="lg:col-span-2 flex flex-col gap-6">
+              {/* Booking Details */}
+              <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div className="bg-gray-50 px-6 py-4 border-b">
+                  <h2 className="font-semibold text-gray-800 flex items-center gap-2">
+                    <Gift className="text-blue-500" size={20} />
+                    Booking Details
+                  </h2>
+                </div>
+                <div className="px-6 py-5 space-y-5">
+                  <div className="grid md:grid-cols-2 gap-5">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <User className="text-blue-600" size={20} />
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500">Customer</p>
+                        <p className="font-medium">{data.customer_name}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                        <Phone className="text-green-600" size={20} />
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500">Phone</p>
+                        <p className="font-medium">{data.customer_phone}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                        <Scissors className="text-purple-600" size={20} />
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500">Service</p>
+                        <p className="font-medium">{data.service}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+                        <Coins className="text-orange-600" size={20} />
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500">Total Amount</p>
+                        <p className="font-medium">₹{data.price}</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="pt-4 border-t">
+                    <div className="flex items-start gap-3">
+                      <MapPin className="text-gray-400 mt-1" size={18} />
+                      <div>
+                        <p className="text-sm text-gray-500">Service Address</p>
+                        <p className="text-gray-700">{data.address}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* COD flow */}
+              {data.payment_method === "COD" ? (
+                <div className="space-y-4">
+                  {!isCollected && !isCompleted && (
+                    <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-6">
+                      <div className="flex items-center gap-3 mb-4">
+                        <HandCoins className="text-amber-600" size={24} />
+                        <h3 className="text-lg font-semibold text-amber-800">Collect Payment</h3>
+                      </div>
+                      <p className="text-amber-700 mb-1">Total amount to collect: <span className="font-bold text-xl">₹{getCODAmount()}</span></p>
+                      <p className="text-sm text-amber-600 mb-4">Service: ₹{data.service_amount} + Platform Fee: ₹{data.platform_fee}</p>
+                      <button onClick={handleCollectAmount} disabled={loading}
+                        className="w-full bg-gradient-to-r from-amber-500 to-orange-500 text-white py-3 rounded-lg font-medium hover:from-amber-600 hover:to-orange-600 transition-all duration-200 disabled:opacity-50">
+                        {loading ? "Processing..." : "✓ Mark as Collected"}
+                      </button>
+                    </div>
+                  )}
+                  {isCollected && !isCompleted && (
+                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-6">
+                      <div className="flex items-center gap-3 mb-4">
+                        <CircleCheck className="text-blue-600" size={24} />
+                        <h3 className="text-lg font-semibold text-blue-800">Ready to Complete</h3>
+                      </div>
+                      <p className="text-blue-700 mb-4">Payment collected successfully. Complete the service now.</p>
+                      <button onClick={handleMarkCompleted} disabled={loading}
+                        className="w-full bg-gradient-to-r from-blue-500 to-indigo-500 text-white py-3 rounded-lg font-medium hover:from-blue-600 hover:to-indigo-600 transition-all duration-200 disabled:opacity-50">
+                        {loading ? "Processing..." : "🎉 Complete Service"}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                !isCompleted && (
+                  <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-6">
+                    <div className="flex items-center gap-3 mb-4">
+                      <CheckCircle className="text-blue-600" size={24} />
+                      <h3 className="text-lg font-semibold text-blue-800">Complete Service</h3>
+                    </div>
+                    <p className="text-blue-700 mb-4">Payment already processed. Mark service as completed.</p>
+                    <button onClick={handleMarkCompleted} disabled={loading}
+                      className="w-full bg-gradient-to-r from-blue-500 to-indigo-500 text-white py-3 rounded-lg font-medium hover:from-blue-600 hover:to-indigo-600 transition-all duration-200 disabled:opacity-50">
+                      {loading ? "Processing..." : "🎉 Complete Service"}
+                    </button>
+                  </div>
+                )
+              )}
+
+              {/* Completed Message */}
+              {isCompleted && (
+                <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-6">
+                  <div className="flex items-center gap-3 mb-4">
+                    <CheckCircle className="text-green-600" size={24} />
+                    <h3 className="text-lg font-semibold text-green-800">Service Completed! 🎉</h3>
+                  </div>
+                  <p className="text-green-700 mb-4">Great job! The service has been completed successfully.</p>
+                  <button onClick={() => navigate("/barber-earnings")}
+                    className="w-full bg-gradient-to-r from-green-500 to-emerald-500 text-white py-3 rounded-lg font-medium hover:from-green-600 hover:to-emerald-600 transition-all duration-200 flex items-center justify-center gap-2">
+                    <WalletCards size={20} />
+                    View Earnings
+                    <ArrowRight size={16} />
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Right Section */}
+            <div className="space-y-6">
+              <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                <h3 className="font-semibold text-gray-800 mb-4">Payment Info</h3>
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Method</span>
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      data.payment_method === 'COD' ? 'bg-orange-100 text-orange-700' : 'bg-blue-100 text-blue-700'
+                    }`}>
+                      {data.payment_method}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Status</span>
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      data.payment_done ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
+                    }`}>
+                      {data.payment_done ? 'Completed' : 'Pending'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {showEarnings && (
+                <div className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl p-6 text-white">
+                  <div className="flex items-center gap-3 mb-3">
+                    <Coins size={24} />
+                    <h3 className="font-semibold text-lg">Your Earnings</h3>
+                  </div>
+                  <p className="text-3xl font-bold mb-2">₹{getEarnings()}</p>
+                  <p className="text-green-100 text-sm">Added to your wallet</p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {notification && (
+            <div className="fixed top-4 right-4 z-50 max-w-sm">
+              <Message
+                message={notification}
+                icon={notification.includes("Failed") ?
+                  <AlertCircle className="text-red-500" size={20} /> :
+                  <CheckCircle className="text-green-500" size={20} />
+                }
+              />
+            </div>
+          )}
         </div>
-
-        {/* COD Flow */}
-        {data.payment_method === "COD" && (
-          <div className="mt-8 space-y-4">
-            {!isCollected && !isCompleted && (
-              <div className="bg-yellow-100 border border-yellow-300 rounded-xl p-4">
-                <h3 className="text-lg font-semibold text-yellow-800 flex items-center gap-2">
-                  <HandCoins /> Collect Amount from Customer
-                </h3>
-                <p className="text-yellow-700 mt-2">
-                  Amount to collect: <strong>₹{getCODCollectionAmount()}</strong><br />
-                  <small className="text-gray-600">
-                    (Service: ₹{data.service_amount} + Platform Fee: ₹{data.platform_fee})
-                  </small>
-                </p>
-                <button
-                  onClick={handleCollectAmount}
-                  disabled={loading}
-                  className="mt-4 w-full px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <HandCoins className="inline mr-1" /> 
-                  {loading ? "Processing..." : "Mark as Collected"}
-                </button>
-              </div>
-            )}
-
-            {isCollected && !isCompleted && (
-              <div className="bg-blue-100 border border-blue-300 rounded-xl p-4">
-                <h3 className="text-lg font-semibold text-blue-800 flex items-center gap-2">
-                  <CircleCheck /> Amount Collected Successfully
-                </h3>
-                <p className="text-blue-700 mt-2">Ready to complete the service</p>
-                <button
-                  onClick={handleMarkCompleted}
-                  disabled={loading}
-                  className="mt-4 w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <CheckCircle className="inline mr-1" /> 
-                  {loading ? "Processing..." : "Complete Service"}
-                </button>
-              </div>
-            )}
-
-            {isCompleted && (
-              <div className="bg-green-100 border border-green-300 rounded-xl p-4">
-                <h3 className="text-lg font-semibold text-green-800 flex items-center gap-2">
-                  <CheckCircle /> Service Completed Successfully
-                </h3>
-                <p className="text-green-700 mt-2">COD service has been completed!</p>
-                <button
-                  onClick={handleEarningsClick}
-                  className="mt-4 px-4 py-2 bg-blue-600 text-white flex items-center justify-center gap-2 rounded-lg hover:bg-blue-700 transition duration-300"
-                >
-                  <WalletCards className="w-5 h-5" />
-                  Go to Earnings
-                  <ArrowRight className="w-4 h-4" />
-                </button>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Online Payment Flow (WALLET/STRIPE) */}
-        {(data.payment_method === "WALLET" || data.payment_method === "STRIPE") && (
-          <div className="mt-8">
-            {!isCompleted ? (
-              <button
-                onClick={handleMarkCompleted}
-                disabled={loading}
-                className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <CheckCircle className="inline mr-1" /> 
-                {loading ? "Processing..." : "Complete Service"}
-              </button>
-            ) : (
-              <div className="bg-green-100 border border-green-300 rounded-xl p-4 mt-4">
-                <h3 className="font-semibold text-green-800 flex items-center gap-2">
-                  <CheckCircle /> Service Completed
-                </h3>
-                <p className="text-green-700">Service marked as completed successfully!</p>
-                <button
-                  onClick={handleEarningsClick}
-                  className="mt-4 px-4 py-2 bg-blue-600 text-white flex items-center justify-center gap-2 rounded-lg hover:bg-blue-700 transition duration-300"
-                >
-                  <WalletCards className="w-5 h-5" />
-                  Go to Earnings
-                  <ArrowRight className="w-4 h-4" />
-                </button>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Earnings Display */}
-        {showEarnings && (
-          <div className="mt-8 bg-green-50 border border-green-200 rounded-xl p-4">
-            <h3 className="font-semibold text-green-800 flex items-center gap-2 text-xl">
-              <Coins /> Earnings
-            </h3>
-            <p className="text-green-700 text-lg mt-1">
-              You have earned: <strong>₹{getEarningsAmount()}</strong>
-            </p>
-            {data.payment_method === "COD" && (
-              <p className="text-sm text-gray-600 mt-2">
-                Platform fee (₹{data.platform_fee}) has been automatically handled
-              </p>
-            )}
-          </div>
-        )}
-
-        {/* Notification */}
-        {notification && (
-          <div className="mt-6">
-            <Message 
-              message={notification} 
-              icon={
-                notification.includes("Failed") || notification.includes("Error") 
-                  ? <AlertCircle className="inline mr-1 text-red-500" />
-                  : <CheckCircle className="inline mr-1 text-green-500" />
-              } 
-            />
-          </div>
-        )}
       </div>
     </div>
   );

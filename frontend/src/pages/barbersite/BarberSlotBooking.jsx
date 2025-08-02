@@ -7,6 +7,9 @@ import BarberSidebar from "../../components/barbercompo/BarberSidebar";
 import { useEffect, useState } from "react";
 import apiClient from "../../slices/api/apiIntercepters";
 import { ChevronLeft, Check, Calendar } from "lucide-react";
+import { useLocation, useNavigate } from "react-router-dom";
+import GlobalBookingNotifier from "../../components/notification/GlobalBookingNotifier";
+import { useBooking } from "../../contexts/BookingContext";
 
 export const BarberSlotBooking = () => {
   const [currentStep, setCurrentStep] = useState('date');
@@ -14,6 +17,12 @@ export const BarberSlotBooking = () => {
   const [selectedSlots, setSelectedSlots] = useState([]);
   const [mySlots, setMySlots] = useState([]);
   const [loading, setLoading] = useState(false);
+
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { currentBooking, notification, setNotification } = useBooking();
+  
+  const isOnWorkingAreaPage = location.pathname.includes('/instant-booking');
 
   useEffect(() => {
     fetchMySlots();
@@ -83,6 +92,14 @@ export const BarberSlotBooking = () => {
       <BarberSidebar />
       
       <div className="flex-1 ml-64"> 
+        <GlobalBookingNotifier
+        currentBooking={currentBooking}
+        notification={notification}
+        setNotification={setNotification}
+        navigate={navigate}
+        location={location}
+        isOnWorkingAreaPage={isOnWorkingAreaPage}
+      />
         <div className="max-w-5xl mx-auto p-6 space-y-6">
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Manage Your Availability</h1>

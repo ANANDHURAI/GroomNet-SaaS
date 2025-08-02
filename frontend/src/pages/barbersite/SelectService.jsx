@@ -6,6 +6,7 @@ import { useService } from '../../contexts/ServiceContext';
 import ServiceCard from '../../components/barbercompo/ServiceCard';
 import ServiceCount from '../../components/basics/ServiceCount';
 import { ArrowLeft, AlertCircle, LoaderCircle, ClipboardCheck } from 'lucide-react';
+import { useBooking } from '../../contexts/BookingContext';
 
 function SelectService() {
   const { id } = useParams();
@@ -16,6 +17,10 @@ function SelectService() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const { serviceCount, fetchMyServices } = useService();
+
+  const { currentBooking, notification, setNotification } = useBooking();
+  
+  const isOnWorkingAreaPage = location.pathname.includes('/instant-booking');
 
   useEffect(() => {
     fetchServices();
@@ -59,6 +64,14 @@ function SelectService() {
     <div className="flex min-h-screen bg-gray-50">
       <BarberSidebar />
       <div className="flex-1 ml-64 p-8">
+        <GlobalBookingNotifier
+        currentBooking={currentBooking}
+        notification={notification}
+        setNotification={setNotification}
+        navigate={navigate}
+        location={location}
+        isOnWorkingAreaPage={isOnWorkingAreaPage}
+      />
         <div className="max-w-7xl mx-auto">
           <div className="flex justify-between items-start mb-8">
             <div>

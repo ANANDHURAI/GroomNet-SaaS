@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import apiClient from '../../slices/api/apiIntercepters';
 import BarberSidebar from '../../components/barbercompo/BarberSidebar';
 import ServiceCount from '../../components/basics/ServiceCount';
 import CategoryCard from '../../components/barbercompo/CategoryCard';
 import { LoaderCircle, ClipboardList } from 'lucide-react';
+import GlobalBookingNotifier from '../../components/notification/GlobalBookingNotifier';
+import { useBooking } from '../../contexts/BookingContext';
 
 function BookServices() {
   const [categories, setCategories] = useState([]);
@@ -12,6 +14,11 @@ function BookServices() {
   const [error, setError] = useState('');
   const [selectedCategory, setSelectedCategory] = useState(null);
   const navigate = useNavigate();
+
+  const location = useLocation();
+  const { currentBooking, notification, setNotification } = useBooking();
+  
+  const isOnWorkingAreaPage = location.pathname.includes('/instant-booking');
 
   useEffect(() => {
     fetchCategories();
@@ -61,6 +68,14 @@ function BookServices() {
     <div className="flex min-h-screen bg-gray-50">
       <BarberSidebar />
       <div className="flex-1 ml-64 p-8">
+        <GlobalBookingNotifier
+        currentBooking={currentBooking}
+        notification={notification}
+        setNotification={setNotification}
+        navigate={navigate}
+        location={location}
+        isOnWorkingAreaPage={isOnWorkingAreaPage}
+      />
         <div className="max-w-7xl mx-auto">
           <div className="flex justify-between items-center mb-8">
             <div className="flex items-center gap-3">

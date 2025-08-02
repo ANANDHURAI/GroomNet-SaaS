@@ -13,12 +13,21 @@ import {
   Clock
 } from 'lucide-react';
 
+import { useBooking } from '../../contexts/BookingContext';
+import GlobalBookingNotifier from '../../components/notification/GlobalBookingNotifier';
+import { useNavigate, useLocation as useRouterLocation } from 'react-router-dom';
+
 function BarberDash() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [locationError, setLocationError] = useState('');
   const [location, setLocation] = useState(null);
+  const navigate = useNavigate();
+  const routeLocation = useRouterLocation();
+  const { currentBooking, notification, setNotification } = useBooking();
+
+  const isOnWorkingAreaPage = routeLocation.pathname.includes('/instant-booking');
 
   useEffect(() => {
     const checkExistingLocation = async () => {
@@ -121,12 +130,20 @@ function BarberDash() {
       value: data?.total_reviews,
       icon: <Star className="w-6 h-6 text-purple-400" />
     }
-    
   ];
 
   return (
     <div className="flex bg-gray-50 min-h-screen">
       <BarberSidebar />
+
+      <GlobalBookingNotifier
+        currentBooking={currentBooking}
+        notification={notification}
+        setNotification={setNotification}
+        navigate={navigate}
+        location={location} // This is the geo-location
+        isOnWorkingAreaPage={isOnWorkingAreaPage}
+      />
 
       <LocationModal
         isOpen={showLocationModal}

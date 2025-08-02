@@ -5,7 +5,9 @@ import { ProfileDisplay } from '../../components/profilecompo/ProfileDisplay';
 import ProfileField from '../../components/profilecompo/ProfileField';
 import { ProfileInput } from '../../components/profilecompo/ProfileInput';
 import { User, MapPin, Calendar, Globe, Edit2, Save, X, Star } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { useBooking } from '../../contexts/BookingContext';
+import GlobalBookingNotifier from '../../components/notification/GlobalBookingNotifier';
 
 function Portfolio() {
     const [data, setData] = useState(null);
@@ -24,6 +26,11 @@ function Portfolio() {
     });
 
     const navigate = useNavigate();
+
+    const location = useLocation();
+    const { currentBooking, notification, setNotification } = useBooking();
+    
+    const isOnWorkingAreaPage = location.pathname.includes('/instant-booking');
 
     useEffect(() => {
         fetchPortfolio();
@@ -108,6 +115,14 @@ function Portfolio() {
     return (
         <div className="flex min-h-screen bg-gray-50">
             <BarberSidebar />
+            <GlobalBookingNotifier
+                currentBooking={currentBooking}
+                notification={notification}
+                setNotification={setNotification}
+                navigate={navigate}
+                location={location}
+                isOnWorkingAreaPage={isOnWorkingAreaPage}
+            />
             <div className="flex-1 p-6 ml-64">
                 <div className="max-w-4xl mx-auto">
                     <div className="bg-white rounded-lg shadow-sm p-6 mb-6">

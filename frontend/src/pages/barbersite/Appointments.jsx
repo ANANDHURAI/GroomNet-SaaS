@@ -12,11 +12,7 @@ function Appointments() {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
-  const location = useLocation();
-  const { currentBooking, notification, setNotification } = useBooking();
-  
-  const isOnWorkingAreaPage = location.pathname.includes('/instant-booking');
-  
+
   const handleStartTravel = (bookingId) => {
     navigate(`/travel-status/${bookingId}`);
   }
@@ -69,14 +65,6 @@ function Appointments() {
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-4xl mx-auto">
-        <GlobalBookingNotifier
-        currentBooking={currentBooking}
-        notification={notification}
-        setNotification={setNotification}
-        navigate={navigate}
-        location={location}
-        isOnWorkingAreaPage={isOnWorkingAreaPage}
-      />
         <div className="flex items-center mb-6">
           <button 
             onClick={() => navigate(-1)}

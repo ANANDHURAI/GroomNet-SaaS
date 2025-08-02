@@ -437,16 +437,11 @@ class CompletedServiceView(APIView):
         return Response(data)
 
     def post(self, request, booking_id):
-        print("Incoming POST body:", request.body)
-        
-        # Get booking
+       
         booking = get_object_or_404(Booking, id=booking_id)
-
-        # Check if already completed
         if booking.status == "COMPLETED":
             return Response({"message": "Service already completed."}, status=200)
 
-        # Get the action from request data (with fallback for empty body)
         try:
             request_data = request.data if request.data else {}
         except:
@@ -456,32 +451,24 @@ class CompletedServiceView(APIView):
         
         payment = booking.payment
 
-        # Handle COD collection action
         if action == 'collect_cod' and payment.payment_method == "COD":
-            # For COD, we just mark that collection is acknowledged
-            # The actual completion will happen in the next step
             return Response({
                 "status": "COD collection acknowledged",
                 "message": "Amount collection recorded. You can now complete the service."
             }, status=200)
 
-        # Handle service completion
         if action == 'complete_service':
-            # Mark booking as completed
             booking.status = "COMPLETED"
             booking.completed_at = now()
             booking.save()
 
-            # Determine if payment is successful
             if payment.payment_method == "COD":
-                payment_successful = True  # COD is considered successful when service is completed
-                # Set payment status to SUCCESS for COD when service is completed
+                payment_successful = True 
                 payment.payment_status = "SUCCESS"
                 payment.save()
             else:
                 payment_successful = payment.payment_status == "SUCCESS"
 
-            # Check if payment needs to be released to barber
             not_released_to_barber = not payment.is_released_to_barber
 
             if payment_successful and not_released_to_barber:
@@ -493,10 +480,8 @@ class CompletedServiceView(APIView):
 
                         barber_wallet, _ = BarberWallet.objects.get_or_create(barber=booking.barber)
                         amount = payment.service_amount
-                        
-                        # For COD, we don't deduct from admin wallet since money comes from customer
+                      
                         if payment.payment_method == "COD":
-                            # Add to barber wallet directly for COD
                             barber_wallet.balance += amount
                             barber_wallet.save()
 
@@ -506,7 +491,6 @@ class CompletedServiceView(APIView):
                                 note=f"COD Payment for Booking #{booking.id}"
                             )
 
-                            # For COD, admin should receive the platform fee separately
                             admin_wallet.total_earnings += payment.platform_fee
                             admin_wallet.save()
                             
@@ -516,7 +500,6 @@ class CompletedServiceView(APIView):
                                 note=f"Platform fee from COD Booking #{booking.id}"
                             )
                         else:
-                            # For online payments, deduct from admin wallet
                             if admin_wallet.total_earnings >= amount:
                                 admin_wallet.total_earnings -= amount
                                 admin_wallet.save()
@@ -540,7 +523,6 @@ class CompletedServiceView(APIView):
                                     "error": f"Insufficient admin funds. Required: ₹{amount}, Available: ₹{admin_wallet.total_earnings}"
                                 }, status=400)
 
-                        # Mark payment as released
                         payment.is_released_to_barber = True
                         payment.released_at = now()
                         payment.save()

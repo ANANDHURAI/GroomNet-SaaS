@@ -1,15 +1,22 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import BarberSidebar from '../../components/barbercompo/BarberSidebar';
 import ServiceCard from '../../components/barbercompo/ServiceCard';
 import ServiceCount from '../../components/basics/ServiceCount';
 import { useService } from '../../contexts/ServiceContext';
 import { LoaderCircle, Wrench } from 'lucide-react';
+import { useBooking } from '../../contexts/BookingContext';
+import GlobalBookingNotifier from '../../components/notification/GlobalBookingNotifier';
 
 function MyServices() {
   const { myServices, loading, fetchMyServices } = useService();
   const navigate = useNavigate();
   const [stats, setStats] = useState({ totalPrice: 0, totalDuration: 0 });
+
+  const location = useLocation();
+  const { currentBooking, notification, setNotification } = useBooking();
+  
+  const isOnWorkingAreaPage = location.pathname.includes('/instant-booking');
 
   useEffect(() => {
     fetchMyServices();
@@ -40,6 +47,14 @@ function MyServices() {
   return (
     <div className="flex min-h-screen bg-gray-50">
       <BarberSidebar />
+      <GlobalBookingNotifier
+        currentBooking={currentBooking}
+        notification={notification}
+        setNotification={setNotification}
+        navigate={navigate}
+        location={location}
+        isOnWorkingAreaPage={isOnWorkingAreaPage}
+      />
       <div className="flex-1 ml-64 p-8">
         <div className="max-w-7xl mx-auto">
           <div className="flex justify-between items-center mb-8">
