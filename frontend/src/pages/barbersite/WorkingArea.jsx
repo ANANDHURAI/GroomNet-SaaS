@@ -19,7 +19,6 @@ const WorkingArea = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Get booking context
   const { 
     currentBooking, 
     notification: globalNotification, 
@@ -28,8 +27,6 @@ const WorkingArea = () => {
 
   const barberId = sessionStorage.getItem('barber_id');
 
-  // Check if we should show notifications
-  // Show notifications ONLY when on scheduled booking tab, not on instant booking tab
   const shouldShowNotification = activeTab === 'scheduled';
 
   useEffect(() => {
@@ -99,7 +96,6 @@ const WorkingArea = () => {
 
   return (
     <div className="flex flex-col md:flex-row min-h-screen bg-gray-100">
-      {/* Show Global Notification only when on scheduled tab and there's a pending booking */}
       {shouldShowNotification && currentBooking?.status === 'PENDING' && (
         <GlobalBookingNotifier
           currentBooking={currentBooking}
@@ -107,9 +103,9 @@ const WorkingArea = () => {
           setNotification={setGlobalNotification}
           navigate={navigate}
           location={location}
-          isOnWorkingAreaPage={false} // Set to false so notification shows
-          onAccept={handleGoToInstantBooking} // Switch to instant booking tab
-          onViewDetails={handleGoToInstantBooking} // Switch to instant booking tab
+          isOnWorkingAreaPage={false} 
+          onAccept={handleGoToInstantBooking} 
+          onViewDetails={handleGoToInstantBooking} 
         />
       )}
 
@@ -119,7 +115,6 @@ const WorkingArea = () => {
       
       <main className="flex-1 p-4">
         <div className="max-w-5xl mx-auto space-y-4">
-          {/* Tab Navigation */}
           <div className="flex flex-wrap border-b border-gray-300">
             <button
               className={`py-2 px-4 font-medium text-sm md:text-base ${
@@ -130,7 +125,7 @@ const WorkingArea = () => {
               onClick={() => handleTabChange('instant')}
             >
               Instant Booking
-              {/* Show notification badge on instant booking tab if there's a pending booking */}
+
               {currentBooking?.status === 'PENDING' && activeTab !== 'instant' && (
                 <span className="ml-2 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-500 rounded-full animate-pulse">
                   !
@@ -150,7 +145,6 @@ const WorkingArea = () => {
             </button>
           </div>
 
-          {/* Status Card */}
           <div className="bg-white rounded-lg shadow p-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
             <div className="flex items-center gap-2">
               <Power
@@ -168,14 +162,12 @@ const WorkingArea = () => {
             {loading && <span className="text-xs text-gray-400">Updating...</span>}
           </div>
 
-          {/* Local notifications */}
           {notification && (
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
               <p className="text-sm text-blue-800">{notification}</p>
             </div>
           )}
 
-          {/* Show instant booking notification banner on scheduled tab */}
           {activeTab === 'scheduled' && currentBooking?.status === 'PENDING' && (
             <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white p-4 rounded-lg shadow-lg border border-orange-300 animate-pulse">
               <div className="flex items-center justify-between">
