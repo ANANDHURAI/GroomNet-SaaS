@@ -16,9 +16,7 @@ export const TimeSlotSelector = ({ selectedDate, onSlotsSelect, selectedSlots })
   const fetchExistingSlotsForDate = async () => {
     setLoading(true);
     try {
-
       setExistingSlots([]);
-      
       const response = await apiClient.get(`/barbersite/barber-slots/?date=${selectedDate}`);
       console.log(`Fetched slots for ${selectedDate}:`, response.data);
       setExistingSlots(response.data || []);
@@ -47,21 +45,33 @@ export const TimeSlotSelector = ({ selectedDate, onSlotsSelect, selectedSlots })
       const existingStart = existingSlot.start_time.substring(0, 5);
       const existingEnd = existingSlot.end_time.substring(0, 5);
       const slotDate = existingSlot.date;
-      
-      return slotDate === selectedDate && 
-             existingStart === slot.start && 
-             existingEnd === slot.end;
+
+      return slotDate === selectedDate &&
+        existingStart === slot.start &&
+        existingEnd === slot.end;
     });
   };
 
+  const isTimeGone = (slot) => {
+    if (!selectedDate) return false;
+
+    const today = new Date().toISOString().split("T")[0];
+    if (selectedDate !== today) return false;
+
+    const now = new Date();
+    const [startHour, startMin] = slot.start.split(':').map(Number);
+    const slotStartTime = new Date(selectedDate);
+    slotStartTime.setHours(startHour, startMin, 0, 0);
+
+    return now >= slotStartTime;
+  };
+
   const toggleSlot = (slot) => {
-    if (isSlotAlreadyBooked(slot)) {
-      return;
-    }
+    if (isSlotAlreadyBooked(slot) || isTimeGone(slot)) return;
 
     const slotId = `${slot.start}-${slot.end}`;
     const isSelected = selectedSlots.includes(slotId);
-    
+
     if (isSelected) {
       onSlotsSelect(selectedSlots.filter(id => id !== slotId));
     } else {
@@ -95,37 +105,39 @@ export const TimeSlotSelector = ({ selectedDate, onSlotsSelect, selectedSlots })
         <Clock className="w-5 h-5" />
         Select Time Slots for {new Date(selectedDate).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
       </h3>
-      
+
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
         {timeSlots.map((slot) => {
           const slotId = `${slot.start}-${slot.end}`;
           const isSelected = selectedSlots.includes(slotId);
           const isAlreadyBooked = isSlotAlreadyBooked(slot);
-          
+          const isGone = isTimeGone(slot);
+
           return (
             <button
               key={slot.id}
               onClick={() => toggleSlot(slot)}
-              disabled={isAlreadyBooked}
+              disabled={isAlreadyBooked || isGone}
               className={`p-3 rounded-lg text-center transition-colors duration-200 border-2 ${
                 isAlreadyBooked
                   ? 'bg-red-100 text-red-600 border-red-200 cursor-not-allowed'
-                  : isSelected
-                    ? 'bg-blue-600 text-white border-blue-600'
-                    : 'bg-white text-gray-700 border-gray-200 hover:border-blue-300 hover:bg-blue-50'
+                  : isGone
+                    ? 'bg-orange-100 text-orange-700 border-orange-200 cursor-not-allowed'
+                    : isSelected
+                      ? 'bg-blue-600 text-white border-blue-600'
+                      : 'bg-white text-gray-700 border-gray-200 hover:border-blue-300 hover:bg-blue-50'
               }`}
             >
               <div className="font-medium">
                 {formatTime(slot.start)} - {formatTime(slot.end)}
               </div>
-              {isAlreadyBooked && (
-                <div className="text-xs mt-1">Already Booked</div>
-              )}
+              {isAlreadyBooked && <div className="text-xs mt-1">Already Booked</div>}
+              {isGone && !isAlreadyBooked && <div className="text-xs mt-1">Time Passed</div>}
             </button>
           );
         })}
       </div>
-      
+
       {selectedSlots.length > 0 && (
         <div className="mt-4 p-3 bg-blue-50 rounded-lg">
           <p className="text-sm text-blue-800">

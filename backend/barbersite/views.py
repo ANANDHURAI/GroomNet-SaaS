@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 from rest_framework import status
 from .models import BarberWallet
 from .serializers import BarberWalletSerializer
-
+from django.utils.timezone import localtime
 
 class BarberDashboard(APIView): 
     permission_classes = [IsAuthenticated]
@@ -297,6 +297,8 @@ class BarberAppointments(APIView):
         return Response(data)
     
 
+
+
 class CompletedAppointments(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -305,15 +307,27 @@ class CompletedAppointments(APIView):
             return Response({"detail": "Unauthorized access."}, status=403)
 
         appointments = Booking.objects.filter(
-            booking_type='SCHEDULE_BOOKING',
             barber=request.user,
-            status__in=['COMPLETED'] 
+            status='COMPLETED'
         )
 
         data = []
         for booking in appointments:
-            time_str = f"{booking.slot.start_time} - {booking.slot.end_time}" if booking.slot else "N/A"
-            date_str = booking.slot.date.strftime('%Y-%m-%d') if booking.slot else "N/A"
+            if booking.booking_type == "INSTANT_BOOKING":
+                if booking.completed_at:
+                    completed_time = localtime(booking.completed_at)
+                    date_str = completed_time.strftime('%Y-%m-%d')
+                    time_str = completed_time.strftime('%I:%M %p')
+                else:
+                    date_str = "N/A"
+                    time_str = "N/A"
+            else: 
+                if booking.slot:
+                    date_str = booking.slot.date.strftime('%Y-%m-%d')
+                    time_str = f"{booking.slot.start_time} - {booking.slot.end_time}"
+                else:
+                    date_str = "N/A"
+                    time_str = "N/A"
 
             data.append({
                 'id': booking.id,
@@ -326,7 +340,6 @@ class CompletedAppointments(APIView):
                 'phone': booking.customer.phone,
                 'service': booking.service.name,
                 'bookingType': booking.booking_type,
-                
             })
 
         return Response(data)
