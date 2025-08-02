@@ -2,12 +2,27 @@ import React, { useEffect, useState } from 'react';
 import apiClient from '../../slices/api/apiIntercepters';
 import { Wallet, Calendar, IndianRupee } from 'lucide-react';
 import BarberSidebar from '../../components/barbercompo/BarberSidebar';
+import GlobalBookingNotifier from '../../components/notification/GlobalBookingNotifier';
+import { useBooking } from '../../contexts/BookingContext';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 function Earnings() {
   const [wallet, setWallet] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
+  
+  const { 
+    currentBooking, 
+    notification, 
+    setNotification
+  } = useBooking();
+  
+  const navigate = useNavigate();
+  const location = useLocation();
+  
+  // Check if we're on the working area page
+  const isOnWorkingAreaPage = location.pathname.includes('/instant-booking');
+  
   useEffect(() => {
     const fetchWallet = async () => {
       try {
@@ -27,10 +42,39 @@ function Earnings() {
 
   return (
     <div className="flex min-h-screen bg-gray-50">
+      {/* Global Booking Notification - Pass navigate and location as props */}
+      <GlobalBookingNotifier
+        currentBooking={currentBooking}
+        notification={notification}
+        setNotification={setNotification}
+        navigate={navigate}
+        location={location}
+        isOnWorkingAreaPage={isOnWorkingAreaPage}
+      />
+
       <div className="w-64 hidden md:block">
         <BarberSidebar />
       </div>
+      
       <div className="flex-1 p-4 md:p-8">
+        {/* Subtle notification banner for mobile/small screens */}
+        {currentBooking?.status === 'PENDING' && (
+          <div className="md:hidden bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-4 py-3 rounded-lg mb-4 shadow-lg">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-semibold">🚨 New Booking Request!</p>
+                <p className="text-sm opacity-90">{currentBooking.customer_name} • ₹{currentBooking.total_amount}</p>
+              </div>
+              <button 
+                onClick={() => navigate('/instant-booking/')}
+                className="bg-white text-orange-600 px-3 py-1 rounded-full text-sm font-medium hover:bg-gray-100 transition-colors"
+              >
+                View
+              </button>
+            </div>
+          </div>
+        )}
+
         {loading ? (
           <div className="text-center mt-10 text-lg font-medium text-gray-700">Loading...</div>
         ) : error ? (
@@ -49,13 +93,14 @@ function Earnings() {
                 Last updated: {wallet?.updated_at ? new Date(wallet.updated_at).toLocaleString() : 'Never'}
               </p>
             </div>
+            
             <h3 className="text-xl font-semibold mb-3 text-gray-700">Transaction History</h3>
 
             {wallet?.transactions?.length === 0 ? (
               <p className="text-gray-500">No transactions yet.</p>
             ) : (
               <div className="bg-white rounded-lg shadow divide-y">
-                {wallet.transactions.map(tx => (
+                {wallet.transactions?.map(tx => (
                   <div key={tx.id} className="px-4 py-3 flex justify-between items-center">
                     <div>
                       <p className="text-green-700 font-medium">+₹{tx.amount}</p>

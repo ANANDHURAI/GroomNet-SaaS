@@ -1,131 +1,27 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import apiClient from '../../slices/api/apiIntercepters';
 import CurrentBookingCard from './CurrentBookingCard';
 import BookingRequestCard from './BookingRequestCard';
 import StatusCard from './StatusCard';
+import { useBooking } from '../../contexts/BookingContext';
 
 const InstantBookingTab = ({
   isOnline,
   toggleOnlineStatus,
   loading,
-  notification,
-  setNotification,
-  wsRef,
   navigate
 }) => {
-  const [currentBooking, setCurrentBooking] = useState(null);
   const [isLoadingAction, setIsLoadingAction] = useState(false);
-  const [connectionStatus, setConnectionStatus] = useState('connecting');
-  const [reconnectAttempts, setReconnectAttempts] = useState(0);
   
-  const ACCESS_TOKEN = sessionStorage.getItem('access_token');
+  const {
+    currentBooking,
+    setCurrentBooking,
+    notification,
+    setNotification,
+    connectionStatus
+  } = useBooking();
+
   const barberId = sessionStorage.getItem('barber_id');
-
-
-  const createWebSocketConnection = () => {
-    if (!isOnline) return;
-
-    if (wsRef.current) {
-      wsRef.current.close();
-    }
-
-    const wsScheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
-    const wsHost = window.location.hostname === 'localhost'
-      ? 'localhost:8000'
-      : window.location.host;
-
-    const currentToken = sessionStorage.getItem('access_token');
-    const currentBarberId = sessionStorage.getItem('barber_id');
-    
-    if (!currentToken || !currentBarberId) {
-      setConnectionStatus('error');
-      setNotification('Authentication error. Please login again.');
-      return;
-    }
-
-    const wsUrl = `${wsScheme}://${wsHost}/ws/instant-booking/${currentBarberId}/?token=${currentToken}`;
-    
-    console.log('Connecting to WebSocket:', wsUrl);
-    setConnectionStatus('connecting');
-
-    wsRef.current = new WebSocket(wsUrl);
-
-    wsRef.current.onopen = () => {
-      console.log('WebSocket connected for barber notifications');
-      setConnectionStatus('connected');
-      setNotification('Connected successfully!');
-      setReconnectAttempts(0);
-      
-      setTimeout(() => setNotification(''), 3000);
-    };
-
-    wsRef.current.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        console.log('WebSocket message:', data);
-
-        switch (data.type) {
-          case 'new_booking_request':
-            setCurrentBooking({
-              booking_id: data.booking_id,
-              customer_name: data.customer_name,
-              customer_id: data.customer_id,
-              service_name: data.service,
-              address: data.address,
-              total_amount: data.total_amount,
-              status: 'PENDING'
-            });
-            setNotification('New booking request received!');
-            break;
-
-          case 'remove_booking':
-            setCurrentBooking(prev => {
-              if (prev?.booking_id === data.booking_id) {
-                setNotification('Booking was accepted by another barber.');
-                return null;
-              }
-              return prev;
-            });
-            break;
-
-          case 'heartbeat_response':
-            console.log('Heartbeat response received');
-            break;
-
-          case 'error':
-            console.error('WebSocket error message:', data.message);
-            setNotification(data.message);
-            break;
-
-          default:
-            console.log('Unknown message type:', data.type);
-        }
-      } catch (error) {
-        console.error('Error parsing WebSocket message:', error);
-      }
-    };
-
-    wsRef.current.onerror = (error) => {
-      console.error('WebSocket error:', error);
-      setConnectionStatus('error');
-    };
-
-    wsRef.current.onclose = (event) => {
-      console.log('WebSocket closed:', event.code, event.reason);
-      setConnectionStatus('disconnected');
-
-      if (event.code === 4001) {
-        setNotification('Authentication failed. Please login again.');
-        return;
-      } else if (event.code === 4002) {
-        setNotification('Cannot connect: You have active bookings.');
-        return;
-      } else if (event.code === 1000) {
-      
-        return;
-      }
-    };
-  };
 
   const fetchActiveBookings = useCallback(async () => {
     if (!barberId) return null;
@@ -144,7 +40,10 @@ const InstantBookingTab = ({
         });
         return activeBooking;
       } else {
-        setCurrentBooking(null);
+        // Only set to null if there's no pending booking from global context
+        if (currentBooking?.status !== 'PENDING') {
+          setCurrentBooking(null);
+        }
         return null;
       }
     } catch (err) {
@@ -154,62 +53,18 @@ const InstantBookingTab = ({
       }
       return null;
     }
-  }, [barberId]);
+  }, [barberId, setCurrentBooking, setNotification, currentBooking]);
 
   useEffect(() => {
-    if (!isOnline || !barberId) {
-      if (wsRef.current) {
-        wsRef.current.close(1000, 'Going offline');
-      }
-      setConnectionStatus('offline');
-      return;
+    // Fetch active bookings when component mounts
+    if (isOnline && barberId) {
+      fetchActiveBookings();
     }
-
-    let isMounted = true; 
-
-    const initializeConnection = async () => {
-      try {
-        const response = await apiClient.get(
-          `/instant-booking/active-booking/${barberId}`
-        );
-        
-        if (!isMounted) return;
-        
-        const hasActiveBooking = response.data.active_instant_booking;
-        
-        if (hasActiveBooking) {
-          console.log('Barber has active booking, skipping WebSocket connection');
-          setCurrentBooking({
-            ...response.data.active_instant_booking,
-            status: 'CONFIRMED'
-          });
-          setConnectionStatus('blocked');
-          return;
-        }
-
-        setCurrentBooking(null);
-        createWebSocketConnection();
-        
-      } catch (error) {
-        if (!isMounted) return;
-        console.error('Error checking active bookings:', error);
-        createWebSocketConnection();
-      }
-    };
-
-    initializeConnection();
-
-    return () => {
-      isMounted = false;
-      if (wsRef.current) {
-        wsRef.current.close(1000, 'Component unmounting');
-      }
-    };
-  }, [isOnline, barberId]); 
-
- 
+  }, [isOnline, barberId, fetchActiveBookings]);
 
   const handleAcceptBooking = async () => {
+    if (!currentBooking) return;
+    
     try {
       setIsLoadingAction(true);
       const response = await apiClient.post(
@@ -220,7 +75,9 @@ const InstantBookingTab = ({
       if (response.data.status === 'success') {
         setCurrentBooking(prev => ({ ...prev, status: 'CONFIRMED' }));
         setNotification('Booking accepted successfully!');
-
+        
+        // Clear notification after 3 seconds
+        setTimeout(() => setNotification(''), 3000);
       }
     } catch (error) {
       console.error('Error accepting booking:', error);
@@ -234,6 +91,8 @@ const InstantBookingTab = ({
   };
 
   const handleRejectBooking = async () => {
+    if (!currentBooking) return;
+    
     try {
       setIsLoadingAction(true);
       const response = await apiClient.post(
@@ -244,6 +103,9 @@ const InstantBookingTab = ({
       if (response.data.status === 'success') {
         setCurrentBooking(null);
         setNotification('Booking rejected successfully');
+        
+        // Clear notification after 3 seconds
+        setTimeout(() => setNotification(''), 3000);
       }
     } catch (error) {
       console.error('Error rejecting booking:', error);
@@ -256,7 +118,6 @@ const InstantBookingTab = ({
     }
   };
 
-
   return (
     <>
       <StatusCard
@@ -264,6 +125,7 @@ const InstantBookingTab = ({
         toggleOnlineStatus={toggleOnlineStatus}
         loading={loading}
       />
+      
       {notification && (
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
           <p className="text-sm text-blue-800">{notification}</p>

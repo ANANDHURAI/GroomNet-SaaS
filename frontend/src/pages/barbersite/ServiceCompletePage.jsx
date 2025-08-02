@@ -29,9 +29,13 @@ function ServiceCompletePage() {
   const [isCollected, setIsCollected] = useState(false);
   const [notification, setNotification] = useState("");
   const [showEarnings, setShowEarnings] = useState(false);
-  const [socket, setSocket] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    fetchServiceDetails();
+  }, [bookingId]);
+
+  const fetchServiceDetails = () => {
     apiClient
       .get(`/instant-booking/complete/service/${bookingId}/`)
       .then((response) => {
@@ -48,51 +52,56 @@ function ServiceCompletePage() {
       })
       .catch((error) => {
         console.error("Error fetching service details:", error);
+        setNotification("Failed to load service details");
+        setTimeout(() => setNotification(""), 3000);
       });
-  }, [bookingId]);
-
-  useEffect(() => {
-    const token = localStorage.getItem("access_token");
-    const ws = new WebSocket(
-      `${window.location.protocol === "https:" ? "wss" : "ws"}://${
-        window.location.host
-      }/ws/instant-booking/${bookingId}/?token=${token}`
-    );
-
-    ws.onopen = () => console.log("WebSocket connected");
-    ws.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      if (data.type === "service_completed") {
-        setNotification(data.message);
-        setTimeout(() => setNotification(""), 5000);
-      }
-    };
-    ws.onclose = () => console.log("WebSocket disconnected");
-    setSocket(ws);
-    return () => ws.close();
-  }, [bookingId]);
-
-  const handleCollectAmount = () => {
-    setIsCollected(true);
-    setNotification("Amount collected from customer!");
-    setTimeout(() => setNotification(""), 3000);
   };
 
-  const handleMarkCompleted = () => {
-    apiClient
-      .post(`/instant-booking/complete/service/${bookingId}/`, {
-        action: "service_completed",
-      })
+  const handleCollectAmount = () => {
+    setLoading(true);
+    
+    // Send COD collection acknowledgment to backend
+    apiClient.post(`/instant-booking/complete/service/${bookingId}/`, {
+      action: 'collect_cod'
+    })
       .then((response) => {
-        setIsCompleted(true);
-        setShowEarnings(true);
-        setNotification("Service marked as completed!");
+        setIsCollected(true);
+        setNotification("Amount collected from customer! You can now complete the service.");
         setTimeout(() => setNotification(""), 5000);
       })
       .catch((error) => {
-        console.error("Error completing service:", error);
-        setNotification("Failed to mark as completed");
+        console.error("Error recording COD collection:", error);
+        setNotification("Failed to record amount collection");
         setTimeout(() => setNotification(""), 3000);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  };
+
+  const handleMarkCompleted = () => {
+    setLoading(true);
+    
+    apiClient.post(`/instant-booking/complete/service/${bookingId}/`, {
+      action: 'complete_service'
+    })
+      .then((response) => {
+        setIsCompleted(true);
+        setShowEarnings(true);
+        setNotification("Service marked as completed successfully!");
+        setTimeout(() => setNotification(""), 5000);
+        
+        // Refresh data to get updated status
+        fetchServiceDetails();
+      })
+      .catch((error) => {
+        console.error("Error completing service:", error);
+        const errorMessage = error.response?.data?.error || "Failed to mark as completed";
+        setNotification(errorMessage);
+        setTimeout(() => setNotification(""), 5000);
+      })
+      .finally(() => {
+        setLoading(false);
       });
   };
 
@@ -136,6 +145,7 @@ function ServiceCompletePage() {
           <p><strong>Payment Method:</strong> {data.payment_method}</p>
         </div>
 
+        {/* COD Flow */}
         {data.payment_method === "COD" && (
           <div className="mt-8 space-y-4">
             {!isCollected && !isCompleted && (
@@ -151,38 +161,62 @@ function ServiceCompletePage() {
                 </p>
                 <button
                   onClick={handleCollectAmount}
-                  className="mt-4 w-full px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700"
+                  disabled={loading}
+                  className="mt-4 w-full px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <HandCoins className="inline mr-1" /> Mark as Collected
+                  <HandCoins className="inline mr-1" /> 
+                  {loading ? "Processing..." : "Mark as Collected"}
                 </button>
               </div>
             )}
 
             {isCollected && !isCompleted && (
-              <div className="bg-green-100 border border-green-300 rounded-xl p-4">
-                <h3 className="text-lg font-semibold text-green-800 flex items-center gap-2">
-                  <CircleCheck /> Amount Collected
+              <div className="bg-blue-100 border border-blue-300 rounded-xl p-4">
+                <h3 className="text-lg font-semibold text-blue-800 flex items-center gap-2">
+                  <CircleCheck /> Amount Collected Successfully
                 </h3>
-                <p className="text-green-700 mt-2">Ready to complete the service</p>
+                <p className="text-blue-700 mt-2">Ready to complete the service</p>
                 <button
                   onClick={handleMarkCompleted}
-                  className="mt-4 w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                  disabled={loading}
+                  className="mt-4 w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <CheckCircle className="inline mr-1" /> Complete Service
+                  <CheckCircle className="inline mr-1" /> 
+                  {loading ? "Processing..." : "Complete Service"}
+                </button>
+              </div>
+            )}
+
+            {isCompleted && (
+              <div className="bg-green-100 border border-green-300 rounded-xl p-4">
+                <h3 className="text-lg font-semibold text-green-800 flex items-center gap-2">
+                  <CheckCircle /> Service Completed Successfully
+                </h3>
+                <p className="text-green-700 mt-2">COD service has been completed!</p>
+                <button
+                  onClick={handleEarningsClick}
+                  className="mt-4 px-4 py-2 bg-blue-600 text-white flex items-center justify-center gap-2 rounded-lg hover:bg-blue-700 transition duration-300"
+                >
+                  <WalletCards className="w-5 h-5" />
+                  Go to Earnings
+                  <ArrowRight className="w-4 h-4" />
                 </button>
               </div>
             )}
           </div>
         )}
 
+        {/* Online Payment Flow (WALLET/STRIPE) */}
         {(data.payment_method === "WALLET" || data.payment_method === "STRIPE") && (
           <div className="mt-8">
             {!isCompleted ? (
               <button
                 onClick={handleMarkCompleted}
-                className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                disabled={loading}
+                className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <CheckCircle className="inline mr-1" /> Complete Service
+                <CheckCircle className="inline mr-1" /> 
+                {loading ? "Processing..." : "Complete Service"}
               </button>
             ) : (
               <div className="bg-green-100 border border-green-300 rounded-xl p-4 mt-4">
@@ -203,6 +237,7 @@ function ServiceCompletePage() {
           </div>
         )}
 
+        {/* Earnings Display */}
         {showEarnings && (
           <div className="mt-8 bg-green-50 border border-green-200 rounded-xl p-4">
             <h3 className="font-semibold text-green-800 flex items-center gap-2 text-xl">
@@ -213,15 +248,23 @@ function ServiceCompletePage() {
             </p>
             {data.payment_method === "COD" && (
               <p className="text-sm text-gray-600 mt-2">
-                Please deposit ₹{data.platform_fee} platform fee manually
+                Platform fee (₹{data.platform_fee}) has been automatically handled
               </p>
             )}
           </div>
         )}
 
+        {/* Notification */}
         {notification && (
           <div className="mt-6">
-            <Message message={notification} icon={<AlertCircle className="inline mr-1 text-red-500" />} />
+            <Message 
+              message={notification} 
+              icon={
+                notification.includes("Failed") || notification.includes("Error") 
+                  ? <AlertCircle className="inline mr-1 text-red-500" />
+                  : <CheckCircle className="inline mr-1 text-green-500" />
+              } 
+            />
           </div>
         )}
       </div>

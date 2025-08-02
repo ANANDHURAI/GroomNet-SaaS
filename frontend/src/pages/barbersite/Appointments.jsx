@@ -1,14 +1,21 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import apiClient from '../../slices/api/apiIntercepters';
 import { MessageCircle, Clock, AlertCircle, ChevronLeft } from 'lucide-react';
 import LoadingSpinner from '../../components/admincompo/LoadingSpinner';
+import { useNavigate, useLocation } from 'react-router-dom';
+import GlobalBookingNotifier from '../../components/notification/GlobalBookingNotifier';
+import { useBooking } from '../../contexts/BookingContext';
 
 function Appointments() {
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+
+  const location = useLocation();
+  const { currentBooking, notification, setNotification } = useBooking();
+  
+  const isOnWorkingAreaPage = location.pathname.includes('/instant-booking');
   
   const handleStartTravel = (bookingId) => {
     navigate(`/travel-status/${bookingId}`);
@@ -62,6 +69,14 @@ function Appointments() {
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-4xl mx-auto">
+        <GlobalBookingNotifier
+        currentBooking={currentBooking}
+        notification={notification}
+        setNotification={setNotification}
+        navigate={navigate}
+        location={location}
+        isOnWorkingAreaPage={isOnWorkingAreaPage}
+      />
         <div className="flex items-center mb-6">
           <button 
             onClick={() => navigate(-1)}

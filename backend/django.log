@@ -864,3 +864,332 @@ Unauthorized: /customersite/customer-wallet/transactions/
 Unauthorized: /customersite/wallet/
 Unauthorized: /customersite/customer-wallet/transactions/
 Unauthorized: /customersite/wallet/
+Anand Raj joined group: barber_3
+User disconnected from group: barber_3
+Anand Raj joined group: barber_3
+User disconnected from group: barber_3
+Anand Raj joined group: barber_3
+User disconnected from group: barber_3
+Sent booking 27 to barber 3
+Sent booking 27 to barber 3
+ilakkiya joined group: customer_2
+ilakkiya joined group: customer_2
+Sent booking 27 to barber 3
+Sent booking 27 to barber 3
+ilakkiya joined group: customer_2
+ilakkiya joined group: customer_2
+Anand Raj joined group: barber_3
+User disconnected from group: customer_2
+Sent booking 27 to barber 3
+ilakkiya joined group: customer_2
+ilakkiya joined group: customer_2
+User disconnected from group: customer_2
+User disconnected from group: customer_2
+User disconnected from group: barber_3
+Anand Raj joined group: barber_3
+User disconnected from group: barber_3
+User disconnected from group: customer_2
+User disconnected from group: customer_2
+User disconnected from group: customer_2
+Anand Raj joined group: barber_3
+Sent booking 28 to barber 3
+Sent booking 28 to barber 3
+ilakkiya joined group: customer_2
+ilakkiya joined group: customer_2
+User disconnected from group: barber_3
+Anand Raj joined group: barber_3
+Anand Raj joined group: barber_3
+User disconnected from group: barber_3
+Anand Raj joined group: barber_3
+ilakkiya joined group: customer_2
+ilakkiya joined group: customer_2
+User disconnected from group: customer_2
+User disconnected from group: customer_2
+Anand Raj joined group: barber_3
+Anand Raj joined group: barber_3
+User disconnected from group: barber_3
+Sent booking 29 to barber 3
+Sent booking 29 to barber 3
+ilakkiya joined group: customer_2
+ilakkiya joined group: customer_2
+User disconnected from group: customer_2
+ilakkiya joined group: customer_2
+User disconnected from group: barber_3
+User disconnected from group: customer_2
+User disconnected from group: customer_2
+Sent booking 29 to barber 3
+Anand Raj joined group: barber_3
+Sent booking 29 to barber 3
+ilakkiya joined group: customer_2
+ilakkiya joined group: customer_2
+User disconnected from group: barber_3
+Anand Raj joined group: barber_3
+User disconnected from group: customer_2
+User disconnected from group: customer_2
+User disconnected from group: barber_3
+Anand Raj joined group: barber_3
+Sent booking 29 to barber 3
+Sent booking 29 to barber 3
+ilakkiya joined group: customer_2
+ilakkiya joined group: customer_2
+Anand Raj joined group: barber_3
+User disconnected from group: customer_2
+ilakkiya joined group: customer_2
+User disconnected from group: barber_3
+Anand Raj joined group: barber_3
+User disconnected from group: barber_3
+Sent booking 29 to barber 3
+ilakkiya joined group: customer_2
+User disconnected from group: barber_3
+Anand Raj joined group: barber_3
+User disconnected from group: customer_2
+Sent booking 29 to barber 3
+ilakkiya joined group: customer_2
+User disconnected from group: customer_2
+User disconnected from group: barber_3
+Sent booking 29 to barber 3
+Anand Raj joined group: barber_3
+ilakkiya joined group: customer_2
+User disconnected from group: customer_2
+User disconnected from group: customer_2
+User disconnected from group: customer_2
+Sent booking 29 to barber 3
+Sent booking 29 to barber 3
+ilakkiya joined group: customer_2
+ilakkiya joined group: customer_2
+User disconnected from group: barber_3
+Anand Raj joined group: barber_3
+User disconnected from group: barber_3
+Anand Raj joined group: barber_3
+User disconnected from group: customer_2
+User disconnected from group: barber_3
+Anand Raj joined group: barber_3
+Sent booking 29 to barber 3
+ilakkiya joined group: customer_2
+ilakkiya joined group: customer_2
+User disconnected from group: barber_3
+User disconnected from group: customer_2
+User disconnected from group: customer_2
+User disconnected from group: customer_2
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Unauthorized: /adminsite/admin-wallet/
+Unauthorized: /adminsite/admin-wallet/transactions/
+Unauthorized: /adminsite/admin-wallet/
+Unauthorized: /adminsite/admin-wallet/transactions/
+Unauthorized: /instant-booking/booking/29/
+Unauthorized: /instant-booking/booking/29/
+Unauthorized: /auth/token/refresh/
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Unauthorized: /barbersite/barber/wallet/
+Unauthorized: /barbersite/barber/wallet/
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Anand Raj joined group: barber_3
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+User disconnected from group: barber_3
+Anand Raj joined group: barber_3
+User disconnected from group: barber_3
+Anand Raj joined group: barber_3
+User disconnected from group: barber_3
+Anand Raj joined group: barber_3
+Unauthorized: /instant-booking/booking/29/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /instant-booking/booking/29/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /instant-booking/booking/29/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /instant-booking/booking/29/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /instant-booking/booking/29/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /instant-booking/booking/29/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /instant-booking/booking/29/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /instant-booking/booking/29/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /instant-booking/booking/29/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /instant-booking/booking/29/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /instant-booking/booking/29/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /instant-booking/booking/29/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /instant-booking/booking/29/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /instant-booking/booking/29/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /auth/logout/
+Unauthorized: /auth/token/refresh/
+Bad Request: /auth/logout/
+Bad Request: /auth/logout/
+Bad Request: /auth/admin-login/
+User disconnected from group: barber_3
+Sent booking 30 to barber 3
+Sent booking 30 to barber 3
+ilakkiya joined group: customer_2
+ilakkiya joined group: customer_2
+User disconnected from group: customer_2
+Sent booking 30 to barber 3
+ilakkiya joined group: customer_2
+ilakkiya joined group: customer_2
+Anand Raj joined group: barber_3
+User disconnected from group: barber_3
+Anand Raj joined group: barber_3
+User disconnected from group: barber_3
+Anand Raj joined group: barber_3
+User disconnected from group: barber_3
+Anand Raj joined group: barber_3
+User disconnected from group: barber_3
+Anand Raj joined group: barber_3
+User disconnected from group: customer_2
+ilakkiya joined group: customer_2
+User disconnected from group: barber_3
+User disconnected from group: customer_2
+User disconnected from group: customer_2
+User disconnected from group: customer_2
+Sent booking 30 to barber 3
+Sent booking 30 to barber 3
+ilakkiya joined group: customer_2
+ilakkiya joined group: customer_2
+Anand Raj joined group: barber_3
+User disconnected from group: barber_3
+Anand Raj joined group: barber_3
+User disconnected from group: barber_3
+Anand Raj joined group: barber_3
+User disconnected from group: customer_2
+User disconnected from group: customer_2
+Sent booking 30 to barber 3
+Sent booking 30 to barber 3
+ilakkiya joined group: customer_2
+ilakkiya joined group: customer_2
+User disconnected from group: customer_2
+ilakkiya joined group: customer_2
+Sent booking 30 to barber 3
+ilakkiya joined group: customer_2
+User disconnected from group: barber_3
+Anand Raj joined group: barber_3
+User disconnected from group: customer_2
+User disconnected from group: barber_3
+Anand Raj joined group: barber_3
+Sent booking 30 to barber 3
+ilakkiya joined group: customer_2
+User disconnected from group: customer_2
+User disconnected from group: customer_2
+User disconnected from group: customer_2
+User disconnected from group: barber_3
+Anand Raj joined group: barber_3
+User disconnected from group: barber_3
+Anand Raj joined group: barber_3
+Sent booking 31 to barber 3
+Sent booking 31 to barber 3
+ilakkiya joined group: customer_2
+ilakkiya joined group: customer_2
+Bad Request: /instant-booking/complete/service/31/
+Bad Request: /instant-booking/complete/service/31/
+Bad Request: /instant-booking/complete/service/31/
+ilakkiya joined group: customer_2
+ilakkiya joined group: customer_2
+Anand Raj joined group: barber_3
+User disconnected from group: customer_2
+User disconnected from group: customer_2
+User disconnected from group: barber_3
+Anand Raj joined group: barber_3
+User disconnected from group: barber_3
+Anand Raj joined group: barber_3
+Bad Request: /auth/admin-login/
+Sent booking 32 to barber 3
+Sent booking 32 to barber 3
+User disconnected from group: barber_3
+ilakkiya joined group: customer_2
+ilakkiya joined group: customer_2
+Anand Raj joined group: barber_3
+Bad Request: /instant-booking/complete/service/32/
+ilakkiya joined group: customer_2
+ilakkiya joined group: customer_2
+Anand Raj joined group: barber_3
+User disconnected from group: barber_3
+User disconnected from group: customer_2
+User disconnected from group: customer_2
+Anand Raj joined group: barber_3
+User disconnected from group: barber_3
+Anand Raj joined group: barber_3
+User disconnected from group: barber_3
+Anand Raj joined group: barber_3
+User disconnected from group: barber_3
+Anand Raj joined group: barber_3
+User disconnected from group: barber_3
+Anand Raj joined group: barber_3
+User disconnected from group: barber_3
+Anand Raj joined group: barber_3
+Anand Raj joined group: barber_3
+User disconnected from group: barber_3
+Sent booking 33 to barber 3
+Sent booking 33 to barber 3
+ilakkiya joined group: customer_2
+ilakkiya joined group: customer_2
+Anand Raj joined group: barber_3
+User disconnected from group: customer_2
+Sent booking 33 to barber 3
+ilakkiya joined group: customer_2
+User disconnected from group: barber_3
+Anand Raj joined group: barber_3
+ilakkiya joined group: customer_2
+User disconnected from group: customer_2
+User disconnected from group: customer_2
+User disconnected from group: customer_2
+Sent booking 34 to barber 3
+Sent booking 34 to barber 3
+ilakkiya joined group: customer_2
+ilakkiya joined group: customer_2
+Bad Request: /instant-booking/complete/service/34/
+User disconnected from group: customer_2
+User disconnected from group: customer_2
+User disconnected from group: barber_3
+Anand Raj joined group: barber_3
+ilakkiya joined group: customer_2
+ilakkiya joined group: customer_2
+User disconnected from group: barber_3
+Anand Raj joined group: barber_3
+User disconnected from group: barber_3
+Anand Raj joined group: barber_3
+ilakkiya joined group: customer_2
+ilakkiya joined group: customer_2
+Anand Raj joined group: barber_3
+User disconnected from group: barber_3
+Anand Raj joined group: barber_3
+User disconnected from group: barber_3
+Anand Raj joined group: barber_3
+User disconnected from group: customer_2
+User disconnected from group: customer_2
+Sent booking 36 to barber 3
+Sent booking 36 to barber 3
+ilakkiya joined group: customer_2
+ilakkiya joined group: customer_2
+User disconnected from group: barber_3
+Anand Raj joined group: barber_3
+User disconnected from group: customer_2
+User disconnected from group: customer_2
+User disconnected from group: barber_3
+Anand Raj joined group: barber_3
+Sent booking 37 to barber 3
+Sent booking 37 to barber 3
+ilakkiya joined group: customer_2
+ilakkiya joined group: customer_2
+Bad Request: /instant-booking/complete/service/37/

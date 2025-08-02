@@ -437,80 +437,124 @@ class CompletedServiceView(APIView):
         return Response(data)
 
     def post(self, request, booking_id):
-        action = request.data.get('action')
+        print("Incoming POST body:", request.body)
+        
+        # Get booking
         booking = get_object_or_404(Booking, id=booking_id)
 
-        if action == 'service_completed':
+        # Check if already completed
+        if booking.status == "COMPLETED":
+            return Response({"message": "Service already completed."}, status=200)
+
+        # Get the action from request data (with fallback for empty body)
+        try:
+            request_data = request.data if request.data else {}
+        except:
+            request_data = {}
+            
+        action = request_data.get('action', 'complete_service')
+        
+        payment = booking.payment
+
+        # Handle COD collection action
+        if action == 'collect_cod' and payment.payment_method == "COD":
+            # For COD, we just mark that collection is acknowledged
+            # The actual completion will happen in the next step
+            return Response({
+                "status": "COD collection acknowledged",
+                "message": "Amount collection recorded. You can now complete the service."
+            }, status=200)
+
+        # Handle service completion
+        if action == 'complete_service':
+            # Mark booking as completed
             booking.status = "COMPLETED"
             booking.completed_at = now()
             booking.save()
 
-            payment = booking.payment
+            # Determine if payment is successful
             if payment.payment_method == "COD":
-                payment_successful = True 
+                payment_successful = True  # COD is considered successful when service is completed
+                # Set payment status to SUCCESS for COD when service is completed
+                payment.payment_status = "SUCCESS"
+                payment.save()
             else:
                 payment_successful = payment.payment_status == "SUCCESS"
-            
+
+            # Check if payment needs to be released to barber
             not_released_to_barber = not payment.is_released_to_barber
+
             if payment_successful and not_released_to_barber:
                 try:
                     with transaction.atomic():
                         admin_wallet = AdminWallet.objects.first()
                         if not admin_wallet:
                             return Response({"error": "Admin wallet not found"}, status=500)
-                            
+
                         barber_wallet, _ = BarberWallet.objects.get_or_create(barber=booking.barber)
                         amount = payment.service_amount
-                        if admin_wallet.total_earnings >= amount:
-                            admin_wallet.total_earnings -= amount
-                            admin_wallet.save()
-
+                        
+                        # For COD, we don't deduct from admin wallet since money comes from customer
+                        if payment.payment_method == "COD":
+                            # Add to barber wallet directly for COD
                             barber_wallet.balance += amount
                             barber_wallet.save()
 
                             WalletTransaction.objects.create(
                                 wallet=barber_wallet,
                                 amount=amount,
-                                note=f"Payment for Booking #{booking.id}"
+                                note=f"COD Payment for Booking #{booking.id}"
                             )
 
+                            # For COD, admin should receive the platform fee separately
+                            admin_wallet.total_earnings += payment.platform_fee
+                            admin_wallet.save()
+                            
                             AdminWalletTransaction.objects.create(
                                 wallet=admin_wallet,
-                                amount=amount,
-                                note=f"Payout to Barber ({booking.barber.name}) for Booking #{booking.id}"
+                                amount=payment.platform_fee,
+                                note=f"Platform fee from COD Booking #{booking.id}"
                             )
-
-                            payment.is_released_to_barber = True
-                            payment.released_at = now()
-                            if payment.payment_method == "COD":
-                                payment.payment_status = "SUCCESS"
-                            
-                            payment.save()
-                           
-                            booking.is_payment_done = True
-                            booking.save()
-
                         else:
-                            return Response({
-                                "error": f"Insufficient admin funds. Required: ₹{amount}, Available: ₹{admin_wallet.total_earnings}"
-                            }, status=400)
+                            # For online payments, deduct from admin wallet
+                            if admin_wallet.total_earnings >= amount:
+                                admin_wallet.total_earnings -= amount
+                                admin_wallet.save()
+
+                                barber_wallet.balance += amount
+                                barber_wallet.save()
+
+                                WalletTransaction.objects.create(
+                                    wallet=barber_wallet,
+                                    amount=amount,
+                                    note=f"Payment for Booking #{booking.id}"
+                                )
+
+                                AdminWalletTransaction.objects.create(
+                                    wallet=admin_wallet,
+                                    amount=amount,
+                                    note=f"Payout to Barber ({booking.barber.name}) for Booking #{booking.id}"
+                                )
+                            else:
+                                return Response({
+                                    "error": f"Insufficient admin funds. Required: ₹{amount}, Available: ₹{admin_wallet.total_earnings}"
+                                }, status=400)
+
+                        # Mark payment as released
+                        payment.is_released_to_barber = True
+                        payment.released_at = now()
+                        payment.save()
+                        
+                        booking.is_payment_done = True
+                        booking.save()
 
                 except Exception as e:
-                    return Response({"error": f"Payment failed: {str(e)}"}, status=500)
-        
- 
-            channel_layer = get_channel_layer()
-            group_name = f"customer_{booking.customer.id}"
+                    return Response({"error": f"Payment processing failed: {str(e)}"}, status=500)
 
-            async_to_sync(channel_layer.group_send)(
-                group_name,
-                {
-                    "type": "service_completed",
-                    "booking_id": booking.id,
-                    "message": "Thank you for choosing Groomnet. Your service has been completed.",
-                }
-            )
-            return Response({"status": "Service completion and payment done"}, status=200)
+            return Response({
+                "status": "Service marked as completed successfully",
+                "message": "Service has been completed and payment processed."
+            }, status=200)
 
         return Response({"error": "Invalid action"}, status=400)
 

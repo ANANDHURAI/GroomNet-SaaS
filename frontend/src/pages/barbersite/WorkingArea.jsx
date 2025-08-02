@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Power } from 'lucide-react';
 import apiClient from '../../slices/api/apiIntercepters';
 import BarberSidebar from '../../components/barbercompo/BarberSidebar';
@@ -6,17 +6,18 @@ import { useNavigate } from 'react-router-dom';
 import InstantBookingTab from '../../components/barbercompo/InstantBookingTab';
 import ScheduledBookingTab from '../../components/barbercompo/ScheduledBookingTab';
 import NotificationIndicator from '../../components/mini ui/NotificationIndicater';
+import { useBooking } from '../../contexts/BookingContext';
 
 const WorkingArea = () => {
   const [isOnline, setIsOnline] = useState(false);
   const [hasActiveBooking, setHasActiveBooking] = useState(false);
-  const [notification, setNotification] = useState('');
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('instant');
-  const wsRef = useRef(null);
+  
   const navigate = useNavigate();
-
   const barberId = sessionStorage.getItem('barber_id');
+
+  const { notification, setNotification } = useBooking();
 
   useEffect(() => {
     if (!barberId) {
@@ -64,6 +65,9 @@ const WorkingArea = () => {
 
       setIsOnline(!isOnline);
       setNotification(response.data.message);
+      
+      // Clear notification after 3 seconds
+      setTimeout(() => setNotification(''), 3000);
     } catch (err) {
       console.error('Error updating barber status:', err);
       setNotification(
@@ -136,9 +140,6 @@ const WorkingArea = () => {
                 isOnline={isOnline}
                 toggleOnlineStatus={toggleOnlineStatus}
                 loading={loading}
-                notification={notification}
-                setNotification={setNotification}
-                wsRef={wsRef}
                 navigate={navigate}
               />
             ) : (
