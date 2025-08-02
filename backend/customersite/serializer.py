@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from adminsite.models import CategoryModel, ServiceModel,AdminWalletTransaction
-from .models import Booking , PaymentModel , Complaints
+from .models import Booking , PaymentModel , Complaints , CustomerWalletTransaction
 from authservice.models import User
 from barbersite.models import BarberSlot
 from profileservice.models import Address
@@ -151,7 +151,7 @@ class BookingCreateSerializer(serializers.ModelSerializer):
             if payment_method == "WALLET":
                 wallet = CustomerWallet.objects.select_for_update().get(user=customer)
                 if wallet.account_total_balance < total_amount:
-                    raise serializers.ValidationError({"payment_method": "Insufficient wallet balance."})
+                    raise serializers.ValidationError({"payment_method": "Your wallet doesn't have enough balance."})
 
                 wallet.account_total_balance -= total_amount
                 wallet.save()
@@ -187,7 +187,13 @@ class BookingCreateSerializer(serializers.ModelSerializer):
                     amount=total_amount,
                     note=f"Booking #{booking.id} - WALLET payment received"
                 )
-            
+
+                CustomerWalletTransaction.objects.create(
+                    wallet=wallet,
+                    amount=-total_amount, 
+                    note = f"Wallet payment for Booking #{booking.id} - {service.name}"
+                )
+
             if coupon_obj:
                 CouponUsage.objects.create(customer=customer, coupon=coupon_obj)
                
@@ -359,6 +365,9 @@ class ComplaintSerializer(serializers.ModelSerializer):
         fields = ['id', 'booking', 'complaint_name', 'description', 'image', 'complaint_status', 'created_at']
         read_only_fields = ['complaint_status', 'created_at', 'id']
 
-
+class CustomerTransactionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomerWalletTransaction
+        fields = ['id', 'amount', 'note', 'created_at']
 
 

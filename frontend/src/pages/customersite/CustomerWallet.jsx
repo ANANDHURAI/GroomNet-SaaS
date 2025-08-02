@@ -1,38 +1,44 @@
 import React, { useEffect, useState } from 'react'
 import { Button } from '../../components/mini ui/Button'
 import apiClient from '../../slices/api/apiIntercepters'
-import { Check, Wallet, Plus } from 'lucide-react'
+import { Check, Wallet, Plus, Clock } from 'lucide-react'
 import CustomerLayout from '../../components/customercompo/CustomerLayout'
 
 function CustomerWallet() {
     const [amount, setAmount] = useState('')
     const [walletDetails, setWalletDetails] = useState(null)
+    const [transactions, setTransactions] = useState([])
     const [loading, setLoading] = useState(false)
     const [showSuccess, setShowSuccess] = useState(false)
     const [successAmount, setSuccessAmount] = useState('')
     const [verifying, setVerifying] = useState(false)
 
+    // GET wallet details
     const fetchWalletDetails = () => {
         apiClient.get('/customersite/wallet/')
-            .then(response => {
-                setWalletDetails(response.data)
-            })
-            .catch(error => {
-                console.error('Failed to fetch wallet details:', error)
-            })
+            .then(response => setWalletDetails(response.data))
+            .catch(error => console.error('Failed to fetch wallet details:', error))
     }
 
+    // GET wallet transactions
+    const fetchTransactions = () => {
+        apiClient.get('/customersite/customer-wallet/transactions/')
+            .then(res => setTransactions(res.data.history))
+            .catch(err => console.error("Failed to load transactions", err))
+    }
+
+    // POST to verify Stripe payment and update wallet
     const verifyPayment = async (sessionId, amount) => {
         setVerifying(true)
         try {
             const response = await apiClient.post('/payment-service/wallet/verify-payment/', {
                 session_id: sessionId
             })
-            
             if (response.data.success) {
                 setSuccessAmount(amount)
                 setShowSuccess(true)
                 fetchWalletDetails()
+                fetchTransactions()
                 setTimeout(() => setShowSuccess(false), 3000)
             } else {
                 alert('Payment verification failed')
@@ -47,15 +53,15 @@ function CustomerWallet() {
 
     useEffect(() => {
         fetchWalletDetails()
-        
+        fetchTransactions()
+
         const urlParams = new URLSearchParams(window.location.search)
         const success = urlParams.get('success')
         const addedAmount = urlParams.get('amount')
         const sessionId = urlParams.get('session_id')
-        
+
         if (success === 'true' && addedAmount && sessionId) {
             verifyPayment(sessionId, addedAmount)
-            
             window.history.replaceState({}, document.title, window.location.pathname)
         }
     }, [])
@@ -68,9 +74,7 @@ function CustomerWallet() {
 
         setLoading(true)
         apiClient.post('/payment-service/wallet/stripe-checkout/', { amount })
-            .then(res => {
-                window.location.href = res.data.url
-            })
+            .then(res => window.location.href = res.data.url)
             .catch(err => {
                 console.error('Stripe Checkout failed:', err)
                 alert('Failed to initiate payment')
@@ -84,12 +88,10 @@ function CustomerWallet() {
                 {verifying && (
                     <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-center space-x-3">
                         <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
-                        <span className="text-blue-800">
-                            Verifying payment...
-                        </span>
+                        <span className="text-blue-800">Verifying payment...</span>
                     </div>
                 )}
-                
+
                 {showSuccess && (
                     <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center space-x-3">
                         <Check className="h-5 w-5 text-green-600" />
@@ -99,16 +101,19 @@ function CustomerWallet() {
                     </div>
                 )}
 
-                <div className="bg-white rounded-lg shadow-md p-6 border">
-                    <div className="flex items-center space-x-3 mb-4">
-                        <Wallet className="h-6 w-6 text-blue-600" />
-                        <h2 className="text-2xl font-bold text-gray-800">Wallet Balance</h2>
+                {/* Wallet Balance Section */}
+                <div className="bg-gradient-to-r from-green-400 to-blue-500 text-white p-6 rounded-xl shadow-md flex justify-between items-center">
+                    <div>
+                        <h2 className="text-lg font-semibold">Total Balance</h2>
+                        <p className="text-3xl font-bold">₹{walletDetails?.account_total_balance ?? '0.00'}</p>
                     </div>
-                    <div className="text-3xl font-bold text-blue-600">
-                        ₹{walletDetails?.account_total_balance ?? 'Loading...'}
+                    <div className="text-sm text-white/90 text-right">
+                        Last updated:<br />
+                        {walletDetails?.created_at ? new Date(walletDetails.created_at).toLocaleString() : '--'}
                     </div>
                 </div>
 
+                {/* Add Money Section */}
                 <div className="bg-white rounded-lg shadow-md p-6 border">
                     <div className="flex items-center space-x-3 mb-4">
                         <Plus className="h-5 w-5 text-green-600" />
@@ -122,8 +127,8 @@ function CustomerWallet() {
                             value={amount}
                             onChange={(e) => setAmount(e.target.value)}
                         />
-                        <Button 
-                            onClick={handleAddAmount} 
+                        <Button
+                            onClick={handleAddAmount}
                             disabled={loading || verifying}
                             className="bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded-lg text-white font-medium disabled:opacity-50"
                         >
@@ -133,23 +138,29 @@ function CustomerWallet() {
                 </div>
 
                 <div className="bg-white rounded-lg shadow-md p-6 border">
-                    <h3 className="text-lg font-semibold text-gray-800 mb-4">Wallet Details</h3>
-                    
-                    {walletDetails ? (
-                        <div className="space-y-3">
-                            <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                                <span className="text-gray-600">Wallet ID:</span>
-                                <span className="font-medium text-gray-800">{walletDetails.id}</span>
-                            </div>
-                            <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                                <span className="text-gray-600">Last Updated:</span>
-                                <span className="font-medium text-gray-800">
-                                    {new Date(walletDetails.created_at).toLocaleString()}
-                                </span>
-                            </div>
-                        </div>
+                    <div className="flex items-center space-x-3 mb-4">
+                        <Clock className="h-5 w-5 text-gray-600" />
+                        <h3 className="text-lg font-semibold text-gray-800">Transaction History</h3>
+                    </div>
+
+                    {transactions.length === 0 ? (
+                        <p className="text-gray-500 text-center">No transactions found.</p>
                     ) : (
-                        <p className="text-gray-500 text-center py-8">Loading wallet details...</p>
+                        <div className="divide-y">
+                            {transactions.map(txn => (
+                                <div key={txn.id} className="flex justify-between items-center py-3">
+                                    <div>
+                                        <p className={`font-semibold ${txn.amount > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                            {txn.amount > 0 ? `+₹${txn.amount}` : `-₹${Math.abs(txn.amount)}`}
+                                        </p>
+                                        <p className="text-sm text-gray-600">{txn.note || 'No description'}</p>
+                                    </div>
+                                    <div className="text-sm text-gray-500 text-right">
+                                        {new Date(txn.created_at).toLocaleString()}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
                     )}
                 </div>
             </div>

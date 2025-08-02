@@ -21,7 +21,8 @@ from .views import (
     EmergencyCancel,
     RatingListCreateView,
     CreateComplaintView,
-    CustomerComplaintsListView
+    CustomerComplaintsListView,
+    CustomerWalletTransactionHistoryView
     
 )
 
@@ -48,4 +49,5 @@ urlpatterns = [
     path('ratings/', RatingListCreateView.as_view(), name='rating-list-create'),
     path('complaints/<int:booking_id>/create/', CreateComplaintView.as_view(), name='create_complaint'),
     path('complaints/', CustomerComplaintsListView.as_view(), name='customer_complaints'),
+    path('customer-wallet/transactions/', CustomerWalletTransactionHistoryView.as_view(), name='wallet-transactions'),
 ]

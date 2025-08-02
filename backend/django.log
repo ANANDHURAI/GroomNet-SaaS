@@ -811,3 +811,56 @@ User disconnected from group: barber_3
 User disconnected from group: customer_2
 User disconnected from group: customer_2
 Bad Request: /instant-booking/complete/service/20/
+Bad Request: /instant-booking/complete/service/23/
+Anand Raj joined group: barber_3
+User disconnected from group: barber_3
+Anand Raj joined group: barber_3
+Bad Request: /auth/logout/
+User disconnected from group: barber_3
+Anand Raj joined group: barber_3
+User disconnected from group: barber_3
+Anand Raj joined group: barber_3
+User disconnected from group: barber_3
+Unauthorized: /customersite/services/
+Unauthorized: /customersite/services/
+Unauthorized: /barbersite/completed-barber-appointments/
+Unauthorized: /barbersite/completed-barber-appointments/
+Bad Request: /auth/logout/
+Bad Request: /auth/logout/
+Unauthorized: /adminsite/all-requests/
+Unauthorized: /adminsite/pending-requests/
+Unauthorized: /adminsite/all-requests/
+Unauthorized: /adminsite/pending-requests/
+Unauthorized: /instant-booking/working/status/3/
+Unauthorized: /instant-booking/working/status/3/
+Unauthorized: /customersite/home/
+Unauthorized: /customersite/home/
+Internal Server Error: /payment-service/wallet/verify-payment/
+Internal Server Error: /payment-service/wallet/verify-payment/
+Bad Request: /auth/logout/
+Internal Server Error: /payment-service/wallet/verify-payment/
+Anand Raj joined group: barber_3
+Sent booking 25 to barber 3
+Sent booking 25 to barber 3
+ilakkiya joined group: customer_2
+ilakkiya joined group: customer_2
+ilakkiya joined group: customer_2
+ilakkiya joined group: customer_2
+User disconnected from group: customer_2
+User disconnected from group: customer_2
+Anand Raj joined group: barber_3
+Sent booking 26 to barber 3
+Sent booking 26 to barber 3
+ilakkiya joined group: customer_2
+ilakkiya joined group: customer_2
+User disconnected from group: customer_2
+User disconnected from group: customer_2
+User disconnected from group: barber_3
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Unauthorized: /customersite/customer-wallet/transactions/
+Unauthorized: /customersite/wallet/
+Unauthorized: /customersite/customer-wallet/transactions/
+Unauthorized: /customersite/wallet/

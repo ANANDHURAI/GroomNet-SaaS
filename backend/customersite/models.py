@@ -103,6 +103,14 @@ class CustomerWallet(models.Model):
     def __str__(self):
         return f"{self.user.name}'s Wallet - Balance: ₹{self.account_total_balance}"
 
+class CustomerWalletTransaction(models.Model):
+    wallet = models.ForeignKey(CustomerWallet, on_delete=models.CASCADE, related_name="transactions")
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    note = models.CharField(max_length=255, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"₹{self.amount} on {self.created_at.strftime('%Y-%m-%d')} - {self.note or 'No note'}"
 
 class Complaints(models.Model):
     COMPLAINT_STATUS = [

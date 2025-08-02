@@ -139,8 +139,6 @@ class VerifyPayment(APIView):
             raise
 
 
-
-
 class CreateWalletStripeCheckoutSession(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -231,11 +229,17 @@ class VerifyPaymentAndAddToWallet(APIView):
                         status=status.HTTP_403_FORBIDDEN
                     )
             
-                from customersite.models import CustomerWallet
+                from customersite.models import CustomerWallet , CustomerWalletTransaction
                 from decimal import Decimal
                 wallet, created = CustomerWallet.objects.get_or_create(user=request.user)
                 wallet.account_total_balance += Decimal(str(amount))
                 wallet.save()
+
+                CustomerWalletTransaction.objects.create(
+                    wallet = wallet,
+                    amount = Decimal(str(amount)),
+                    note = f"₹{amount} added to your wallet"
+                )
                 
                 return Response({
                     "success": True,

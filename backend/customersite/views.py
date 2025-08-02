@@ -24,7 +24,7 @@ from django.utils import timezone
 from profileservice.models import Address , UserProfile
 from profileservice.serializers import AddressSerializer
 from authservice.models import User
-from.models import Booking ,CustomerWallet ,Complaints
+from.models import Booking ,CustomerWallet ,Complaints , CustomerWalletTransaction
 logger = logging.getLogger(__name__)
 from django.utils import timezone
 from datetime import datetime
@@ -544,25 +544,49 @@ class EmergencyCancel(APIView):
                     return Response({'error': "You can't cancel this booking because the barber is almost at or has reached your location"},
                                     status=status.HTTP_400_BAD_REQUEST)
 
-                payment = booking.payment
                 fine_percentage = Decimal('0.10')
                 fine_amount = booking.total_amount * fine_percentage
-                refund_amount = booking.total_amount - fine_amount
 
-                wallet, _ = CustomerWallet.objects.get_or_create(user=request.user)
-                wallet.account_total_balance += refund_amount
-                wallet.save()
+                # Check payment method from PaymentModel
+                payment_method = booking.payment.payment_method if booking.payment else None
 
-                admin_wallet, _ = AdminWallet.objects.get_or_create(id=1, defaults={'total_earnings': Decimal('0.00')})
-                admin_wallet.total_earnings -= refund_amount  
-                admin_wallet.save()
+                if payment_method != 'COD':
+                    # Refund scenario (non-COD)
+                    refund_amount = booking.total_amount - fine_amount
 
-                AdminWalletTransaction.objects.create(
-                    wallet=admin_wallet,
-                    amount=-refund_amount, 
-                    note=f"Booking #{booking.id}- Refund issued to customer for emergency cancel of booking "
-                )
-               
+                    wallet, _ = CustomerWallet.objects.get_or_create(user=request.user)
+                    wallet.account_total_balance += refund_amount
+                    wallet.save()
+
+                    admin_wallet, _ = AdminWallet.objects.get_or_create(id=1, defaults={'total_earnings': Decimal('0.00')})
+                    admin_wallet.total_earnings -= refund_amount  
+                    admin_wallet.save()
+
+                    AdminWalletTransaction.objects.create(
+                        wallet=admin_wallet,
+                        amount=-refund_amount,
+                        note=f"Booking #{booking.id} - Refund issued to customer for emergency cancel"
+                    )
+
+                    CustomerWalletTransaction.objects.create(
+                        wallet=wallet,
+                        amount=refund_amount,
+                        note=f"Refund of ₹{refund_amount} for cancelled Booking #{booking.id} (Emergency)"
+                    )
+                    CustomerWalletTransaction.objects.create(
+                        wallet=wallet,
+                        amount=-fine_amount,
+                        note=f"Fine ₹{fine_amount} for cancelled Booking #{booking.id}"
+                    )
+                else:
+                    
+                    wallet, _ = CustomerWallet.objects.get_or_create(user=request.user)
+                    CustomerWalletTransaction.objects.create(
+                        wallet=wallet,
+                        amount=-fine_amount,
+                        note=f"Fine ₹{fine_amount} for cancelled Booking #{booking.id} (COD)"
+                    )
+
                 if booking.barber:
                     barber_wallet, _ = BarberWallet.objects.get_or_create(barber=booking.barber)
                     barber_wallet.balance += fine_amount
@@ -573,13 +597,14 @@ class EmergencyCancel(APIView):
                         amount=fine_amount,
                         note=f"Fine received from emergency cancel of booking #{booking.id}"
                     )
+
                 booking.status = 'CANCELLED'
                 booking.save()
 
                 return Response({
                     'message': 'Booking cancelled successfully!',
                     'fine_amount': str(fine_amount),
-                    'refund_amount': str(refund_amount),
+                    'refund_amount': str(refund_amount) if payment_method != 'COD' else '0.00',
                     'wallet_balance': str(wallet.account_total_balance)
                 }, status=status.HTTP_200_OK)
 
@@ -587,6 +612,7 @@ class EmergencyCancel(APIView):
             return Response({'error': 'Booking not found'}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return Response({'error': f'An error occurred: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 
 from .models import Rating
@@ -646,14 +672,20 @@ class CreateComplaintView(APIView):
         return Response(serializer.errors, status=400)
 
 
+from.serializer import CustomerTransactionSerializer
 
-# class CustomerComplaintsListView(APIView):
-#     permission_classes = [IsAuthenticated]
+class CustomerWalletTransactionHistoryView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        wallet = CustomerWallet.objects.filter(user=request.user).first()
+        if not wallet:
+            return Response({'history': []})
+
+        transactions = CustomerWalletTransaction.objects.filter(wallet=wallet).order_by('-created_at')
+        serializer = CustomerTransactionSerializer(transactions, many=True)
+        return Response({'history': serializer.data})
     
-#     def get(self, request):
-#         complaints = Complaints.objects.filter(user=request.user).order_by('-updated_at')
-#         serializer = ComplaintSerializer(complaints, many=True)
-#         return Response(serializer.data)
 
 class CustomerComplaintsListView(APIView):
     permission_classes = [IsAuthenticated]
