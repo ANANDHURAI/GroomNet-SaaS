@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Send, ArrowLeft, User } from 'lucide-react';
 import apiClient from '../../slices/api/apiIntercepters';
-import { OnlineStatus, TypingIndicator, useTypingIndicator } from '../../components/chatcomponents/ChatStatusIndicators';
 
 function CustomerChatPage() {
   const { bookingId } = useParams();
@@ -12,11 +11,12 @@ function CustomerChatPage() {
   const [bookingInfo, setBookingInfo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
-  const [isOtherUserOnline, setIsOtherUserOnline] = useState(false);
+  const [isOnline, setIsOnline] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef(null);
   const websocketRef = useRef(null);
-  
-  const { isOtherUserTyping, handleInputChange, handleWebSocketMessage } = useTypingIndicator(websocketRef, bookingId);
+  const typingTimeoutRef = useRef(null);
+  const reconnectTimeoutRef = useRef(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -26,117 +26,187 @@ function CustomerChatPage() {
     scrollToBottom();
   }, [messages]);
 
-
   useEffect(() => {
-    const fetchInitialData = async () => {
-      try {
-        const [messagesRes, bookingRes] = await Promise.all([
-          apiClient.get(`/chat-service/chat/${bookingId}/messages/`),
-          apiClient.get(`/chat-service/chat/${bookingId}/info/`)
-        ]);
+    fetchChatData();
+    connectWebSocket();
+    markAsRead();
 
-        setMessages(messagesRes.data.messages || []);
-        setBookingInfo(bookingRes.data);
-        setLoading(false);
-      } catch (error) {
-        console.error('Error fetching chat data:', error);
-        setLoading(false);
-      }
-    };
-
-    let reconnectAttempts = 0;
-    const maxReconnectAttempts = 5;
-    let reconnectTimeout;
-
-    const connectWebSocket = () => {
-      if (reconnectAttempts >= maxReconnectAttempts) {
-        console.log('Max reconnection attempts reached');
-        return;
-      }
-
-      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      const token = sessionStorage.getItem('access_token');
-      const wsUrl = `${protocol}//localhost:8000/ws/chat/${bookingId}/?token=${token}`;
-
-      // Close existing connection if any
+    return () => {
       if (websocketRef.current) {
         websocketRef.current.close();
       }
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
+      }
+    };
+  }, [bookingId]);
 
-      websocketRef.current = new WebSocket(wsUrl);
+  const fetchChatData = async () => {
+    try {
+      const [messagesRes, bookingRes] = await Promise.all([
+        apiClient.get(`/chat-service/chat/${bookingId}/messages/`),
+        apiClient.get(`/chat-service/chat/${bookingId}/info/`)
+      ]);
 
-      websocketRef.current.onopen = () => {
-        console.log('WebSocket connected');
-        reconnectAttempts = 0; // Reset on successful connection
-      };
+      setMessages(messagesRes.data.messages || []);
+      setBookingInfo(bookingRes.data);
+      setLoading(false);
+    } catch (error) {
+      console.error('Error fetching chat data:', error);
+      setLoading(false);
+    }
+  };
 
-      websocketRef.current.onmessage = (event) => {
-        try {
-          const data = JSON.parse(event.data);
+  const connectWebSocket = () => {
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const token = sessionStorage.getItem('access_token');
+    const wsUrl = `${protocol}//localhost:8000/ws/chat/${bookingId}/?token=${token}`;
 
-          // Handle typing and user status
-          const userStatus = handleWebSocketMessage(data);
-          if (userStatus !== undefined) {
-            setIsOtherUserOnline(userStatus);
-            return;
-          }
+    if (websocketRef.current) {
+      websocketRef.current.close();
+    }
 
-          if (data.type === 'message') {
+    websocketRef.current = new WebSocket(wsUrl);
+
+    websocketRef.current.onopen = () => {
+      console.log('Chat WebSocket connected');
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
+        reconnectTimeoutRef.current = null;
+      }
+    };
+
+    websocketRef.current.onmessage = (event) => {
+      console.log('Raw WebSocket message received:', event.data);
+      try {
+        const data = JSON.parse(event.data);
+        console.log('Parsed WebSocket data:', data);
+
+        switch (data.type) {
+          case 'message':
+            console.log('Processing message:', data.data);
             setMessages(prev => {
-              // Check if message already exists
-              const exists = prev.some(msg => msg.id === data.data.id);
+              // Remove any temporary messages with the same content
+              const filteredPrev = prev.filter(msg => 
+                !(msg.id && msg.id.toString().startsWith('temp_') && msg.message === data.data.message)
+              );
+              
+              const exists = filteredPrev.some(msg => msg.id === data.data.id);
               if (exists) {
-                return prev;
+                console.log('Message already exists, skipping');
+                return filteredPrev;
               }
-              // Add new message
-              return [...prev, data.data];
+              console.log('Adding new message to state');
+              return [...filteredPrev, data.data];
             });
-          } else if (data.type === 'user_status') {
-            setIsOtherUserOnline(data.is_online);
-          } else if (data.type === 'error') {
+            
+            // Trigger unread count update
+            if (data.unread_count !== undefined) {
+              console.log('Updating unread count:', data.unread_count);
+              window.dispatchEvent(new CustomEvent('unreadCountUpdate', {
+                detail: { bookingId: bookingId, count: data.unread_count }
+              }));
+            }
+            break;
+            
+          case 'user_status':
+            console.log('User status update:', data.is_online);
+            setIsOnline(data.is_online);
+            break;
+            
+          case 'typing':
+            console.log('Typing indicator:', data.is_typing);
+            setIsTyping(data.is_typing);
+            if (typingTimeoutRef.current) {
+              clearTimeout(typingTimeoutRef.current);
+            }
+            if (data.is_typing) {
+              typingTimeoutRef.current = setTimeout(() => setIsTyping(false), 3000);
+            }
+            break;
+            
+          case 'mark_as_read':
+            console.log('Messages marked as read');
+            window.dispatchEvent(new CustomEvent('unreadCountUpdate', {
+              detail: { bookingId: bookingId, count: 0 }
+            }));
+            break;
+
+          case 'total_unread_update':
+            console.log('Total unread update:', data);
+            window.dispatchEvent(new CustomEvent('totalUnreadUpdate', {
+              detail: { 
+                totalCount: data.total_count, 
+                bookingCounts: data.booking_counts 
+              }
+            }));
+            break;
+
+          case 'unread_count_update':
+            console.log('Unread count update:', data);
+            window.dispatchEvent(new CustomEvent('unreadCountUpdate', {
+              detail: { bookingId: data.booking_id, count: data.unread_count }
+            }));
+            break;
+
+          case 'error':
             console.error('WebSocket error:', data.message);
-          }
-        } catch (error) {
-          console.error('Error parsing WebSocket message:', error);
-        }
-      };
+            break;
 
-      websocketRef.current.onclose = (event) => {
-        console.log('WebSocket disconnected', event.code, event.reason);
-        
-        // Don't reconnect if it was a normal closure or auth failure
-        if (event.code === 1000 || event.code === 4001 || event.code === 4002 || event.code === 4003) {
-          return;
+          default:
+            console.log('Unknown message type:', data.type);
         }
+      } catch (error) {
+        console.error('Error parsing WebSocket message:', error);
+      }
+    };
 
-        // Attempt to reconnect with exponential backoff
-        reconnectAttempts++;
-        const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), 30000);
-        
-        console.log(`Reconnecting in ${delay}ms (attempt ${reconnectAttempts})`);
-        reconnectTimeout = setTimeout(() => {
+    websocketRef.current.onclose = (event) => {
+      console.log('Chat WebSocket disconnected:', event.code, event.reason);
+      // Only reconnect if it wasn't a clean close
+      if (event.code !== 1000 && !reconnectTimeoutRef.current) {
+        reconnectTimeoutRef.current = setTimeout(() => {
+          console.log('Attempting to reconnect WebSocket...');
           connectWebSocket();
-        }, delay);
-      };
-
-      websocketRef.current.onerror = (error) => {
-        console.error('WebSocket error:', error);
-      };
-    };
-
-    fetchInitialData();
-    connectWebSocket();
-
-    return () => {
-      if (reconnectTimeout) {
-        clearTimeout(reconnectTimeout);
-      }
-      if (websocketRef.current) {
-        websocketRef.current.close(1000, 'Component unmounting');
+        }, 3000);
       }
     };
-  }, [bookingId, handleWebSocketMessage]);
 
+    websocketRef.current.onerror = (error) => {
+      console.error('WebSocket error:', error);
+    };
+  };
+
+  const markAsRead = async () => {
+    try {
+      await apiClient.post(`/chat-service/chat/${bookingId}/mark-as-read/`);
+      // Update local unread count immediately
+      window.dispatchEvent(new CustomEvent('unreadCountUpdate', {
+        detail: { bookingId: bookingId, count: 0 }
+      }));
+    } catch (error) {
+      console.error('Failed to mark as read:', error);
+    }
+  };
+
+  const handleInputChange = (value) => {
+    setNewMessage(value);
+    
+    // Send typing indicator
+    if (websocketRef.current?.readyState === WebSocket.OPEN) {
+      try {
+        websocketRef.current.send(JSON.stringify({
+          type: 'typing',
+          is_typing: value.length > 0
+        }));
+      } catch (error) {
+        console.error('Error sending typing indicator:', error);
+      }
+    }
+  };
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
@@ -145,52 +215,75 @@ function CustomerChatPage() {
     const messageText = newMessage.trim();
     setSending(true);
     
+    // Create temporary message for immediate UI update
+    const tempId = `temp_${Date.now()}`;
+    const tempMessage = {
+      id: tempId,
+      message: messageText,
+      sender: {
+        id: bookingInfo?.current_user_id,
+        name: 'You',
+        email: ''
+      },
+      timestamp: new Date().toISOString(),
+      is_read: false
+    };
+    
+    // Add message to UI immediately for better UX
+    setMessages(prev => [...prev, tempMessage]);
+    setNewMessage('');
+    
     try {
-      // Check if WebSocket is ready
-      if (!websocketRef.current) {
-        throw new Error('WebSocket not initialized');
-      }
-
-      // Wait for connection if it's connecting
-      let attempts = 0;
-      while (websocketRef.current.readyState === WebSocket.CONNECTING && attempts < 10) {
-        await new Promise(resolve => setTimeout(resolve, 100));
-        attempts++;
-      }
-
-      if (websocketRef.current.readyState === WebSocket.OPEN) {
-        websocketRef.current.send(JSON.stringify({ message: messageText }));
-        setNewMessage('');
+      // Try WebSocket first
+      if (websocketRef.current?.readyState === WebSocket.OPEN) {
+        console.log('Sending message via WebSocket');
+        websocketRef.current.send(JSON.stringify({ 
+          type: 'message',
+          message: messageText 
+        }));
       } else {
-        // Fallback to HTTP API if WebSocket fails
         console.log('WebSocket not available, using HTTP fallback');
         const response = await apiClient.post(`/chat-service/chat/${bookingId}/messages/`, {
           message: messageText
         });
         
-        // Add message to local state immediately
-        setMessages(prev => [...prev, response.data]);
-        setNewMessage('');
+        // Replace temp message with real message from server
+        setMessages(prev => 
+          prev.map(msg => msg.id === tempId ? response.data : msg)
+        );
       }
     } catch (error) {
       console.error('Send error:', error);
+      // Remove temp message on error
+      setMessages(prev => prev.filter(msg => msg.id !== tempId));
       alert('Failed to send message. Please try again.');
+      setNewMessage(messageText); // Restore message on error
     } finally {
       setSending(false);
     }
   };
 
-  const formatTime = (timestamp) => new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const formatTime = (timestamp) => {
+    try {
+      return new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    } catch (error) {
+      return '';
+    }
+  };
 
   const formatDate = (timestamp) => {
-    const date = new Date(timestamp);
-    const today = new Date();
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
+    try {
+      const date = new Date(timestamp);
+      const today = new Date();
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
 
-    if (date.toDateString() === today.toDateString()) return 'Today';
-    if (date.toDateString() === yesterday.toDateString()) return 'Yesterday';
-    return date.toLocaleDateString();
+      if (date.toDateString() === today.toDateString()) return 'Today';
+      if (date.toDateString() === yesterday.toDateString()) return 'Yesterday';
+      return date.toLocaleDateString();
+    } catch (error) {
+      return '';
+    }
   };
 
   if (loading) {
@@ -202,101 +295,130 @@ function CustomerChatPage() {
   }
 
   return (
-    <div className="w-full h-full">
-      <div className="h-full max-w-4xl mx-auto bg-white rounded-lg shadow-lg overflow-hidden flex flex-col">
-        <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4">
-          <button
-            onClick={() => navigate(-1)}
-            className="flex items-center text-white hover:text-blue-200 mb-2"
-          >
-            <ArrowLeft className="w-4 h-4 mr-1" />
-            Back to Booking
-          </button>
+    <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-lg overflow-hidden flex flex-col h-[600px]">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4">
+        <button
+          onClick={() => navigate(-1)}
+          className="flex items-center text-white hover:text-blue-200 mb-2 transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4 mr-1" />
+          Back to Booking
+        </button>
 
-          {bookingInfo && (
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-                {bookingInfo.other_user.profile_image ? (
-                  <img
-                    src={bookingInfo.other_user.profile_image}
-                    alt={bookingInfo.other_user.name}
-                    className="w-10 h-10 rounded-full object-cover"
-                  />
-                ) : (
-                  <User className="w-6 h-6 text-white" />
+        {bookingInfo && (
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+              {bookingInfo.other_user.profile_image ? (
+                <img
+                  src={bookingInfo.other_user.profile_image}
+                  alt={bookingInfo.other_user.name}
+                  className="w-10 h-10 rounded-full object-cover"
+                />
+              ) : (
+                <User className="w-6 h-6 text-white" />
+              )}
+            </div>
+            <div className="flex-1">
+              <h2 className="text-lg font-semibold">{bookingInfo.other_user.name}</h2>
+              <p className="text-sm text-blue-100">
+                {bookingInfo.service_name} • {bookingInfo.booking_date} at {bookingInfo.booking_time}
+              </p>
+              <div className="flex items-center text-xs text-blue-100 mt-1">
+                <div className={`w-2 h-2 rounded-full mr-2 transition-colors ${
+                  isOnline ? 'bg-green-400' : 'bg-gray-400'
+                }`} />
+                {isOnline ? 'Online' : 'Offline'}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Messages */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
+        {messages.length === 0 ? (
+          <div className="text-center text-gray-500 py-8">
+            <p>No messages yet. Start the conversation!</p>
+          </div>
+        ) : (
+          messages.map((message, index) => {
+            const isCurrentUser = message.sender.id === bookingInfo?.current_user_id;
+            const showDate = index === 0 || formatDate(messages[index - 1].timestamp) !== formatDate(message.timestamp);
+            const isTemporary = message.id && message.id.toString().startsWith('temp_');
+
+            return (
+              <div key={message.id}>
+                {showDate && (
+                  <div className="text-center text-gray-500 text-sm py-2">
+                    {formatDate(message.timestamp)}
+                  </div>
                 )}
-              </div>
-              <div className="flex-1">
-                <h2 className="text-lg font-semibold">{bookingInfo.other_user.name}</h2>
-                <p className="text-sm text-blue-100">
-                  {bookingInfo.service_name} • {bookingInfo.booking_date} at {bookingInfo.booking_time}
-                </p>
-                <OnlineStatus isOnline={isOtherUserOnline} />
-              </div>
-            </div>
-          )}
-        </div>
-
-        <div className="h-96 overflow-y-auto p-4 space-y-4 bg-gray-50">
-          {messages.length === 0 ? (
-            <div className="text-center text-gray-500 py-8">
-              <p>No messages yet. Start the conversation!</p>
-            </div>
-          ) : (
-            messages.map((message, index) => {
-              const isCurrentUser = message.sender.id === bookingInfo?.current_user_id;
-              const showDate = index === 0 || formatDate(messages[index - 1].timestamp) !== formatDate(message.timestamp);
-
-              return (
-                <div key={message.id}>
-                  {showDate && (
-                    <div className="text-center text-gray-500 text-sm py-2">
-                      {formatDate(message.timestamp)}
-                    </div>
-                  )}
-                  <div className={`flex ${isCurrentUser ? 'justify-end' : 'justify-start'}`}>
-                    <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-                      isCurrentUser ? 'bg-blue-600 text-white' : 'bg-white text-gray-800 border'
-                    }`}>
-                      {!isCurrentUser && (
-                        <p className="text-xs text-gray-500 mb-1">{message.sender.name}</p>
-                      )}
-                      <p className="text-sm">{message.message}</p>
-                      <p className={`text-xs mt-1 ${isCurrentUser ? 'text-blue-100' : 'text-gray-500'}`}>
+                <div className={`flex ${isCurrentUser ? 'justify-end' : 'justify-start'}`}>
+                  <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg transition-opacity ${
+                    isCurrentUser 
+                      ? `bg-blue-600 text-white ${isTemporary ? 'opacity-70' : ''}` 
+                      : 'bg-white text-gray-800 border'
+                  }`}>
+                    {!isCurrentUser && (
+                      <p className="text-xs text-gray-500 mb-1">{message.sender.name}</p>
+                    )}
+                    <p className="text-sm break-words">{message.message}</p>
+                    <div className="flex items-center justify-between mt-1">
+                      <p className={`text-xs ${isCurrentUser ? 'text-blue-100' : 'text-gray-500'}`}>
                         {formatTime(message.timestamp)}
                       </p>
+                      {isTemporary && (
+                        <div className="text-xs text-blue-200 ml-2">
+                          Sending...
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
-              );
-            })
-          )}
+              </div>
+            );
+          })
+        )}
 
-          <TypingIndicator isTyping={isOtherUserTyping} userName={bookingInfo?.other_user.name} colorTheme="blue" />
-          <div ref={messagesEndRef} />
-        </div>
-
-        <form onSubmit={handleSendMessage} className="p-4 border-t bg-white">
-          <div className="flex space-x-2">
-            <input
-              type="text"
-              value={newMessage}
-              onChange={(e) => handleInputChange(e.target.value, setNewMessage)}
-              placeholder="Type your message..."
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              disabled={sending}
-            />
-            <button
-              type="submit"
-              disabled={!newMessage.trim() || sending}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center gap-2"
-            >
-              <Send className="w-4 h-4" />
-              {sending ? 'Sending...' : 'Send'}
-            </button>
+        {/* Typing indicator */}
+        {isTyping && (
+          <div className="flex justify-start">
+            <div className="bg-white text-gray-800 border px-4 py-2 rounded-lg max-w-xs">
+              <div className="flex space-x-1 items-center">
+                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+              </div>
+              <p className="text-xs text-gray-500 mt-1">{bookingInfo?.other_user.name} is typing...</p>
+            </div>
           </div>
-        </form>
+        )}
+        
+        <div ref={messagesEndRef} />
       </div>
+
+      {/* Input */}
+      <form onSubmit={handleSendMessage} className="p-4 border-t bg-white">
+        <div className="flex space-x-2">
+          <input
+            type="text"
+            value={newMessage}
+            onChange={(e) => handleInputChange(e.target.value)}
+            placeholder="Type your message..."
+            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            disabled={sending}
+          />
+          <button
+            type="submit"
+            disabled={!newMessage.trim() || sending}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center gap-2 transition-colors"
+          >
+            <Send className="w-4 h-4" />
+            {sending ? 'Sending...' : 'Send'}
+          </button>
+        </div>
+      </form>
     </div>
   );
 }

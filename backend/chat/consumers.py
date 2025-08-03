@@ -11,7 +11,7 @@ from jwt import decode as jwt_decode
 from django.conf import settings
 import asyncio
 import time
-
+from django.db import models
 User = get_user_model()
 
 ONLINE_USERS = {}
@@ -28,6 +28,44 @@ class ChatConsumer(AsyncWebsocketConsumer):
             return Booking.objects.get(id=booking_id)
         except Booking.DoesNotExist:
             return None
+        
+    @database_sync_to_async
+    def get_unread_count_for_user(self, booking_id, user_id):
+        from .models import ChatMessage
+        return ChatMessage.objects.filter(
+            booking_id=booking_id,
+            is_read=False
+        ).exclude(sender_id=user_id).count()
+    
+    @database_sync_to_async
+    def get_total_unread_count_for_user(self, user_id):
+        from .models import ChatMessage
+        from customersite.models import Booking
+        
+        # Get all bookings where user is involved
+        user_bookings = Booking.objects.filter(
+            models.Q(customer_id=user_id) | models.Q(barber_id=user_id)
+        ).values_list('id', flat=True)
+        
+
+        total_count = ChatMessage.objects.filter(
+            booking_id__in=user_bookings,
+            is_read=False
+        ).exclude(sender_id=user_id).count()
+        
+        # Get per-booking counts
+        booking_counts = {}
+        for booking_id in user_bookings:
+            count = ChatMessage.objects.filter(
+                booking_id=booking_id,
+                is_read=False
+            ).exclude(sender_id=user_id).count()
+            if count > 0:
+                booking_counts[str(booking_id)] = count
+        
+        return total_count, booking_counts
+    
+    
 
     def set_user_online_status(self, booking_id, user_id, is_online):
         key = f"{booking_id}_{user_id}"
@@ -263,6 +301,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             )
             print(f"WebSocket: Message saved - ID: {message.id}")
 
+            # After creating the message, replace the broadcast section:
             message_data = {
                 'id': message.id,
                 'message': message.message,
@@ -275,6 +314,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 'is_read': message.is_read
             }
 
+            # Broadcast immediately without delay
             await self.channel_layer.group_send(
                 self.room_group_name,
                 {
@@ -283,6 +323,14 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 }
             )
             print("WebSocket: Message broadcast to group")
+
+            # Update unread counts immediately
+            other_user_id = await database_sync_to_async(self.get_other_user_id)(
+                self.booking, self.user.id
+            )
+
+            # Send total unread update immediately
+            await self.send_total_unread_update(other_user_id)
 
         except Exception as e:
             print(f"WebSocket: Error in receive - {str(e)}")
@@ -294,14 +342,22 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     async def chat_message(self, event):
         message_data = event['message_data']
-    
-        await asyncio.sleep(0.1)
+        other_user_id = await database_sync_to_async(self.get_other_user_id)(
+            self.booking, self.user.id
+        )
+        
+        unread_count = None
+        if message_data['sender']['id'] != self.user.id:
+            unread_count = await self.get_unread_count_for_user(
+                self.booking_id, self.user.id
+            )
         
         await self.send(text_data=json.dumps({
             'type': 'message',
-            'data': message_data
+            'data': message_data,
+            'unread_count': unread_count
         }))
-        print("WebSocket: Message sent to client")
+    print("WebSocket: Message sent to client")
 
     async def typing_indicator(self, event):
         user_id = event['user_id']
@@ -331,3 +387,61 @@ class ChatConsumer(AsyncWebsocketConsumer):
             print(f"WebSocket: User status update sent to client - {is_online}")
         else:
             print(f"WebSocket: Skipping status update for sender")
+
+    async def send_total_unread_update(self, user_id):
+        """Send total unread count update to user"""
+        try:
+            total_count, booking_counts = await self.get_total_unread_count_for_user(user_id)
+            
+            # Send to all chat rooms where this user is connected
+            from customersite.models import Booking
+            user_bookings = await database_sync_to_async(list)(
+                Booking.objects.filter(
+                    models.Q(customer_id=user_id) | models.Q(barber_id=user_id)
+                ).values_list('id', flat=True)
+            )
+            
+            for booking_id in user_bookings:
+                room_group_name = f'chat_{booking_id}'
+                await self.channel_layer.group_send(
+                    room_group_name,
+                    {
+                        'type': 'total_unread_update',
+                        'user_id': user_id,
+                        'total_count': total_count,
+                        'booking_counts': booking_counts
+                    }
+                )
+            print(f"Sent total unread update to user {user_id}: {total_count}")
+        except Exception as e:
+            print(f"Error sending total unread update: {e}")
+
+    async def unread_count_update(self, event):
+        user_id = event['user_id']
+        unread_count = event['unread_count']
+        booking_id = event['booking_id']
+       
+        if user_id == self.user.id:
+            await self.send(text_data=json.dumps({
+                'type': 'unread_count_update',
+                'booking_id': booking_id,
+                'unread_count': unread_count
+            }))
+            print(f"WebSocket: Unread count update sent - {unread_count}")
+
+    async def total_unread_update(self, event):
+        user_id = event['user_id']
+        total_count = event['total_count']
+        booking_counts = event['booking_counts']
+        
+        if user_id == self.user.id:
+            await self.send(text_data=json.dumps({
+                'type': 'total_unread_update',
+                'total_count': total_count,
+                'booking_counts': booking_counts
+            }))
+            print(f"WebSocket: Total unread update sent - {total_count}")
+
+    async def send_total_unread_update_wrapper(self, event):
+        user_id = event['user_id']
+        await self.send_total_unread_update(user_id)

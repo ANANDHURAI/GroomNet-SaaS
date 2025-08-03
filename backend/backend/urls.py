@@ -15,5 +15,6 @@ urlpatterns = [
     path('chat-service/', include('chat.urls')),
     path('payment-service/', include('paymentservice.urls')),
     path('instant-booking/', include('instantbooking.urls')),
+    path('report-download-service/', include('reports.urls')),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

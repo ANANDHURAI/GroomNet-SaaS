@@ -2,12 +2,15 @@ import React, { useEffect, useState } from 'react';
 import apiClient from '../../slices/api/apiIntercepters';
 import { useNavigate } from 'react-router-dom';
 import CustomerLayout from '../../components/customercompo/CustomerLayout';
+import { useNotifications } from '../../components/customHooks/useNotifications';
+import NotificationBadge from '../../components/notification/NotificationBadge';
 
 function BookingHistoryPage() {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+  const { totalUnreadCount, bookingUnreadCounts } = useNotifications();
 
   useEffect(() => {
     apiClient
@@ -26,7 +29,9 @@ function BookingHistoryPage() {
   return (
     <CustomerLayout>
       <div className="max-w-3xl mx-auto p-4">
-        <h2 className="text-3xl font-bold mb-6 text-gray-800">My Bookings</h2>
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-3xl font-bold text-gray-800">My Bookings</h2>
+        </div>
 
         {loading ? (
           <p className="text-gray-600">Loading your bookings...</p>
@@ -39,8 +44,15 @@ function BookingHistoryPage() {
             {bookings.map(booking => (
               <div
                 key={booking.id}
-                className="bg-white p-4 rounded-lg shadow-md border flex flex-col sm:flex-row justify-between items-start sm:items-center"
+                className="bg-white p-4 rounded-lg shadow-md border flex flex-col sm:flex-row justify-between items-start sm:items-center relative"
               >
+                {/* Add notification badge for each booking */}
+                {bookingUnreadCounts[booking.id] > 0 && (
+                  <div className="absolute -top-2 -right-2 z-10">
+                    <NotificationBadge count={bookingUnreadCounts[booking.id]} />
+                  </div>
+                )}
+
                 <div className="mb-2 sm:mb-0">
                   <p className="font-semibold text-lg text-gray-800">
                     {booking.service}
@@ -72,9 +84,15 @@ function BookingHistoryPage() {
                   </span>
                   <button
                     onClick={() => navigate(`/booking-details/${booking.id}`)}
-                    className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+                    className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 transition relative"
                   >
                     View Details
+                    {/* Add badge to button if there are unread messages */}
+                    {bookingUnreadCounts[booking.id] > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
+                        {bookingUnreadCounts[booking.id] > 9 ? '9+' : bookingUnreadCounts[booking.id]}
+                      </span>
+                    )}
                   </button>
                 </div>
               </div>

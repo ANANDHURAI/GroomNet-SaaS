@@ -115,7 +115,7 @@ function BarberStatus() {
   };
 
   const handleStartRegistration = () => navigate('/barber-registration');
-  const handleTryAgain = () => navigate('/barber-registration');
+  const handleTryAgain = () => navigate('/barber-document-upload');
   
   const handleContinueRegistration = () => {
     if (nextStep === 'upload_documents') {

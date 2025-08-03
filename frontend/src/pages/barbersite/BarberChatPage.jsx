@@ -65,25 +65,46 @@ function BarberChatPage() {
       };
 
       websocketRef.current.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        
-        const userStatus = handleWebSocketMessage(data);
-        if (userStatus !== undefined) {
-          setIsOtherUserOnline(userStatus);
-          return;
-        }
-        
-        if (data.type === 'message') {
-          setMessages(prevMessages => {
-            const messageExists = prevMessages.some(msg => msg.id === data.data.id);
-            if (messageExists) {
-              return prevMessages;
+        try {
+          const data = JSON.parse(event.data);
+
+          // Handle typing and user status
+          const userStatus = handleWebSocketMessage(data);
+          if (userStatus !== undefined) {
+            setIsOtherUserOnline(userStatus);
+            return;
+          }
+
+          if (data.type === 'message') {
+            setMessages(prev => {
+              // Check if message already exists
+              const exists = prev.some(msg => msg.id === data.data.id);
+              if (exists) {
+                return prev;
+              }
+              // Add new message
+              return [...prev, data.data];
+            });
+            
+            // Clear unread count when receiving message in active chat
+            if (data.unread_count !== undefined) {
+              // This will be 0 since user is in the chat
+              console.log('Message received, unread count:', data.unread_count);
             }
-            // Force re-render by creating new array
-            return [...prevMessages, { ...data.data }];
-          });
-        } else if (data.type === 'error') {
-          console.error('WebSocket error:', data.message);
+          } else if (data.type === 'user_status') {
+            setIsOtherUserOnline(data.is_online);
+          } else if (data.type === 'unread_count_update') {
+            // Handle global unread count updates (when not in this specific chat)
+            console.log('Unread count update:', data.unread_count);
+            // You can emit this to a global notification system
+            window.dispatchEvent(new CustomEvent('unreadCountUpdate', {
+              detail: { bookingId: data.booking_id, count: data.unread_count }
+            }));
+          } else if (data.type === 'error') {
+            console.error('WebSocket error:', data.message);
+          }
+        } catch (error) {
+          console.error('Error parsing WebSocket message:', error);
         }
       };
 

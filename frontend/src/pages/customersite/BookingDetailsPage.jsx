@@ -8,11 +8,14 @@ import TravelStatus from '../../components/customercompo/booking/TravelStatus';
 import ActionButtons from '../../components/customercompo/booking/ActionButtons';
 import RatingModal from '../../components/customercompo/booking/RatingModal';
 import ComplaintModal from '../../components/customercompo/booking/ComplaintModal';
-
+import { useNotifications } from '../../components/customHooks/useNotifications';
+import NotificationBadge from '../../components/notification/NotificationBadge';
 
 function BookingDetailsPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+
+  const { bookingUnreadCounts  , totalUnreadCount } = useNotifications();
   
   const [state, setState] = useState({
     data: null,
@@ -28,6 +31,8 @@ function BookingDetailsPage() {
   const updateState = (updates) => {
     setState(prev => ({ ...prev, ...updates }));
   };
+
+  const { clearBookingUnreadCount } = useNotifications();
 
   const fetchBookingDetails = async () => {
     try {
@@ -83,7 +88,7 @@ function BookingDetailsPage() {
 
   const calculateTimeLeft = (date, time) => {
     if (time === "N/A") {
-      updateState({ timeLeft: "No scheduled time (instant booking)" });
+      updateState({ timeLeft: "No scheduled time this is instant booking)" });
       return;
     }
     
@@ -103,6 +108,7 @@ function BookingDetailsPage() {
   };
 
   const handleChatClick = () => {
+    clearBookingUnreadCount(id);
     navigate(`/customer/chat/${id}`, {
       state: { bookingData: state.data, barberName: state.data.barbername }
     });
@@ -139,6 +145,7 @@ function BookingDetailsPage() {
 
   return (
     <CustomerLayout>
+      <NotificationBadge count={totalUnreadCount} />
       <h2 className="text-2xl font-bold text-gray-800 mb-4">Booking Details</h2>
 
       {data ? (
@@ -159,6 +166,7 @@ function BookingDetailsPage() {
             hasRated={hasRated}
             onComplaintClick={() => updateState({ showComplaintModal: true })}
             hasComplaint={hasComplaint}
+            unreadCount={bookingUnreadCounts[id] || 0} 
           />
 
           

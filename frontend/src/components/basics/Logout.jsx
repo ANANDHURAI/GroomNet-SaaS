@@ -12,6 +12,7 @@ function Logout({ className = "" }) {
   const handleLogout = async () => {
     setLoading(true);
     sessionStorage.removeItem('barber_id');
+    sessionStorage.removeItem('customer_profile_image');
     const refresh_token = sessionStorage.getItem('refresh_token');
     const user_type = sessionStorage.getItem('user_type');
 

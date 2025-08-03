@@ -12,7 +12,8 @@ function ActionButtons({
   onRatingClick,
   hasRated,
   onComplaintClick,
-  hasComplaint
+  hasComplaint,
+  unreadCount = 0
 }) {
   const [isLoading, setIsLoading] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
@@ -74,10 +75,15 @@ function ActionButtons({
       {showChatButton && (
         <button
           onClick={onChatClick}
-          className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-colors relative"
         >
           <MessageSquare size={18} />
           Chat with Beautician
+          {unreadCount > 0 && (
+            <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+              {unreadCount > 99 ? '99+' : unreadCount}
+            </span>
+          )}
         </button>
       )}
 

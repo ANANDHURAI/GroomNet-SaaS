@@ -69,6 +69,7 @@ import AddressPage from './pages/customersite/AddressPage';
 import GlobalBookingNotifier from './components/notification/GlobalBookingNotifier';
 import { BookingProvider } from './contexts/BookingContext';
 
+
 function App() {
   return (
     <GoogleOAuthProvider clientId="137089648588-63scrg565l4a5qqo39i1ibrd96ogptjr.apps.googleusercontent.com">
@@ -336,6 +337,7 @@ function App() {
                 <Route path="/barber-profile" element={<BarberProfile />} />
                 <Route path="/admin-profile" element={<AdminProfile />} />
                 <Route path="/customer-profile" element={<CustomerProfile />} />
+                
                 
                 
 

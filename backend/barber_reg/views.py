@@ -132,7 +132,6 @@ class OTPVerificationView(APIView):
             }, status=status.HTTP_400_BAD_REQUEST)
 
         user.is_active = True
-        user.is_verified = True
         user.save()
 
         barber_request = user.barber_request
@@ -170,7 +169,7 @@ class ResendOTPView(APIView):
             }, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            user = User.objects.get(email=email, user_type='barber', is_verified=False)
+            user = User.objects.get(email=email, user_type='barber')
         except User.DoesNotExist:
             return Response({
                 'error': 'User not found or already verified'
@@ -218,47 +217,51 @@ class ResendOTPView(APIView):
             print(f"Failed to send OTP email: {str(e)}")
 
 class DocumentUploadView(APIView):
-    permission_classes = [IsAuthenticated]
+   permission_classes = [IsAuthenticated]
 
-    def post(self, request):
-        user = request.user
+   def post(self, request):
+       user = request.user
 
-        if user.user_type != 'barber':
-            return Response({
-                'error': 'Only barbers can upload documents'
-            }, status=status.HTTP_403_FORBIDDEN)
-        try:
-            barber_request = user.barber_request
-        except BarberRequest.DoesNotExist:
-            return Response({
-                'error': 'No barber registration found. Please complete personal details first.'
-            }, status=status.HTTP_404_NOT_FOUND)
-
+       if user.user_type != 'barber':
+           return Response({
+               'error': 'Only barbers can upload documents'
+           }, status=status.HTTP_403_FORBIDDEN)
        
-        if barber_request.is_documents_complete:
-            return Response({
-                'error': 'Documents already uploaded'
-            }, status=status.HTTP_400_BAD_REQUEST)
+       try:
+           barber_request = user.barber_request
+       except BarberRequest.DoesNotExist:
+           return Response({
+               'error': 'No barber registration found. Please complete personal details first.'
+           }, status=status.HTTP_404_NOT_FOUND)
 
-        serializer = DocumentUploadSerializer(barber_request, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-        
-            barber_request.mark_documents_uploaded()
+      
+       if barber_request.is_documents_complete and barber_request.status != 'rejected':
+           return Response({
+               'error': 'Documents already uploaded'
+           }, status=status.HTTP_400_BAD_REQUEST)
 
-            if 'profile_image' in serializer.validated_data:
-                user.profileimage = serializer.validated_data['profile_image']
-                user.save()
+       if barber_request.status == 'rejected':
+           barber_request.status = 'pending'
+           barber_request.admin_comment = '' 
+           barber_request.save()
 
-            return Response({
-                'message': 'Documents uploaded successfully. Your application is now under review.',
-                'registration_step': barber_request.registration_step,
-                'status': barber_request.status
-            }, status=status.HTTP_200_OK)
+       serializer = DocumentUploadSerializer(barber_request, data=request.data, partial=True)
+       if serializer.is_valid():
+           serializer.save()
+       
+           barber_request.mark_documents_uploaded()
 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+           if 'profile_image' in serializer.validated_data:
+               user.profileimage = serializer.validated_data['profile_image']
+               user.save()
 
+           return Response({
+               'message': 'Documents uploaded successfully. Your application is now under review.',
+               'registration_step': barber_request.registration_step,
+               'status': barber_request.status
+           }, status=status.HTTP_200_OK)
 
+       return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class BarberRegistrationStatusView(APIView):
     permission_classes = [IsAuthenticated]
@@ -297,7 +300,6 @@ class BarberRegistrationStatusView(APIView):
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
     def _get_next_step(self, barber_request):
-        """Determine the next step based on current registration state"""
         if barber_request.registration_step == 'personal_details':
             return 'otp_verification'
         elif barber_request.registration_step == 'otp_verified':
@@ -311,5 +313,5 @@ class BarberRegistrationStatusView(APIView):
         return 'unknown'
     
     def _can_continue_registration(self, barber_request):
-        """Check if user can continue with registration process"""
-        return barber_request.status not in ['approved', 'rejected']
+        return barber_request.status != 'approved'
+    

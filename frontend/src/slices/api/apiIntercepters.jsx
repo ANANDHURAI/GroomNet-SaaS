@@ -28,7 +28,6 @@ const authEndpoints = [
   '/barber-reg/personal-details/',
   '/barber-reg/verify-otp/',  
   '/barber-reg/resend-otp/',  
-  '/barber-reg/registration-status/'
 ];
 apiClient.interceptors.request.use(
   (config) => {

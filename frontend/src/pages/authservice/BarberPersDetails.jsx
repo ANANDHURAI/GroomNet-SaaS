@@ -224,7 +224,7 @@ function BarberPersonalDetails() {
                   Processing...
                 </div>
               ) : (
-                'Continue to Documents'
+                'Continue to OTP'
               )}
             </button>
           </form>

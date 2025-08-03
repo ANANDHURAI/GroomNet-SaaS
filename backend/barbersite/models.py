@@ -5,7 +5,7 @@ from adminsite.models import CategoryModel , ServiceModel
 
 class BarberService(models.Model):
     barber = models.ForeignKey(User, on_delete=models.CASCADE, related_name='barber_services')
-    service = models.ForeignKey(ServiceModel, on_delete=models.CASCADE)
+    service = models.ForeignKey(ServiceModel, on_delete=models.CASCADE, related_name='barber_services')
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     

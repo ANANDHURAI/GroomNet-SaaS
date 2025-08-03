@@ -44,6 +44,14 @@ class BarberRequest(models.Model):
             self.registration_step = 'documents_uploaded'
             self.status = 'pending'
             self.save()
+            
+    def reset_for_resubmission(self):
+     
+        if self.status == 'rejected':
+            self.status = 'pending'
+            self.registration_step = 'documents_uploaded'
+            self.admin_comment = ''
+            self.save()
 
 
 class OTPVerification(models.Model):

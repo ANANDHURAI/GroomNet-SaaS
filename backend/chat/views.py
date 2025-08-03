@@ -63,9 +63,7 @@ class ChatMessagesView(APIView):
             'messages': serializer.data,
             'booking_info': booking_info
         })
-
-
-
+    
     def post(self, request, booking_id):
         booking = get_object_or_404(Booking, id=booking_id)
 
@@ -94,8 +92,57 @@ class ChatMessagesView(APIView):
             message=message_text
         )
 
+        from channels.layers import get_channel_layer
+        from asgiref.sync import async_to_sync
+
+        channel_layer = get_channel_layer()
+        room_group_name = f'chat_{booking_id}'
+
+        other_user = booking.barber if request.user == booking.customer else booking.customer
+        other_user_unread_count = ChatMessage.objects.filter(
+            booking=booking,
+            is_read=False
+        ).exclude(sender=request.user).count()
+
+        # Send unread count update for this specific booking
+        async_to_sync(channel_layer.group_send)(
+            room_group_name,
+            {
+                'type': 'unread_count_update',
+                'booking_id': booking_id,
+                'user_id': other_user.id,
+                'unread_count': other_user_unread_count
+            }
+        )
+
+        # Trigger total unread count update for the other user
+        async_to_sync(channel_layer.group_send)(
+            room_group_name,
+            {
+                'type': 'send_total_unread_update_wrapper',
+                'user_id': other_user.id
+            }
+        )
+
         serializer = ChatMessageSerializer(message, context={'request': request})
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_total_unread_count(request):
+    """Get total unread messages across all bookings for the user"""
+    total_unread = ChatMessage.objects.filter(
+        booking__customer=request.user,
+        is_read=False
+    ).exclude(sender=request.user).count() + ChatMessage.objects.filter(
+        booking__barber=request.user,
+        is_read=False
+    ).exclude(sender=request.user).count()
+    
+    return Response({'total_unread_count': total_unread})
+
+ 
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
