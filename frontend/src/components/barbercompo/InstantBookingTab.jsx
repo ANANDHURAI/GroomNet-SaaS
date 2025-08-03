@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import apiClient from '../../slices/api/apiIntercepters';
-import CurrentBookingCard from './CurrentBookingCard';
-import BookingRequestCard from './BookingRequestCard';
+import { CurrentBookingCard } from './CurrentBookingCard';
+import { BookingRequestCard } from './BookingRequestCard';
 import StatusCard from './StatusCard';
 import { useBooking } from '../../contexts/BookingContext';
 
