@@ -10,6 +10,7 @@ function PaymentPage() {
   const [bookingType, setBookingType] = useState(""); 
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [couponCode, setCouponCode] = useState("");
   const [bookingData, setBookingData] = useState({
     selectedServiceId: null,
     selectedBarberId: null,
@@ -24,6 +25,7 @@ function PaymentPage() {
     const barberId = urlParams.get('barber_id');
     const slotId = urlParams.get('slot_id');
     const addressId = urlParams.get('address_id');
+    const couponFromUrl = urlParams.get('coupon_code');
 
     const sessionBookingType = sessionStorage.getItem('bookingType');
     setBookingType(sessionBookingType);
@@ -40,6 +42,12 @@ function PaymentPage() {
       selectedAddressId: parseInt(addressId)
     });
 
+    // Set coupon code from URL if available
+    if (couponFromUrl) {
+      setCouponCode(couponFromUrl);
+    }
+
+    // For scheduled bookings, default to STRIPE
     if (sessionBookingType === "SCHEDULE_BOOKING") {
       setMethod("STRIPE");
     }
@@ -56,47 +64,87 @@ function PaymentPage() {
     }
 
     try {
-      const bookingRes = await apiClient.post('/customersite/create-booking/', {
+      // Prepare booking payload
+      const bookingPayload = {
         service: bookingData.selectedServiceId,
         barber: bookingData.selectedBarberId,
         slot: bookingData.selectedSlotId,
         address: bookingData.selectedAddressId,
         payment_method: method,
         booking_type: bookingType
-      });
+      };
+
+      // Add coupon code if present
+      if (couponCode && couponCode.trim()) {
+        bookingPayload.coupon_code = couponCode.trim();
+      }
+
+      console.log('Creating booking with payload:', bookingPayload);
+
+      const bookingRes = await apiClient.post('/customersite/create-booking/', bookingPayload);
 
       const bookingId = bookingRes.data.booking_id;
       sessionStorage.setItem('instantBookingId', bookingId);
 
+      // For COD and WALLET payments, redirect to success page
       if (method === "COD" || method === "WALLET") {
-      
         setTimeout(() => {
           navigate('/booking-success');
         }, 2000);
         return;
       }
 
-      const stripeSessionRes = await apiClient.post('/payment-service/create-checkout-session/', {
-        booking_id: bookingId
-      });
+      // For Stripe payments, create checkout session
+      if (method === "STRIPE") {
+        const stripeSessionRes = await apiClient.post('/payment-service/create-checkout-session/', {
+          booking_id: bookingId
+        });
 
-      const { sessionId, stripe_public_key } = stripeSessionRes.data;
-      const stripe = await loadStripe(stripe_public_key);
-      await stripe.redirectToCheckout({ sessionId });
+        const { sessionId, stripe_public_key } = stripeSessionRes.data;
+        const stripe = await loadStripe(stripe_public_key);
+        await stripe.redirectToCheckout({ sessionId });
+      }
 
     } catch (error) {
       console.error('Booking error:', error);
-      if (error.response?.data?.detail) {
-        setError(error.response.data.detail);
+      
+      // Handle specific error cases
+      if (error.response?.data) {
+        const errorData = error.response.data;
+        
+        // Handle validation errors (400 status)
+        if (error.response.status === 400) {
+          if (errorData.coupon_code) {
+            setError(`Coupon Error: ${errorData.coupon_code[0] || errorData.coupon_code}`);
+          } else if (errorData.payment_method) {
+            setError(`Payment Error: ${errorData.payment_method[0] || errorData.payment_method}`);
+          } else if (errorData.detail) {
+            setError(errorData.detail);
+          } else if (typeof errorData === 'string') {
+            setError(errorData);
+          } else {
+            setError("Booking validation failed. Please check your details.");
+          }
+        } 
+        // Handle other specific errors
+        else if (errorData.error) {
+          setError(errorData.error);
+        } else if (errorData.detail) {
+          setError(errorData.detail);
+        } else {
+          setError("Something went wrong while processing your booking.");
+        }
       } else {
-        setError("Something went wrong while booking.");
+        setError("Network error. Please check your connection and try again.");
       }
+      
       setLoading(false);
     }
   };
 
   const hasAllData = bookingData.selectedServiceId && bookingData.selectedAddressId;
 
+  // Show loading spinner for COD and WALLET payments
   if (loading && (method === "COD" || method === "WALLET")) {
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -121,6 +169,15 @@ function PaymentPage() {
           <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">
             Choose Payment Method
           </h2>
+
+          {/* Display coupon info if present */}
+          {couponCode && (
+            <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+              <p className="text-sm text-green-800">
+                <span className="font-semibold">Coupon Applied:</span> {couponCode}
+              </p>
+            </div>
+          )}
 
           <div className="space-y-3 mb-6">
             {bookingType === "INSTANT_BOOKING" && (
@@ -194,9 +251,9 @@ function PaymentPage() {
 
           <button
             onClick={handlePaymentMethod}
-            disabled={loading || !method}
+            disabled={loading || !method || !hasAllData}
             className={`w-full py-3 rounded-lg font-bold transition duration-200 ${
-              loading || !method
+              loading || !method || !hasAllData
                 ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                 : "bg-gradient-to-r from-pink-500 to-yellow-500 text-white hover:from-pink-600 hover:to-yellow-600 shadow-md"
             }`}
@@ -205,9 +262,19 @@ function PaymentPage() {
           </button>
 
           {error && (
-            <p className="text-red-600 text-center text-sm mt-4">
-              {error}
-            </p>
+            <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-red-600 text-center text-sm">
+                {error}
+              </p>
+            </div>
+          )}
+
+          {!hasAllData && (
+            <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <p className="text-yellow-800 text-center text-sm">
+                Missing booking information. Please go back and complete all steps.
+              </p>
+            </div>
           )}
         </div>
       </div>

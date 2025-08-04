@@ -133,7 +133,6 @@ class VerifyPayment(APIView):
                 note=f"Booking #{booking_id} - STRIPE payment received"
             )
 
-            logger.info(f"Added ₹{amount} to admin wallet. New total: ₹{admin_wallet.total_earnings}")
         except Exception as e:
             logger.error(f"Error adding to admin wallet: {str(e)}")
             raise

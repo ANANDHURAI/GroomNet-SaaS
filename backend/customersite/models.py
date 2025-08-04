@@ -94,6 +94,7 @@ class PaymentModel(models.Model):
     def total_amount(self):
         return self.final_amount
 
+
 class CustomerWallet(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="user_wallet")
     amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)

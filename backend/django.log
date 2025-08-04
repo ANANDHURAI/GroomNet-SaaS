@@ -8299,3 +8299,221 @@ Unauthorized: /chat-service/chat/total-unread/
 Unauthorized: /auth/token/refresh/
 Unauthorized: /chat-service/chat/total-unread/
 Unauthorized: /auth/token/refresh/
+AJITH KUMAR joined group: customer_1
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+User disconnected from group: customer_1
+AJITH KUMAR joined group: customer_1
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Unauthorized: /chat-service/chat/total-unread/
+Unauthorized: /profile-service/user-profile/
+Unauthorized: /chat-service/chat/total-unread/
+Unauthorized: /profile-service/user-profile/
+Unauthorized: /auth/token/refresh/
+User disconnected from group: customer_1
+AJITH KUMAR joined group: customer_1
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+User disconnected from group: customer_1
+AJITH KUMAR joined group: customer_1
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Unauthorized: /chat-service/chat/total-unread/
+Unauthorized: /auth/token/refresh/
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Unauthorized: /chat-service/chat/total-unread/
+Unauthorized: /auth/token/refresh/
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Unauthorized: /chat-service/chat/total-unread/
+Unauthorized: /auth/token/refresh/
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Unauthorized: /chat-service/chat/total-unread/
+Unauthorized: /auth/token/refresh/
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Unauthorized: /chat-service/chat/total-unread/
+Unauthorized: /auth/token/refresh/
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Unauthorized: /barbersite/barber-portfolio/
+Unauthorized: /barbersite/barber-portfolio/
+Not Found: /barbersite/barber-portfolio/
+Not Found: /barbersite/barber-portfolio/
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Bad Request: /auth/logout/
+Unauthorized: /chat-service/chat/total-unread/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /chat-service/chat/total-unread/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /chat-service/chat/total-unread/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /chat-service/chat/total-unread/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /chat-service/chat/total-unread/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /chat-service/chat/total-unread/
+Unauthorized: /customersite/home/
+Unauthorized: /customersite/home/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /chat-service/chat/total-unread/
+Unauthorized: /auth/token/refresh/
+Internal Server Error: /payment-service/verify-payment/
+Sent booking 48 to barber 3
+Sent booking 48 to barber 3
+ilakkiya joined group: customer_2
+ilakkiya joined group: customer_2
+Anand Raj joined group: barber_3
+User disconnected from group: customer_2
+Sent booking 48 to barber 3
+ilakkiya joined group: customer_2
+User disconnected from group: barber_3
+Anand Raj joined group: barber_3
+ilakkiya joined group: customer_2
+Watching for file changes with StatReloader
+Not Found: /ws/instant-booking/3/
+"GET /ws/instant-booking/3/?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU0MjYxNTQ0LCJpYXQiOjE3NTQyNTc5NDQsImp0aSI6IjYyOTQ4NjFhYzVmNjRiYjVhZTVlOTFlZjQ2NGI3N2MwIiwidXNlcl9pZCI6M30.Vo4G2q-Qh2AmqQgu6XY3JG5XvmC07jV4N05_g6f13mQ HTTP/1.1" 404 4363
+Not Found: /ws/instant-booking/48/
+"GET /ws/instant-booking/48/?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU0MjYxMDY2LCJpYXQiOjE3NTQyNTc0NjYsImp0aSI6IjlhYzhkMmI2ODNmMDQ0OTZhODBkYjM3ZWE3ZmNmNTAxIiwidXNlcl9pZCI6Mn0.JAtfS5kEwBhvbyYmOvdc9-B3m88Y7_BQEWIU37evZD0 HTTP/1.1" 404 4366
+Not Found: /ws/instant-booking/48/
+"GET /ws/instant-booking/48/?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU0MjYxMDY2LCJpYXQiOjE3NTQyNTc0NjYsImp0aSI6IjlhYzhkMmI2ODNmMDQ0OTZhODBkYjM3ZWE3ZmNmNTAxIiwidXNlcl9pZCI6Mn0.JAtfS5kEwBhvbyYmOvdc9-B3m88Y7_BQEWIU37evZD0 HTTP/1.1" 404 4366
+Not Found: /ws/instant-booking/48/
+"GET /ws/instant-booking/48/?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU0MjYxMDY2LCJpYXQiOjE3NTQyNTc0NjYsImp0aSI6IjlhYzhkMmI2ODNmMDQ0OTZhODBkYjM3ZWE3ZmNmNTAxIiwidXNlcl9pZCI6Mn0.JAtfS5kEwBhvbyYmOvdc9-B3m88Y7_BQEWIU37evZD0 HTTP/1.1" 404 4366
+Not Found: /ws/instant-booking/3/
+"GET /ws/instant-booking/3/?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU0MjYxNTQ0LCJpYXQiOjE3NTQyNTc5NDQsImp0aSI6IjYyOTQ4NjFhYzVmNjRiYjVhZTVlOTFlZjQ2NGI3N2MwIiwidXNlcl9pZCI6M30.Vo4G2q-Qh2AmqQgu6XY3JG5XvmC07jV4N05_g6f13mQ HTTP/1.1" 404 4363
+Not Found: /ws/instant-booking/48/
+"GET /ws/instant-booking/48/?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU0MjYxMDY2LCJpYXQiOjE3NTQyNTc0NjYsImp0aSI6IjlhYzhkMmI2ODNmMDQ0OTZhODBkYjM3ZWE3ZmNmNTAxIiwidXNlcl9pZCI6Mn0.JAtfS5kEwBhvbyYmOvdc9-B3m88Y7_BQEWIU37evZD0 HTTP/1.1" 404 4366
+Not Found: /ws/instant-booking/48/
+"GET /ws/instant-booking/48/?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU0MjYxMDY2LCJpYXQiOjE3NTQyNTc0NjYsImp0aSI6IjlhYzhkMmI2ODNmMDQ0OTZhODBkYjM3ZWE3ZmNmNTAxIiwidXNlcl9pZCI6Mn0.JAtfS5kEwBhvbyYmOvdc9-B3m88Y7_BQEWIU37evZD0 HTTP/1.1" 404 4366
+Not Found: /ws/instant-booking/48/
+"GET /ws/instant-booking/48/?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU0MjYxMDY2LCJpYXQiOjE3NTQyNTc0NjYsImp0aSI6IjlhYzhkMmI2ODNmMDQ0OTZhODBkYjM3ZWE3ZmNmNTAxIiwidXNlcl9pZCI6Mn0.JAtfS5kEwBhvbyYmOvdc9-B3m88Y7_BQEWIU37evZD0 HTTP/1.1" 404 4366
+Not Found: /ws/instant-booking/3/
+"GET /ws/instant-booking/3/?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU0MjYxNTQ0LCJpYXQiOjE3NTQyNTc5NDQsImp0aSI6IjYyOTQ4NjFhYzVmNjRiYjVhZTVlOTFlZjQ2NGI3N2MwIiwidXNlcl9pZCI6M30.Vo4G2q-Qh2AmqQgu6XY3JG5XvmC07jV4N05_g6f13mQ HTTP/1.1" 404 4363
+Not Found: /ws/instant-booking/48/
+"GET /ws/instant-booking/48/?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU0MjYxMDY2LCJpYXQiOjE3NTQyNTc0NjYsImp0aSI6IjlhYzhkMmI2ODNmMDQ0OTZhODBkYjM3ZWE3ZmNmNTAxIiwidXNlcl9pZCI6Mn0.JAtfS5kEwBhvbyYmOvdc9-B3m88Y7_BQEWIU37evZD0 HTTP/1.1" 404 4366
+Not Found: /ws/instant-booking/48/
+"GET /ws/instant-booking/48/?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU0MjYxMDY2LCJpYXQiOjE3NTQyNTc0NjYsImp0aSI6IjlhYzhkMmI2ODNmMDQ0OTZhODBkYjM3ZWE3ZmNmNTAxIiwidXNlcl9pZCI6Mn0.JAtfS5kEwBhvbyYmOvdc9-B3m88Y7_BQEWIU37evZD0 HTTP/1.1" 404 4366
+Not Found: /ws/instant-booking/48/
+"GET /ws/instant-booking/48/?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU0MjYxMDY2LCJpYXQiOjE3NTQyNTc0NjYsImp0aSI6IjlhYzhkMmI2ODNmMDQ0OTZhODBkYjM3ZWE3ZmNmNTAxIiwidXNlcl9pZCI6Mn0.JAtfS5kEwBhvbyYmOvdc9-B3m88Y7_BQEWIU37evZD0 HTTP/1.1" 404 4366
+Not Found: /ws/instant-booking/3/
+"GET /ws/instant-booking/3/?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU0MjYxNTQ0LCJpYXQiOjE3NTQyNTc5NDQsImp0aSI6IjYyOTQ4NjFhYzVmNjRiYjVhZTVlOTFlZjQ2NGI3N2MwIiwidXNlcl9pZCI6M30.Vo4G2q-Qh2AmqQgu6XY3JG5XvmC07jV4N05_g6f13mQ HTTP/1.1" 404 4363
+Not Found: /ws/instant-booking/48/
+"GET /ws/instant-booking/48/?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU0MjYxMDY2LCJpYXQiOjE3NTQyNTc0NjYsImp0aSI6IjlhYzhkMmI2ODNmMDQ0OTZhODBkYjM3ZWE3ZmNmNTAxIiwidXNlcl9pZCI6Mn0.JAtfS5kEwBhvbyYmOvdc9-B3m88Y7_BQEWIU37evZD0 HTTP/1.1" 404 4366
+Not Found: /ws/instant-booking/48/
+"GET /ws/instant-booking/48/?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU0MjYxMDY2LCJpYXQiOjE3NTQyNTc0NjYsImp0aSI6IjlhYzhkMmI2ODNmMDQ0OTZhODBkYjM3ZWE3ZmNmNTAxIiwidXNlcl9pZCI6Mn0.JAtfS5kEwBhvbyYmOvdc9-B3m88Y7_BQEWIU37evZD0 HTTP/1.1" 404 4366
+Not Found: /ws/instant-booking/48/
+"GET /ws/instant-booking/48/?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU0MjYxMDY2LCJpYXQiOjE3NTQyNTc0NjYsImp0aSI6IjlhYzhkMmI2ODNmMDQ0OTZhODBkYjM3ZWE3ZmNmNTAxIiwidXNlcl9pZCI6Mn0.JAtfS5kEwBhvbyYmOvdc9-B3m88Y7_BQEWIU37evZD0 HTTP/1.1" 404 4366
+Not Found: /ws/instant-booking/3/
+"GET /ws/instant-booking/3/?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU0MjYxNTQ0LCJpYXQiOjE3NTQyNTc5NDQsImp0aSI6IjYyOTQ4NjFhYzVmNjRiYjVhZTVlOTFlZjQ2NGI3N2MwIiwidXNlcl9pZCI6M30.Vo4G2q-Qh2AmqQgu6XY3JG5XvmC07jV4N05_g6f13mQ HTTP/1.1" 404 4363
+Not Found: /ws/instant-booking/48/
+"GET /ws/instant-booking/48/?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU0MjYxMDY2LCJpYXQiOjE3NTQyNTc0NjYsImp0aSI6IjlhYzhkMmI2ODNmMDQ0OTZhODBkYjM3ZWE3ZmNmNTAxIiwidXNlcl9pZCI6Mn0.JAtfS5kEwBhvbyYmOvdc9-B3m88Y7_BQEWIU37evZD0 HTTP/1.1" 404 4366
+Not Found: /ws/instant-booking/48/
+"GET /ws/instant-booking/48/?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU0MjYxMDY2LCJpYXQiOjE3NTQyNTc0NjYsImp0aSI6IjlhYzhkMmI2ODNmMDQ0OTZhODBkYjM3ZWE3ZmNmNTAxIiwidXNlcl9pZCI6Mn0.JAtfS5kEwBhvbyYmOvdc9-B3m88Y7_BQEWIU37evZD0 HTTP/1.1" 404 4366
+Not Found: /ws/instant-booking/48/
+"GET /ws/instant-booking/48/?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU0MjYxMDY2LCJpYXQiOjE3NTQyNTc0NjYsImp0aSI6IjlhYzhkMmI2ODNmMDQ0OTZhODBkYjM3ZWE3ZmNmNTAxIiwidXNlcl9pZCI6Mn0.JAtfS5kEwBhvbyYmOvdc9-B3m88Y7_BQEWIU37evZD0 HTTP/1.1" 404 4366
+Not Found: /ws/instant-booking/3/
+"GET /ws/instant-booking/3/?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU0MjYxNTQ0LCJpYXQiOjE3NTQyNTc5NDQsImp0aSI6IjYyOTQ4NjFhYzVmNjRiYjVhZTVlOTFlZjQ2NGI3N2MwIiwidXNlcl9pZCI6M30.Vo4G2q-Qh2AmqQgu6XY3JG5XvmC07jV4N05_g6f13mQ HTTP/1.1" 404 4363
+Bad Request: /auth/customer-barber-login/
+"POST /auth/customer-barber-login/ HTTP/1.1" 400 47
+Not Found: /ws/instant-booking/48/
+"GET /ws/instant-booking/48/?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU0MjYxMDY2LCJpYXQiOjE3NTQyNTc0NjYsImp0aSI6IjlhYzhkMmI2ODNmMDQ0OTZhODBkYjM3ZWE3ZmNmNTAxIiwidXNlcl9pZCI6Mn0.JAtfS5kEwBhvbyYmOvdc9-B3m88Y7_BQEWIU37evZD0 HTTP/1.1" 404 4366
+Unauthorized: /chat-service/chat/total-unread/
+"GET /chat-service/chat/total-unread/ HTTP/1.1" 401 51
+"OPTIONS /auth/token/refresh/ HTTP/1.1" 200 0
+Internal Server Error: /auth/token/refresh/
+Traceback (most recent call last):
+  File "D:\NewGroomNet-clean\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "D:\NewGroomNet-clean\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "D:\NewGroomNet-clean\venv\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "D:\NewGroomNet-clean\venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\NewGroomNet-clean\venv\Lib\site-packages\rest_framework\views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "D:\NewGroomNet-clean\venv\Lib\site-packages\rest_framework\views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "D:\NewGroomNet-clean\venv\Lib\site-packages\rest_framework\views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "D:\NewGroomNet-clean\venv\Lib\site-packages\rest_framework\views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "D:\NewGroomNet-clean\venv\Lib\site-packages\rest_framework_simplejwt\views.py", line 44, in post
+    serializer.is_valid(raise_exception=True)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\NewGroomNet-clean\venv\Lib\site-packages\rest_framework\serializers.py", line 225, in is_valid
+    self._validated_data = self.run_validation(self.initial_data)
+                           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "D:\NewGroomNet-clean\venv\Lib\site-packages\rest_framework\serializers.py", line 447, in run_validation
+    value = self.validate(value)
+  File "D:\NewGroomNet-clean\venv\Lib\site-packages\rest_framework_simplejwt\serializers.py", line 116, in validate
+    user := get_user_model().objects.get(
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        **{api_settings.USER_ID_FIELD: user_id}
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\NewGroomNet-clean\venv\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "D:\NewGroomNet-clean\venv\Lib\site-packages\django\db\models\query.py", line 633, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+authservice.models.User.DoesNotExist: User matching query does not exist.
+"POST /auth/token/refresh/ HTTP/1.1" 500 124825
+Not Found: /ws/instant-booking/48/
+"GET /ws/instant-booking/48/?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU0MjYxMDY2LCJpYXQiOjE3NTQyNTc0NjYsImp0aSI6IjlhYzhkMmI2ODNmMDQ0OTZhODBkYjM3ZWE3ZmNmNTAxIiwidXNlcl9pZCI6Mn0.JAtfS5kEwBhvbyYmOvdc9-B3m88Y7_BQEWIU37evZD0 HTTP/1.1" 404 4366
+Not Found: /ws/instant-booking/48/
+"GET /ws/instant-booking/48/?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU0MjYxMDY2LCJpYXQiOjE3NTQyNTc0NjYsImp0aSI6IjlhYzhkMmI2ODNmMDQ0OTZhODBkYjM3ZWE3ZmNmNTAxIiwidXNlcl9pZCI6Mn0.JAtfS5kEwBhvbyYmOvdc9-B3m88Y7_BQEWIU37evZD0 HTTP/1.1" 404 4366
+Not Found: /ws/instant-booking/3/
+"GET /ws/instant-booking/3/?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU0MjYxNTQ0LCJpYXQiOjE3NTQyNTc5NDQsImp0aSI6IjYyOTQ4NjFhYzVmNjRiYjVhZTVlOTFlZjQ2NGI3N2MwIiwidXNlcl9pZCI6M30.Vo4G2q-Qh2AmqQgu6XY3JG5XvmC07jV4N05_g6f13mQ HTTP/1.1" 404 4363
+Bad Request: /auth/customer-barber-login/

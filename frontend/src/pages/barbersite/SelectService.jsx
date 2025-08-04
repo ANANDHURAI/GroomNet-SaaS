@@ -7,6 +7,8 @@ import ServiceCard from '../../components/barbercompo/ServiceCard';
 import ServiceCount from '../../components/basics/ServiceCount';
 import { ArrowLeft, AlertCircle, LoaderCircle, ClipboardCheck } from 'lucide-react';
 import { useBooking } from '../../contexts/BookingContext';
+import GlobalBookingNotifier from '../../components/notification/GlobalBookingNotifier';
+
 
 function SelectService() {
   const { id } = useParams();
