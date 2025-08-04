@@ -76,8 +76,12 @@ function ServiceCompletePage() {
       .finally(() => setLoading(false));
   };
 
-  const getCODAmount = () => parseFloat(data?.service_amount || 0) + parseFloat(data?.platform_fee || 0);
-  const getEarnings = () => data?.service_amount || data?.price;
+  const getCODAmount = () => parseFloat(data?.price || 0);
+  const getEarnings = () => {
+    const finalAmount = parseFloat(data?.price || 0);
+    const platformFee = parseFloat(data?.platform_fee || 0);
+    return (finalAmount - platformFee).toFixed(2);
+  };
 
   if (!data) {
     return (
@@ -174,8 +178,8 @@ function ServiceCompletePage() {
                         <HandCoins className="text-amber-600" size={24} />
                         <h3 className="text-lg font-semibold text-amber-800">Collect Payment</h3>
                       </div>
-                      <p className="text-amber-700 mb-1">Total amount to collect: <span className="font-bold text-xl">₹{getCODAmount()}</span></p>
-                      <p className="text-sm text-amber-600 mb-4">Service: ₹{data.service_amount} + Platform Fee: ₹{data.platform_fee}</p>
+                      <p className="text-amber-700 mb-1">Total amount to collect: <span className="font-bold text-xl">₹{data.price}</span></p>
+                      <p className="text-sm text-amber-600 mb-4">Final amount after discount (includes platform fee)</p>
                       <button onClick={handleCollectAmount} disabled={loading}
                         className="w-full bg-gradient-to-r from-amber-500 to-orange-500 text-white py-3 rounded-lg font-medium hover:from-amber-600 hover:to-orange-600 transition-all duration-200 disabled:opacity-50">
                         {loading ? "Processing..." : "✓ Mark as Collected"}

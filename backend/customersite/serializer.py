@@ -195,8 +195,7 @@ class BookingCreateSerializer(serializers.ModelSerializer):
                 )
 
             if coupon_obj:
-                CouponUsage.objects.create(customer=customer, coupon=coupon_obj)
-               
+                CouponUsage.objects.get_or_create(customer=customer, coupon=coupon_obj)
         return booking
 
 

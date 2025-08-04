@@ -94,7 +94,6 @@ function PaymentPage() {
         return;
       }
 
-      // For Stripe payments, create checkout session
       if (method === "STRIPE") {
         const stripeSessionRes = await apiClient.post('/payment-service/create-checkout-session/', {
           booking_id: bookingId
@@ -108,11 +107,9 @@ function PaymentPage() {
     } catch (error) {
       console.error('Booking error:', error);
       
-      // Handle specific error cases
       if (error.response?.data) {
         const errorData = error.response.data;
-        
-        // Handle validation errors (400 status)
+  
         if (error.response.status === 400) {
           if (errorData.coupon_code) {
             setError(`Coupon Error: ${errorData.coupon_code[0] || errorData.coupon_code}`);

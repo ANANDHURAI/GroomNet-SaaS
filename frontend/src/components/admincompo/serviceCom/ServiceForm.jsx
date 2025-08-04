@@ -1,8 +1,24 @@
 export const ServiceForm = ({ formData, onFormChange, onSubmit, onCancel, isEditing, categories, errors }) => {
+ 
+    const handleDurationChange = (e) => {
+        const value = e.target.value;
+        if (value > 60) {
+            onFormChange({
+                ...formData,
+                duration_minutes: value,
+                durationError: "Maximum service duration is 60 minutes"
+            });
+        } else {
+            onFormChange({
+                ...formData,
+                duration_minutes: value,
+                durationError: ""
+            });
+        }
+    };
+
     return (
         <form onSubmit={onSubmit} className="space-y-5">
-
-            {/* Global error (if any) */}
             {errors.global && (
                 <div className="bg-red-100 text-red-700 border border-red-300 px-4 py-2 rounded text-sm">
                     {errors.global}
@@ -87,12 +103,16 @@ export const ServiceForm = ({ formData, onFormChange, onSubmit, onCancel, isEdit
                     <input
                         type="number"
                         value={formData.duration_minutes}
-                        onChange={(e) => onFormChange({ ...formData, duration_minutes: e.target.value })}
+                        onChange={handleDurationChange}
                         className="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="60"
+                        max="60"
                     />
                     {errors.duration_minutes && (
                         <p className="text-xs text-red-500 mt-1">{errors.duration_minutes}</p>
+                    )}
+                    {formData.durationError && (
+                        <p className="text-xs text-red-500 mt-1">{formData.durationError}</p>
                     )}
                 </div>
             </div>

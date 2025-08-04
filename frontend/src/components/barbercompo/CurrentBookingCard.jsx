@@ -127,7 +127,7 @@ export const CurrentBookingCard = ({ booking, navigate }) => {
             className="flex-1 relative group/btn bg-gradient-to-r from-gray-100 via-gray-200 to-gray-100 hover:from-gray-200 hover:via-gray-300 hover:to-gray-200 text-gray-700 py-4 px-6 rounded-2xl font-bold text-lg shadow-xl hover:shadow-2xl transition-all duration-300 flex items-center justify-center space-x-3 transform hover:scale-105 active:scale-95 border-2 border-gray-200"
             onClick={() => navigate(`/barber/chat/${booking.booking_id}`)}
           >
-            {/* Badge */}
+           
             {booking.booking_id && bookingUnreadCounts[booking.booking_id] > 0 && (
               <NotificationBadge count={bookingUnreadCounts[booking.booking_id]} />
             )}

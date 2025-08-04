@@ -3,8 +3,9 @@ import apiClient from '../../slices/api/apiIntercepters';
 import { MessageCircle, Clock, AlertCircle, ChevronLeft } from 'lucide-react';
 import LoadingSpinner from '../../components/admincompo/LoadingSpinner';
 import { useNavigate, useLocation } from 'react-router-dom';
-import GlobalBookingNotifier from '../../components/notification/GlobalBookingNotifier';
-import { useBooking } from '../../contexts/BookingContext';
+import NotificationBadge from '../../components/notification/NotificationBadge';
+import { useNotifications } from '../../components/customHooks/useNotifications';
+
 
 function Appointments() {
   const [appointments, setAppointments] = useState([]);
@@ -12,6 +13,7 @@ function Appointments() {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
+  const { bookingUnreadCounts } = useNotifications();
 
   const handleStartTravel = (bookingId) => {
     navigate(`/travel-status/${bookingId}`);
@@ -89,7 +91,7 @@ function Appointments() {
               <div key={appointment.id} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                 <div className="p-6">
                   <div className="flex justify-between items-start mb-4">
-                    <div className="flex space-x-2">
+                    <div className="relative">
                       <button 
                         onClick={() => navigate(`/barber/chat/${appointment.id}`, {
                           state: {
@@ -102,6 +104,9 @@ function Appointments() {
                       >
                         <MessageCircle size={18} />
                       </button>
+                      {bookingUnreadCounts[appointment.id] > 0 && (
+                        <NotificationBadge count={bookingUnreadCounts[appointment.id]} />
+                      )}
                     </div>
                   </div>
 

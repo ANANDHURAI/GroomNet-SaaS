@@ -14,7 +14,7 @@ from .serializers import (
 BarberActionSerializer,
 )
 import logging
-
+from decimal import Decimal
 logger = logging.getLogger("django")
 User = get_user_model()
 from django.shortcuts import get_object_or_404
@@ -437,8 +437,8 @@ class CompletedServiceView(APIView):
         return Response(data)
 
     def post(self, request, booking_id):
-       
         booking = get_object_or_404(Booking, id=booking_id)
+
         if booking.status == "COMPLETED":
             return Response({"message": "Service already completed."}, status=200)
 
@@ -446,9 +446,8 @@ class CompletedServiceView(APIView):
             request_data = request.data if request.data else {}
         except:
             request_data = {}
-            
+
         action = request_data.get('action', 'complete_service')
-        
         payment = booking.payment
 
         if action == 'collect_cod' and payment.payment_method == "COD":
@@ -463,7 +462,7 @@ class CompletedServiceView(APIView):
             booking.save()
 
             if payment.payment_method == "COD":
-                payment_successful = True 
+                payment_successful = True
                 payment.payment_status = "SUCCESS"
                 payment.save()
             else:
@@ -479,54 +478,63 @@ class CompletedServiceView(APIView):
                             return Response({"error": "Admin wallet not found"}, status=500)
 
                         barber_wallet, _ = BarberWallet.objects.get_or_create(barber=booking.barber)
-                        amount = payment.service_amount
-                      
+
+                        final_amount = payment.final_amount  # This is what customer actually paid
+                        platform_fee = payment.platform_fee
+
                         if payment.payment_method == "COD":
-                            barber_wallet.balance += amount
+                            # For COD: Barber gets the discounted final amount minus platform fee
+                            barber_amount = final_amount - platform_fee
+                            
+                            barber_wallet.balance += barber_amount
                             barber_wallet.save()
 
                             WalletTransaction.objects.create(
                                 wallet=barber_wallet,
-                                amount=amount,
+                                amount=barber_amount,
                                 note=f"COD Payment for Booking #{booking.id}"
                             )
 
-                            admin_wallet.total_earnings += payment.platform_fee
+                            admin_wallet.total_earnings += platform_fee
                             admin_wallet.save()
-                            
+
                             AdminWalletTransaction.objects.create(
                                 wallet=admin_wallet,
-                                amount=payment.platform_fee,
+                                amount=platform_fee,
                                 note=f"Platform fee from COD Booking #{booking.id}"
                             )
+
                         else:
-                            if admin_wallet.total_earnings >= amount:
-                                admin_wallet.total_earnings -= amount
+                        
+                            barber_amount = final_amount - platform_fee
+
+                            if admin_wallet.total_earnings >= barber_amount:
+                                admin_wallet.total_earnings -= barber_amount
                                 admin_wallet.save()
 
-                                barber_wallet.balance += amount
+                                barber_wallet.balance += barber_amount
                                 barber_wallet.save()
 
                                 WalletTransaction.objects.create(
                                     wallet=barber_wallet,
-                                    amount=amount,
+                                    amount=barber_amount,
                                     note=f"Payment for Booking #{booking.id}"
                                 )
 
                                 AdminWalletTransaction.objects.create(
                                     wallet=admin_wallet,
-                                    amount=amount,
+                                    amount=-barber_amount,
                                     note=f"Payout to Barber ({booking.barber.name}) for Booking #{booking.id}"
                                 )
                             else:
                                 return Response({
-                                    "error": f"Insufficient admin funds. Required: ₹{amount}, Available: ₹{admin_wallet.total_earnings}"
+                                    "error": f"Insufficient admin funds. Required: ₹{barber_amount}, Available: ₹{admin_wallet.total_earnings}"
                                 }, status=400)
 
                         payment.is_released_to_barber = True
                         payment.released_at = now()
                         payment.save()
-                        
+
                         booking.is_payment_done = True
                         booking.save()
 
@@ -539,4 +547,6 @@ class CompletedServiceView(APIView):
             }, status=200)
 
         return Response({"error": "Invalid action"}, status=400)
+
+
 

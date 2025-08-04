@@ -556,46 +556,74 @@ class EmergencyCancel(APIView):
                 fine_percentage = Decimal('0.10')
                 fine_amount = booking.total_amount * fine_percentage
 
-                # Check payment method from PaymentModel
-                payment_method = booking.payment.payment_method if booking.payment else None
+                # Get payment details
+
+                payment = booking.payment
+                payment_method = payment.payment_method if payment else None
+                service_amount = payment.final_amount if payment else booking.total_amount  # Use final_amount instead
+                platform_fee = payment.platform_fee if payment else Decimal('0.00')
+                discount = payment.discount if payment else Decimal('0.00')
+
+                wallet, _ = CustomerWallet.objects.get_or_create(user=request.user)
+                admin_wallet, _ = AdminWallet.objects.get_or_create(id=1, defaults={'total_earnings': Decimal('0.00')})
 
                 if payment_method != 'COD':
-                    # Refund scenario (non-COD)
+                    # Refund scenario (non-COD payments like WALLET/STRIPE)
                     refund_amount = booking.total_amount - fine_amount
 
-                    wallet, _ = CustomerWallet.objects.get_or_create(user=request.user)
+                    # Add refund to customer wallet
                     wallet.account_total_balance += refund_amount
                     wallet.save()
 
-                    admin_wallet, _ = AdminWallet.objects.get_or_create(id=1, defaults={'total_earnings': Decimal('0.00')})
-                    admin_wallet.total_earnings -= refund_amount  
+                    # Deduct refund from admin wallet
+                    admin_wallet.total_earnings -= refund_amount
                     admin_wallet.save()
 
+                    # Record admin wallet transaction for refund
                     AdminWalletTransaction.objects.create(
                         wallet=admin_wallet,
                         amount=-refund_amount,
                         note=f"Booking #{booking.id} - Refund issued to customer for emergency cancel"
                     )
 
+                    # Record customer wallet transactions
                     CustomerWalletTransaction.objects.create(
                         wallet=wallet,
                         amount=refund_amount,
                         note=f"Refund of ₹{refund_amount} for cancelled Booking #{booking.id} (Emergency)"
                     )
+
+                    # Apply fine to customer (deduct from wallet balance conceptually)
                     CustomerWalletTransaction.objects.create(
                         wallet=wallet,
                         amount=-fine_amount,
                         note=f"Fine ₹{fine_amount} for cancelled Booking #{booking.id}"
                     )
+
+                    # If there was a discount, admin needs to recover it from the refund calculation
+                    # This is already handled in the refund_amount calculation above
+
                 else:
-                    
-                    wallet, _ = CustomerWallet.objects.get_or_create(user=request.user)
+                    # COD scenario - only apply fine (no refund needed)
                     CustomerWalletTransaction.objects.create(
                         wallet=wallet,
                         amount=-fine_amount,
                         note=f"Fine ₹{fine_amount} for cancelled Booking #{booking.id} (COD)"
                     )
 
+                    # For COD with coupon, admin should get back the discount amount
+                    # since the service wasn't completed and discount shouldn't be honored
+                    if discount > 0:
+                        admin_wallet.total_earnings += discount
+                        admin_wallet.save()
+
+                        AdminWalletTransaction.objects.create(
+                            wallet=admin_wallet,
+                            amount=discount,
+                            note=f"Discount recovery for cancelled COD Booking #{booking.id}"
+                        )
+
+                # Give fine to barber (if barber is assigned)
                 if booking.barber:
                     barber_wallet, _ = BarberWallet.objects.get_or_create(barber=booking.barber)
                     barber_wallet.balance += fine_amount
@@ -607,13 +635,16 @@ class EmergencyCancel(APIView):
                         note=f"Fine received from emergency cancel of booking #{booking.id}"
                     )
 
+                # Update booking status
                 booking.status = 'CANCELLED'
                 booking.save()
+              
+                refund_amount = payment.final_amount - fine_amount if payment_method != 'COD' else Decimal('0.00')
 
                 return Response({
                     'message': 'Booking cancelled successfully!',
                     'fine_amount': str(fine_amount),
-                    'refund_amount': str(refund_amount) if payment_method != 'COD' else '0.00',
+                    'refund_amount': str(refund_amount),
                     'wallet_balance': str(wallet.account_total_balance)
                 }, status=status.HTTP_200_OK)
 
@@ -621,7 +652,6 @@ class EmergencyCancel(APIView):
             return Response({'error': 'Booking not found'}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return Response({'error': f'An error occurred: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
 
 
 from .models import Rating

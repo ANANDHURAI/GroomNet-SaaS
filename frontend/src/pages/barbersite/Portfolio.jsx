@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import BarberSidebar from '../../components/barbercompo/BarberSidebar';
 import apiClient from '../../slices/api/apiIntercepters';
 import { ProfileDisplay } from '../../components/profilecompo/ProfileDisplay';
-import ProfileField from '../../components/profilecompo/ProfileField';
+import PortfolioProfileField from '../../components/barbercompo/PortfolioProfileField';
 import { ProfileInput } from '../../components/profilecompo/ProfileInput';
 import { User, MapPin, Calendar, Globe, Edit2, Save, X, Star } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -15,7 +15,7 @@ function Portfolio() {
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
     const [isEditing, setIsEditing] = useState(false);
-    const [isNewBarber, setIsNewBarber] = useState(false); 
+    const [isNewBarber, setIsNewBarber] = useState(false);
 
     const [formData, setFormData] = useState({
         expert_at: '',
@@ -26,10 +26,8 @@ function Portfolio() {
     });
 
     const navigate = useNavigate();
-
     const location = useLocation();
     const { currentBooking, notification, setNotification } = useBooking();
-    
     const isOnWorkingAreaPage = location.pathname.includes('/instant-booking');
 
     useEffect(() => {
@@ -51,7 +49,7 @@ function Portfolio() {
         } catch (error) {
             if (error.response?.status === 404) {
                 setIsEditing(true);
-                setIsNewBarber(true); // NEW
+                setIsNewBarber(true);
             } else {
                 setError('Failed to load portfolio. Please try again.');
             }
@@ -74,7 +72,7 @@ function Portfolio() {
             const response = await apiClient.put('/barbersite/barber-portfolio/', formData);
             setData(response.data);
             setIsEditing(false);
-            setIsNewBarber(false); // Hide message after save
+            setIsNewBarber(false);
             setError('');
             setSuccess('Portfolio saved successfully!');
             setTimeout(() => setSuccess(''), 2000);
@@ -188,7 +186,7 @@ function Portfolio() {
 
                     <div className="bg-white rounded-lg shadow-sm p-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <ProfileField label="Expertise" icon={User}>
+                            <PortfolioProfileField label="Expertise" icon={User}>
                                 {isEditing ? (
                                     <ProfileInput
                                         value={formData.expert_at}
@@ -198,8 +196,8 @@ function Portfolio() {
                                 ) : (
                                     <ProfileDisplay value={data?.expert_at} icon={User} />
                                 )}
-                            </ProfileField>
-                            <ProfileField label="Current Location" icon={MapPin}>
+                            </PortfolioProfileField>
+                            <PortfolioProfileField label="Current Location" icon={MapPin}>
                                 {isEditing ? (
                                     <ProfileInput
                                         value={formData.current_location}
@@ -209,8 +207,8 @@ function Portfolio() {
                                 ) : (
                                     <ProfileDisplay value={data?.current_location} icon={MapPin} />
                                 )}
-                            </ProfileField>
-                            <ProfileField label="Years of Experience" icon={Calendar}>
+                            </PortfolioProfileField>
+                            <PortfolioProfileField label="Years of Experience" icon={Calendar}>
                                 {isEditing ? (
                                     <ProfileInput
                                         type="number"
@@ -221,8 +219,8 @@ function Portfolio() {
                                 ) : (
                                     <ProfileDisplay value={`${data?.experience_years || '0'} years`} icon={Calendar} />
                                 )}
-                            </ProfileField>
-                            <ProfileField label="Travel Radius (km)" icon={Globe}>
+                            </PortfolioProfileField>
+                            <PortfolioProfileField label="Travel Radius (km)" icon={Globe}>
                                 {isEditing ? (
                                     <ProfileInput
                                         type="number"
@@ -233,9 +231,9 @@ function Portfolio() {
                                 ) : (
                                     <ProfileDisplay value={`${data?.travel_radius_km || '0'} km`} icon={Globe} />
                                 )}
-                            </ProfileField>
+                            </PortfolioProfileField>
                             <div className="md:col-span-2">
-                                <ProfileField label="Availability Status">
+                                <PortfolioProfileField label="Availability Status">
                                     {isEditing ? (
                                         <label className="flex items-center space-x-2">
                                             <input
@@ -256,7 +254,7 @@ function Portfolio() {
                                             {data?.is_available ? 'Available' : 'Unavailable'}
                                         </div>
                                     )}
-                                </ProfileField>
+                                </PortfolioProfileField>
                             </div>
                         </div>
 

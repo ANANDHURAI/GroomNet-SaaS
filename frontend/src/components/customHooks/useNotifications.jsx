@@ -6,16 +6,20 @@ export const useNotifications = () => {
   const [bookingUnreadCounts, setBookingUnreadCounts] = useState({});
   const websocketRef = useRef(null);
   const isConnectedRef = useRef(false);
+  const [loading, setLoading] = useState(true); 
 
   const fetchTotalUnreadCount = useCallback(async () => {
-    try {
-      const response = await apiClient.get('/chat-service/chat/total-unread/');
-      setTotalUnreadCount(response.data.total_unread_count);
-      setBookingUnreadCounts(response.data.booking_unread_counts || {});
-    } catch (error) {
-      console.error('Error fetching total unread count:', error);
-    }
-  }, []);
+      try {
+        setLoading(true); // start loading
+        const response = await apiClient.get('/chat-service/chat/total-unread/');
+        setTotalUnreadCount(response.data.total_unread_count);
+        setBookingUnreadCounts(response.data.booking_unread_counts || {});
+      } catch (error) {
+        console.error('Error fetching total unread count:', error);
+      } finally {
+        setLoading(false); // finish loading
+      }
+    }, []);
 
   const updateBookingUnreadCount = useCallback((bookingId, count) => {
     setBookingUnreadCounts(prev => {
@@ -127,6 +131,7 @@ export const useNotifications = () => {
     bookingUnreadCounts,
     updateBookingUnreadCount,
     clearBookingUnreadCount,
-    fetchTotalUnreadCount
+    fetchTotalUnreadCount,
+    loading
   };
 };

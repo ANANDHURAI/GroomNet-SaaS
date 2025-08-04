@@ -117,17 +117,31 @@ class ChatMessagesView(APIView):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_total_unread_count(request):
-   
-    total_unread = ChatMessage.objects.filter(
+    customer_messages = ChatMessage.objects.filter(
         booking__customer=request.user,
+        booking__status__in=["PENDING", "CONFIRMED"],
         is_read=False
-    ).exclude(sender=request.user).count() + ChatMessage.objects.filter(
-        booking__barber=request.user,
-        is_read=False
-    ).exclude(sender=request.user).count()
-    
-    return Response({'total_unread_count': total_unread})
+    ).exclude(sender=request.user)
 
+    barber_messages = ChatMessage.objects.filter(
+        booking__barber=request.user,
+        booking__status__in=["PENDING", "CONFIRMED"],
+        is_read=False
+    ).exclude(sender=request.user)
+
+    all_messages = customer_messages.union(barber_messages)
+
+    total_unread = all_messages.count()
+
+    booking_unread_counts = {}
+    for message in all_messages:
+        bid = str(message.booking_id)
+        booking_unread_counts[bid] = booking_unread_counts.get(bid, 0) + 1
+
+    return Response({
+        'total_unread_count': total_unread,
+        'booking_unread_counts': booking_unread_counts
+    })
  
 
 @api_view(['GET'])
@@ -135,18 +149,22 @@ def get_total_unread_count(request):
 def get_unread_count(request, booking_id):
     booking = get_object_or_404(Booking, id=booking_id)
 
+    if booking.status == "COMPLETED":
+        return Response({'unread_count': 0})
+
     if booking.customer != request.user and booking.barber != request.user:
         return Response(
             {'error': 'You do not have access to this chat'}, 
             status=status.HTTP_403_FORBIDDEN
         )
-    
+
     unread_count = ChatMessage.objects.filter(
         booking=booking,
         is_read=False
     ).exclude(sender=request.user).count()
-    
+
     return Response({'unread_count': unread_count})
+
 
 
 @api_view(['GET'])
