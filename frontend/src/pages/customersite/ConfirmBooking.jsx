@@ -45,8 +45,6 @@ export const ConfirmBooking = () => {
   const fetchBookingSummary = async (data, type, coupon = "") => {
     try {
       setLoading(true);
-      
-      // Only clear coupon error if we're not applying a coupon
       if (!coupon) {
         setCouponError(null);
       }
@@ -72,8 +70,6 @@ export const ConfirmBooking = () => {
       console.log('Booking summary response:', response.data);
       
       setBookingSummary(response.data);
-      
-      // Clear coupon error on successful response
       setCouponError(null);
       
     } catch (error) {
@@ -81,11 +77,10 @@ export const ConfirmBooking = () => {
       
       if (error.response?.data?.error) {
         if (coupon && coupon.trim()) {
-          // If we were applying a coupon and got an error, show coupon error
           setCouponError(error.response.data.error);
-          // Don't update loading state, keep the previous summary if it exists
+          
         } else {
-          // If it's not a coupon-related error, show general error
+          
           setError(error.response.data.error);
         }
       } else {
@@ -127,7 +122,6 @@ export const ConfirmBooking = () => {
         paymentUrl.searchParams.set("slot_id", bookingData.slot_id);
       }
 
-      // Add coupon code to URL if applied successfully
       if (bookingSummary?.coupon?.code) {
         paymentUrl.searchParams.set("coupon_code", bookingSummary.coupon.code);
       }
@@ -208,7 +202,7 @@ export const ConfirmBooking = () => {
         </div>
 
         <div className="bg-white rounded-xl p-6 mb-6 shadow-md space-y-6">
-          {/* Service Details */}
+         
           <div className="flex items-center space-x-4 border-b pb-4">
             <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
               <Scissors className="w-6 h-6 text-blue-600" />
@@ -220,7 +214,7 @@ export const ConfirmBooking = () => {
             <p className="font-semibold text-green-600 whitespace-nowrap">₹{bookingSummary.service.price}</p>
           </div>
 
-          {/* Barber and Slot Details (for scheduled bookings) */}
+
           {bookingType !== "INSTANT_BOOKING" && bookingSummary.barber && bookingSummary.slot && (
             <>
               <div className="flex items-center space-x-4 border-b pb-4">
@@ -248,7 +242,6 @@ export const ConfirmBooking = () => {
             </>
           )}
 
-          {/* Address Details */}
           <div className="flex items-start space-x-4 border-b pb-4">
             <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
               <MapPin className="w-6 h-6 text-green-600" />
@@ -263,11 +256,10 @@ export const ConfirmBooking = () => {
             </div>
           </div>
 
-          {/* Coupon Section */}
           <div className="space-y-3 border-b pb-4">
             <label className="text-sm font-medium text-gray-700">Apply Coupon Code</label>
             
-            {/* Show applied coupon if exists */}
+
             {bookingSummary.coupon && (
               <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-3">
                 <div className="flex items-center justify-between">
@@ -289,7 +281,7 @@ export const ConfirmBooking = () => {
               </div>
             )}
 
-            {/* Coupon input */}
+        
             {!bookingSummary.coupon && (
               <div className="flex space-x-2">
                 <input
@@ -310,7 +302,7 @@ export const ConfirmBooking = () => {
               </div>
             )}
 
-            {/* Coupon error */}
+   
             {couponError && (
               <div className="bg-red-50 border border-red-200 rounded-lg p-3">
                 <p className="text-red-600 text-sm">{couponError}</p>
@@ -318,7 +310,6 @@ export const ConfirmBooking = () => {
             )}
           </div>
 
-          {/* Price Breakdown */}
           <div className="space-y-3">
             <div className="flex justify-between text-gray-700">
               <span>Service Price</span>

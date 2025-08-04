@@ -18,6 +18,15 @@ from customersite.models import PaymentModel
 from .models import ServiceModel, CategoryModel , AdminWallet  ,Coupon,AdminWalletTransaction
 from .serializers import CouponSerializer , AdminWalletSerializer ,AdminWalletTransactionSerializer
 
+from rest_framework import generics
+from customersite.models import Complaints
+from .serializers import ComplaintSerializer
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from django.db.models import Count, Avg, Sum
+from customersite.models import Booking , Rating
+
 
 
 
@@ -316,11 +325,6 @@ class CouponViewSet(ModelViewSet):
     serializer_class = CouponSerializer
     
 
-
-from rest_framework import generics
-from customersite.models import Complaints
-from .serializers import ComplaintSerializer
-
 class AdminComplaintListView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
     queryset = Complaints.objects.all().order_by('-created_at')
@@ -345,13 +349,6 @@ class AdminComplaintStatusUpdateView(APIView):
         complaint.save()
 
         return Response({"success": True, "new_status": new_status}, status=200)
-
-
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-from django.db.models import Count, Avg, Sum
-from customersite.models import Booking , Rating
 
 
 class AdminDashboardView(APIView):

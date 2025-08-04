@@ -23,6 +23,8 @@ logger = logging.getLogger(__name__)
 from .utils import send_otp
 from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
 from allauth.socialaccount.providers.oauth2.client import OAuth2Client
+
+
 # from dj_rest_auth.registration.views import SocialLoginView
 
 # class GoogleLogin(SocialLoginView):
@@ -316,17 +318,3 @@ class ResetPasswordView(APIView):
         except User.DoesNotExist:
             return Response({"error": "User not found."}, status=status.HTTP_404_NOT_FOUND)
 
-
-
-# # views.py
-
-# from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
-# from dj_rest_auth.registration.views import SocialLoginView
-# from allauth.socialaccount.providers.oauth2.client import OAuth2Client
-# from rest_framework.permissions import AllowAny
-
-# class GoogleLogin(SocialLoginView):
-#     adapter_class = GoogleOAuth2Adapter
-#     client_class = OAuth2Client
-#     callback_url = "http://localhost:5173"
-#     permission_classes = [AllowAny]

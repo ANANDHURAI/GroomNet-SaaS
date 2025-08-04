@@ -46,7 +46,6 @@ function BookingHistoryPage() {
                 key={booking.id}
                 className="bg-white p-4 rounded-lg shadow-md border flex flex-col sm:flex-row justify-between items-start sm:items-center relative"
               >
-                {/* Add notification badge for each booking */}
                 {bookingUnreadCounts[booking.id] > 0 && (
                   <div className="absolute -top-2 -right-2 z-10">
                     <NotificationBadge count={bookingUnreadCounts[booking.id]} />

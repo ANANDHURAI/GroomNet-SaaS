@@ -117,12 +117,10 @@ function CustomerChatPage() {
 
   const handleNewMessage = (messageData) => {
     setMessages(prev => {
-      // Remove any temporary messages with the same content
       const filteredPrev = prev.filter(msg => 
         !(msg.id && msg.id.toString().startsWith('temp_') && msg.message === messageData.message)
       );
       
-      // Check if message already exists
       const exists = filteredPrev.some(msg => msg.id === messageData.id);
       if (exists) return filteredPrev;
       
@@ -142,7 +140,7 @@ function CustomerChatPage() {
 
   const handleWebSocketClose = (event) => {
     console.log('WebSocket disconnected:', event.code);
-    // Auto-reconnect after 3 seconds if not a clean close
+    
     if (event.code !== 1000) {
       setTimeout(connectWebSocket, 3000);
     }
@@ -162,7 +160,6 @@ function CustomerChatPage() {
   const handleInputChange = (value) => {
     setNewMessage(value);
     
-    // Send typing indicator
     if (websocketRef.current?.readyState === WebSocket.OPEN) {
       try {
         websocketRef.current.send(JSON.stringify({
@@ -181,8 +178,6 @@ function CustomerChatPage() {
 
     const messageText = newMessage.trim();
     setSending(true);
-    
-    // Create temporary message for immediate UI feedback
     const tempMessage = createTempMessage(messageText);
     setMessages(prev => [...prev, tempMessage]);
     setNewMessage('');
@@ -194,19 +189,17 @@ function CustomerChatPage() {
           message: messageText 
         }));
       } else {
-        // Fallback to HTTP
+ 
         const response = await apiClient.post(`/chat-service/chat/${bookingId}/messages/`, {
           message: messageText
         });
         
-        // Replace temp message with real message
         setMessages(prev => 
           prev.map(msg => msg.id === tempMessage.id ? response.data : msg)
         );
       }
     } catch (error) {
       console.error('Send error:', error);
-      // Remove temp message and restore input on error
       setMessages(prev => prev.filter(msg => msg.id !== tempMessage.id));
       setNewMessage(messageText);
       alert('Failed to send message. Please try again.');
@@ -344,7 +337,6 @@ function CustomerChatPage() {
         )}
       </div>
 
-      {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
         {messages.length === 0 ? (
           <div className="text-center text-gray-500 py-8">
@@ -354,7 +346,6 @@ function CustomerChatPage() {
           messages.map(renderMessage)
         )}
 
-        {/* Typing indicator */}
         {isTyping && (
           <div className="flex justify-start">
             <div className="bg-white text-gray-800 border px-4 py-2 rounded-lg max-w-xs">
@@ -371,7 +362,6 @@ function CustomerChatPage() {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input */}
       <form onSubmit={handleSendMessage} className="p-4 border-t bg-white">
         <div className="flex space-x-2">
           <input

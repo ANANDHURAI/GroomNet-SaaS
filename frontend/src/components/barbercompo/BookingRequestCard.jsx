@@ -21,15 +21,12 @@ export const BookingRequestCard = ({ booking, onAccept, onReject, loading }) => 
 
   return (
     <div className="relative group">
-      {/* Animated gradient background */}
       <div className="absolute -inset-1 bg-gradient-to-r from-pink-500 via-purple-500 to-orange-500 rounded-3xl blur opacity-25 group-hover:opacity-40 transition duration-1000 group-hover:duration-200 animate-pulse"></div>
       
       <div className="relative bg-white rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-500 p-8 border border-gray-100 backdrop-blur-sm">
-        {/* Floating orbs */}
         <div className="absolute top-4 right-4 w-3 h-3 bg-gradient-to-r from-orange-400 to-red-400 rounded-full animate-bounce"></div>
         <div className="absolute top-8 right-8 w-2 h-2 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full animate-bounce delay-200"></div>
-        
-        {/* Header with animated elements */}
+     
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center space-x-4">
             <div className="relative">
@@ -63,7 +60,6 @@ export const BookingRequestCard = ({ booking, onAccept, onReject, loading }) => 
           </div>
         </div>
 
-        {/* Info cards with glassmorphism */}
         <div className="space-y-4 mb-8">
           <div className="group/item bg-gradient-to-r from-blue-50 to-indigo-50 p-5 rounded-2xl border border-blue-100 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
             <div className="flex items-center space-x-4">
@@ -112,7 +108,6 @@ export const BookingRequestCard = ({ booking, onAccept, onReject, loading }) => 
           </div>
         </div>
 
-        {/* Action buttons with advanced effects */}
         <div className="flex space-x-4">
           <button
             onClick={onAccept}

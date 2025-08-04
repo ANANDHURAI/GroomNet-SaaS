@@ -123,12 +123,11 @@ function BarberChatPage() {
 
   const handleNewMessage = (messageData) => {
     setMessages(prev => {
-      // Remove any temporary messages with the same content
+     
       const filteredPrev = prev.filter(msg => 
         !(msg.id && msg.id.toString().startsWith('temp_') && msg.message === messageData.message)
       );
       
-      // Check if message already exists
       const exists = filteredPrev.some(msg => msg.id === messageData.id);
       if (exists) return filteredPrev;
       
@@ -148,7 +147,6 @@ function BarberChatPage() {
 
   const handleWebSocketClose = (event) => {
     console.log('WebSocket disconnected:', event.code);
-    // Auto-reconnect after 3 seconds if not a clean close
     if (event.code !== 1000) {
       setTimeout(connectWebSocket, 3000);
     }
@@ -167,8 +165,7 @@ function BarberChatPage() {
 
   const handleInputChange = (value) => {
     setNewMessage(value);
-    
-    // Send typing indicator
+
     if (websocketRef.current?.readyState === WebSocket.OPEN) {
       try {
         websocketRef.current.send(JSON.stringify({
@@ -188,7 +185,6 @@ function BarberChatPage() {
     const messageText = newMessage.trim();
     setSending(true);
     
-    // Create temporary message for immediate UI feedback
     const tempMessage = createTempMessage(messageText);
     setMessages(prev => [...prev, tempMessage]);
     setNewMessage('');
@@ -200,19 +196,18 @@ function BarberChatPage() {
           message: messageText 
         }));
       } else {
-        // Fallback to HTTP
+        
         const response = await apiClient.post(`/chat-service/chat/${bookingId}/messages/`, {
           message: messageText
         });
         
-        // Replace temp message with real message
         setMessages(prev => 
           prev.map(msg => msg.id === tempMessage.id ? response.data : msg)
         );
       }
     } catch (error) {
       console.error('Send error:', error);
-      // Remove temp message and restore input on error
+      
       setMessages(prev => prev.filter(msg => msg.id !== tempMessage.id));
       setNewMessage(messageText);
       alert('Failed to send message. Please try again.');
@@ -346,8 +341,7 @@ function BarberChatPage() {
 
         <div className="flex-1 flex flex-col h-full">
           <div className="flex flex-col flex-1 bg-white rounded-lg shadow-lg m-4 overflow-hidden">
-            
-            {/* Header */}
+        
             <div className="bg-gradient-to-r from-green-600 to-green-700 text-white p-4">
               <button
                 onClick={() => navigate('/barber/appointments')}

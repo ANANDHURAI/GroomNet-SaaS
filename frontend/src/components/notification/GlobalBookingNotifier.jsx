@@ -5,20 +5,19 @@ const GlobalBookingNotifier = ({
   currentBooking, 
   notification, 
   setNotification, 
-  navigate, // Accept navigate as prop
-  location, // Accept location as prop
+  navigate,
+  location, 
   isOnWorkingAreaPage = false 
 }) => {
   const [isVisible, setIsVisible] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
 
   useEffect(() => {
-    // Only show notification if we have a pending booking and we're NOT on the working area page
+   
     if (currentBooking?.status === 'PENDING' && !isOnWorkingAreaPage) {
       setIsVisible(true);
       setIsAnimating(true);
       
-      // Play notification sound (optional)
       try {
         const audio = new Audio('/notification-sound.mp3');
         audio.play().catch(e => console.log('Audio play failed:', e));
@@ -33,7 +32,6 @@ const GlobalBookingNotifier = ({
   const handleAccept = () => {
     setIsAnimating(false);
     setTimeout(() => {
-      // Navigate to the instant booking page
       navigate('/instant-booking/');
       setNotification?.('Redirected to accept booking');
     }, 300);
@@ -47,7 +45,7 @@ const GlobalBookingNotifier = ({
   };
 
   const handleViewDetails = () => {
-    // Navigate to the instant booking page
+
     navigate('/instant-booking/');
   };
 
@@ -57,20 +55,17 @@ const GlobalBookingNotifier = ({
 
   return (
     <>
-      {/* Backdrop */}
       <div 
         className={`fixed inset-0 bg-black transition-opacity duration-300 z-40 ${
           isAnimating ? 'bg-opacity-50' : 'bg-opacity-0'
         }`}
         onClick={handleDismiss}
       />
-      
-      {/* Desktop Notification Card */}
+    
       <div className={`hidden md:block fixed top-4 right-4 w-96 z-50 transform transition-all duration-300 ease-out ${
         isAnimating ? 'translate-y-0 opacity-100 scale-100' : '-translate-y-full opacity-0 scale-95'
       }`}>
         <div className="bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden">
-          {/* Header with pulsing indicator */}
           <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-4 text-white relative">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -92,9 +87,9 @@ const GlobalBookingNotifier = ({
             </div>
           </div>
 
-          {/* Content */}
+
           <div className="p-6 space-y-4">
-            {/* Customer Info */}
+          
             <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
               <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
                 {currentBooking.customer_name?.charAt(0).toUpperCase()}
@@ -108,7 +103,6 @@ const GlobalBookingNotifier = ({
               </div>
             </div>
 
-            {/* Service Details */}
             <div className="space-y-3">
               <div className="flex items-center justify-between p-3 bg-blue-50 rounded-xl">
                 <div className="flex items-center gap-2">
@@ -137,14 +131,12 @@ const GlobalBookingNotifier = ({
               </div>
             </div>
 
-            {/* Urgency indicator */}
             <div className="flex items-center gap-2 p-3 bg-red-50 rounded-xl border border-red-200">
               <Clock className="w-4 h-4 text-red-500 animate-pulse" />
               <span className="text-red-700 text-sm font-medium">Respond quickly to secure this booking!</span>
             </div>
           </div>
 
-          {/* Action Buttons */}
           <div className="p-6 pt-0 space-y-3">
             <button
               onClick={handleAccept}
@@ -165,7 +157,6 @@ const GlobalBookingNotifier = ({
         </div>
       </div>
 
-      {/* Mobile bottom notification */}
       <div className="md:hidden fixed bottom-4 left-4 right-4 z-50">
         <div className={`bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden transform transition-all duration-300 ${
           isAnimating ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0'
@@ -204,7 +195,6 @@ const GlobalBookingNotifier = ({
         </div>
       </div>
 
-      {/* Floating notification dot for minimal distraction when collapsed */}
       {!isAnimating && (
         <div 
           className="fixed top-4 right-4 z-50 cursor-pointer transform hover:scale-110 transition-transform"

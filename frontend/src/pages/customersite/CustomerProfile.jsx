@@ -44,14 +44,12 @@ function CustomerProfile() {
     try {
       const formData = new FormData();
       
-      // Add profile fields
       Object.keys(editedProfile).forEach(key => {
         if (key !== 'profileImageFile' && key !== 'profileimage' && editedProfile[key] !== null && editedProfile[key] !== undefined) {
           formData.append(key, editedProfile[key]);
         }
       });
-      
-      // Add image file if selected
+
       if (editedProfile.profileImageFile) {
         formData.append('profileimage', editedProfile.profileImageFile);
       }
@@ -64,7 +62,7 @@ function CustomerProfile() {
       
       setProfile(res.data);
       setIsEditing(false);
-      // Clean up the temporary file reference
+  
       setEditedProfile(prev => {
         const { profileImageFile, ...rest } = prev;
         return rest;
@@ -90,16 +88,12 @@ function CustomerProfile() {
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
-      // Create a preview URL for immediate display
       const previewUrl = URL.createObjectURL(file);
-      
-      // Update the profile state with preview
       setProfile(prev => ({
         ...prev,
         profileimage: previewUrl
       }));
       
-      // Store the file for actual upload when saving
       setEditedProfile(prev => ({
         ...prev,
         profileImageFile: file,
@@ -116,17 +110,14 @@ function CustomerProfile() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-      {/* Navbar full width */}
+
       <Navbar />
 
-      {/* Sidebar + Content */}
       <div className="flex">
-        {/* Sidebar */}
+    
         <div className="w-64 bg-gradient-to-b from-green-600 to-green-700 text-white shadow-2xl min-h-screen">
           <CustomerSidebar />
         </div>
-
-        {/* Main content area */}
         <div className="flex-1 p-8">
           <div className="max-w-4xl mx-auto">
             <div className="mb-8">

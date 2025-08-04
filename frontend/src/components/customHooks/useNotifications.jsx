@@ -10,14 +10,14 @@ export const useNotifications = () => {
 
   const fetchTotalUnreadCount = useCallback(async () => {
       try {
-        setLoading(true); // start loading
+        setLoading(true); 
         const response = await apiClient.get('/chat-service/chat/total-unread/');
         setTotalUnreadCount(response.data.total_unread_count);
         setBookingUnreadCounts(response.data.booking_unread_counts || {});
       } catch (error) {
         console.error('Error fetching total unread count:', error);
       } finally {
-        setLoading(false); // finish loading
+        setLoading(false); 
       }
     }, []);
 

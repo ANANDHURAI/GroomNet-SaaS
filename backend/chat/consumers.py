@@ -41,8 +41,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
     def get_total_unread_count_for_user(self, user_id):
         from .models import ChatMessage
         from customersite.models import Booking
-        
-        # Get all bookings where user is involved
+      
         user_bookings = Booking.objects.filter(
             models.Q(customer_id=user_id) | models.Q(barber_id=user_id)
         ).values_list('id', flat=True)
@@ -52,8 +51,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             booking_id__in=user_bookings,
             is_read=False
         ).exclude(sender_id=user_id).count()
-        
-        # Get per-booking counts
+      
         booking_counts = {}
         for booking_id in user_bookings:
             count = ChatMessage.objects.filter(
@@ -89,7 +87,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
         return False
     
     async def send_initial_status(self):
-        """Send initial status information to the newly connected user"""
         try:
             other_user_id = await database_sync_to_async(self.get_other_user_id)(
                 self.booking, self.user.id
@@ -102,7 +99,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 'type': 'user_status',
                 'is_online': other_user_online
             }))
-            print(f"WebSocket[{self.connection_id}]: Sent initial status - other user online: {other_user_online}")
         except Exception as e:
             print(f"WebSocket[{self.connection_id}]: Error sending initial status: {e}")
 
@@ -112,21 +108,15 @@ class ChatConsumer(AsyncWebsocketConsumer):
         return booking.customer_id
     
     async def connect(self):
-        print("WebSocket: Trying to connect...")
 
         self.booking_id = self.scope['url_route']['kwargs']['booking_id']
         self.room_group_name = f'chat_{self.booking_id}'
-        
-        # Add connection ID for debugging
+  
         import uuid
         self.connection_id = str(uuid.uuid4())[:8]
-        print(f"WebSocket[{self.connection_id}]: Booking ID - {self.booking_id}")
-
         self.user = AnonymousUser()
 
         query_string = self.scope.get('query_string', b'').decode()
-        print(f"WebSocket[{self.connection_id}]: Query string - {query_string}")
-
         token = None
         if 'token=' in query_string:
             token = query_string.split('token=')[1].split('&')[0]
@@ -135,40 +125,30 @@ class ChatConsumer(AsyncWebsocketConsumer):
         if token:
             try:
                 UntypedToken(token)
-                print(f"WebSocket[{self.connection_id}]: Token is valid")
-
                 decoded_data = jwt_decode(token, settings.SECRET_KEY, algorithms=["HS256"])
                 user_id = decoded_data.get("user_id")
-                print(f"WebSocket[{self.connection_id}]: Decoded user ID - {user_id}")
                 
                 if user_id:
                     self.user = await database_sync_to_async(User.objects.get)(id=user_id)
-                    print(f"WebSocket[{self.connection_id}]: User authenticated - ID: {self.user.id}, Name: {self.user.name}")
+                   
                 else:
-                    print(f"WebSocket[{self.connection_id}]: User ID not found in token")
                     await self.close(code=4001)
                     return
                         
             except (InvalidToken, TokenError, User.DoesNotExist, Exception) as e:
-                print(f"WebSocket[{self.connection_id}]: Token validation error: {e}")
                 await self.close(code=4001)
                 return
         else:
-            print(f"WebSocket[{self.connection_id}]: No token provided")
             await self.close(code=4001)
             return
 
         self.booking = await self.get_booking(self.booking_id)
         if not self.booking:
-            print(f"WebSocket[{self.connection_id}]: Booking does not exist")
             await self.close(code=4002)
             return
 
-        print(f"WebSocket[{self.connection_id}]: Booking found - ID: {self.booking.id}, Status: {self.booking.status}")
-
         authorized = await self.is_user_in_booking(self.booking, self.user)
         if not authorized:
-            print(f"WebSocket[{self.connection_id}]: User not authorized for this booking")
             await self.close(code=4003)
             return
 
@@ -178,17 +158,11 @@ class ChatConsumer(AsyncWebsocketConsumer):
         )
 
         await self.accept()
-        print(f"WebSocket[{self.connection_id}]: Connection accepted and joined group {self.room_group_name}")
-
-        # Set user online status
         await database_sync_to_async(self.set_user_online_status)(
             self.booking_id, self.user.id, True
         )
 
-        # Send initial status to this user
         await self.send_initial_status()
-
-        # Broadcast this user's online status to others in the room
         await self.channel_layer.group_send(
             self.room_group_name,
             {
@@ -197,20 +171,13 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 'is_online': True
             }
         )
-        print(f"WebSocket[{self.connection_id}]: Broadcasted user online status")
-
-        # Start heartbeat task
         self.heartbeat_task = asyncio.create_task(self.heartbeat())
-        print(f"WebSocket[{self.connection_id}]: Heartbeat task started")
-
 
 
     async def disconnect(self, close_code):
-        print(f"WebSocket: Starting disconnect process with code {close_code}")
         
         if hasattr(self, 'heartbeat_task'):
             self.heartbeat_task.cancel()
-            print("WebSocket: Heartbeat task cancelled")
 
         if hasattr(self, 'user') and hasattr(self, 'booking_id'):
             await database_sync_to_async(self.set_user_online_status)(
@@ -225,15 +192,13 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     'is_online': False
                 }
             )
-            print("WebSocket: Broadcasted user offline status")
 
         if hasattr(self, 'room_group_name'):
             await self.channel_layer.group_discard(
                 self.room_group_name,
                 self.channel_name
             )
-        print(f"WebSocket: Disconnected and left group")
-
+    
     async def heartbeat(self):
         try:
             while True:
@@ -314,7 +279,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 'is_read': message.is_read
             }
 
-            # Broadcast immediately without delay
             await self.channel_layer.group_send(
                 self.room_group_name,
                 {
@@ -390,11 +354,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
 
     async def send_total_unread_update(self, user_id):
-        """Send total unread count update to user via global notification channel"""
         try:
             total_count, booking_counts = await self.get_total_unread_count_for_user(user_id)
-            
-            # Send to global notification channel
+         
             await self.channel_layer.group_send(
                 f'notifications_{user_id}',
                 {

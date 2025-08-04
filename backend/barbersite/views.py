@@ -22,6 +22,13 @@ from .models import BarberWallet
 from .serializers import BarberWalletSerializer
 from django.utils.timezone import localtime
 
+from django.db.models import Count, Avg
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from django.db.models import Avg, Count, Sum
+from customersite.models import Booking, Rating
+
 class BarberDashboard(APIView): 
     permission_classes = [IsAuthenticated]
     
@@ -297,8 +304,6 @@ class BarberAppointments(APIView):
         return Response(data)
     
 
-
-
 class CompletedAppointments(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -365,16 +370,6 @@ class BarberWalletView(APIView):
         serializer = BarberWalletSerializer(wallet)
         return Response(serializer.data)
         
-
-from django.db.models import Count, Avg
-
-
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-from django.db.models import Avg, Count, Sum
-from customersite.models import Booking, Rating
-
 
 class BarberDashboardView(APIView):
     permission_classes = [IsAuthenticated]

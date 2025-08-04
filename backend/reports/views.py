@@ -1,5 +1,3 @@
-# views.py (Updated for your specific models)
-
 import csv
 from django.http import HttpResponse
 from django.utils import timezone
@@ -157,7 +155,6 @@ from django.db.models import Count
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def download_users_report(request):
-    """Download users report as PDF"""
     
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="users_report.pdf"'
@@ -273,7 +270,6 @@ def download_services_report(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def download_barber_performance_report(request):
-    """Download barber performance report as PDF"""
     
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="barber_performance_report.pdf"'
@@ -348,8 +344,7 @@ def download_barber_performance_report(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def download_customer_analysis_report(request):
-    """Download customer analysis report as PDF"""
-    
+   
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="customer_analysis_report.pdf"'
 
@@ -432,7 +427,7 @@ def download_customer_analysis_report(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def download_financial_summary_report(request):
-    """Download financial summary report as PDF"""
+   
     
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="financial_summary_report.pdf"'

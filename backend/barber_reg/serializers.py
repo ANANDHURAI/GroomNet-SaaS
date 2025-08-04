@@ -15,12 +15,6 @@ class BarberPersonalDetailsSerializer(serializers.ModelSerializer):
         model = User
         fields = ['name', 'email', 'phone', 'gender', 'password', 'confirm_password']
 
-    # def validate_email(self, value):
-    #     if User.objects.filter(email=value.lower()).exists():
-    #         raise serializers.ValidationError("A user with this email already exists.")
-        
-    #     return value.lower()
-
     def validate_password(self, value):
         try:
             validate_password(value)

@@ -141,7 +141,7 @@ function BarberDash() {
         notification={notification}
         setNotification={setNotification}
         navigate={navigate}
-        location={location} // This is the geo-location
+        location={location} 
         isOnWorkingAreaPage={isOnWorkingAreaPage}
       />
 

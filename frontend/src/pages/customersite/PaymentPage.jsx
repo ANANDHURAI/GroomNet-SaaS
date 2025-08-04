@@ -42,12 +42,10 @@ function PaymentPage() {
       selectedAddressId: parseInt(addressId)
     });
 
-    // Set coupon code from URL if available
     if (couponFromUrl) {
       setCouponCode(couponFromUrl);
     }
 
-    // For scheduled bookings, default to STRIPE
     if (sessionBookingType === "SCHEDULE_BOOKING") {
       setMethod("STRIPE");
     }
@@ -64,7 +62,6 @@ function PaymentPage() {
     }
 
     try {
-      // Prepare booking payload
       const bookingPayload = {
         service: bookingData.selectedServiceId,
         barber: bookingData.selectedBarberId,
@@ -73,8 +70,6 @@ function PaymentPage() {
         payment_method: method,
         booking_type: bookingType
       };
-
-      // Add coupon code if present
       if (couponCode && couponCode.trim()) {
         bookingPayload.coupon_code = couponCode.trim();
       }
@@ -86,7 +81,6 @@ function PaymentPage() {
       const bookingId = bookingRes.data.booking_id;
       sessionStorage.setItem('instantBookingId', bookingId);
 
-      // For COD and WALLET payments, redirect to success page
       if (method === "COD" || method === "WALLET") {
         setTimeout(() => {
           navigate('/booking-success');
@@ -123,7 +117,7 @@ function PaymentPage() {
             setError("Booking validation failed. Please check your details.");
           }
         } 
-        // Handle other specific errors
+        
         else if (errorData.error) {
           setError(errorData.error);
         } else if (errorData.detail) {
@@ -141,7 +135,7 @@ function PaymentPage() {
 
   const hasAllData = bookingData.selectedServiceId && bookingData.selectedAddressId;
 
-  // Show loading spinner for COD and WALLET payments
+ 
   if (loading && (method === "COD" || method === "WALLET")) {
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -167,7 +161,6 @@ function PaymentPage() {
             Choose Payment Method
           </h2>
 
-          {/* Display coupon info if present */}
           {couponCode && (
             <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
               <p className="text-sm text-green-800">

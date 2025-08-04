@@ -13,7 +13,7 @@ const AddressForm = ({ onSave, onCancel, saving, defaultData }) => {
     is_default: false,
   });
 
-  // If defaultData is provided (edit mode), pre-fill the form
+ 
   useEffect(() => {
     if (defaultData) {
       setFormData({
@@ -41,7 +41,7 @@ const AddressForm = ({ onSave, onCancel, saving, defaultData }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     onSave(formData, () => {
-      // Reset form after save (for new address only)
+    
       setFormData({
         name: '',
         mobile: '',

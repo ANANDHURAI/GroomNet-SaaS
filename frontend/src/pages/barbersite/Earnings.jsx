@@ -41,7 +41,7 @@ function Earnings() {
 
   return (
     <div className="flex min-h-screen bg-gray-50">
-      {/* Global Booking Notification - Pass navigate and location as props */}
+   
       <GlobalBookingNotifier
         currentBooking={currentBooking}
         notification={notification}
@@ -56,7 +56,7 @@ function Earnings() {
       </div>
       
       <div className="flex-1 p-4 md:p-8">
-        {/* Subtle notification banner for mobile/small screens */}
+
         {currentBooking?.status === 'PENDING' && (
           <div className="md:hidden bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-4 py-3 rounded-lg mb-4 shadow-lg">
             <div className="flex items-center justify-between">

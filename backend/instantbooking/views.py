@@ -104,7 +104,6 @@ class MakingFindingBarberRequest(APIView, BookingMixin):
             )
 
     def _notify_barbers_new_booking(self, booking, barbers):
-        """Send booking notification to available barbers"""
         channel_layer = get_channel_layer()
         
         for barber in barbers:
@@ -479,11 +478,10 @@ class CompletedServiceView(APIView):
 
                         barber_wallet, _ = BarberWallet.objects.get_or_create(barber=booking.barber)
 
-                        final_amount = payment.final_amount  # This is what customer actually paid
+                        final_amount = payment.final_amount
                         platform_fee = payment.platform_fee
 
                         if payment.payment_method == "COD":
-                            # For COD: Barber gets the discounted final amount minus platform fee
                             barber_amount = final_amount - platform_fee
                             
                             barber_wallet.balance += barber_amount

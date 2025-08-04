@@ -13,21 +13,18 @@ function CustomerWallet() {
     const [successAmount, setSuccessAmount] = useState('')
     const [verifying, setVerifying] = useState(false)
 
-    // GET wallet details
     const fetchWalletDetails = () => {
         apiClient.get('/customersite/wallet/')
             .then(response => setWalletDetails(response.data))
             .catch(error => console.error('Failed to fetch wallet details:', error))
     }
 
-    // GET wallet transactions
     const fetchTransactions = () => {
         apiClient.get('/customersite/customer-wallet/transactions/')
             .then(res => setTransactions(res.data.history))
             .catch(err => console.error("Failed to load transactions", err))
     }
 
-    // POST to verify Stripe payment and update wallet
     const verifyPayment = async (sessionId, amount) => {
         setVerifying(true)
         try {
@@ -101,7 +98,6 @@ function CustomerWallet() {
                     </div>
                 )}
 
-                {/* Wallet Balance Section */}
                 <div className="bg-gradient-to-r from-green-400 to-blue-500 text-white p-6 rounded-xl shadow-md flex justify-between items-center">
                     <div>
                         <h2 className="text-lg font-semibold">Total Balance</h2>

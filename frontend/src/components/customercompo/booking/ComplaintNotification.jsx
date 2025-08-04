@@ -10,7 +10,6 @@ function ComplaintNotification() {
 
   useEffect(() => {
     fetchComplaintUpdates();
-    // Poll for updates every 30 seconds
     const interval = setInterval(fetchComplaintUpdates, 30000);
     return () => clearInterval(interval);
   }, []);
@@ -19,15 +18,13 @@ function ComplaintNotification() {
     try {
       const response = await apiClient.get('/customersite/complaints/');
       const complaints = response.data;
-      
-      // Filter recent updates (last 7 days)
+
       const recentUpdates = complaints.filter(complaint => {
         const updatedDate = new Date(complaint.updated_at);
         const createdDate = new Date(complaint.created_at);
         const now = new Date();
         const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-        
-        // Show if updated recently and not just created
+
         return updatedDate > sevenDaysAgo && updatedDate.getTime() !== createdDate.getTime();
       });
 

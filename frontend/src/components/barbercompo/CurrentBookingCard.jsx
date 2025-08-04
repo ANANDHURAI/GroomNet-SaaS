@@ -15,19 +15,16 @@ export const CurrentBookingCard = ({ booking, navigate }) => {
       <div className="absolute -inset-1 bg-gradient-to-r from-emerald-500 via-green-500 to-teal-500 rounded-3xl blur opacity-20 group-hover:opacity-30 transition duration-1000 animate-pulse"></div>
       
       <div className="relative bg-white rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-500 p-8 border border-gray-100 backdrop-blur-sm overflow-hidden">
-        {/* Decorative elements */}
         <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-green-100 to-emerald-100 rounded-full -translate-y-16 translate-x-16 opacity-50"></div>
         <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-teal-100 to-green-100 rounded-full translate-y-12 -translate-x-12 opacity-30"></div>
         
-        {/* Status indicator */}
         <div className="absolute top-6 right-6 flex items-center space-x-2">
           <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
           <span className="px-4 py-2 rounded-2xl text-sm font-bold bg-gradient-to-r from-green-100 to-emerald-100 text-green-700 border-2 border-green-200 shadow-sm">
-            ✅ Active
+            Active
           </span>
         </div>
 
-        {/* Header */}
         <div className="mb-8 relative z-10">
           <div className="flex items-center space-x-4">
             <div className="relative">

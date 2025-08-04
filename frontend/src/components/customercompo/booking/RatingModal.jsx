@@ -57,12 +57,11 @@ const RatingModal = ({ bookingId, onClose, onSuccess }) => {
       let errorMessage = 'Failed to submit review';
       
       if (error.response?.status === 400) {
-        // Handle specific validation errors
+        
         const errorData = error.response.data;
         if (errorData.non_field_errors) {
           errorMessage = errorData.non_field_errors[0];
         } else if (typeof errorData === 'object') {
-          // Get first error message from any field
           const firstError = Object.values(errorData)[0];
           errorMessage = Array.isArray(firstError) ? firstError[0] : firstError;
         }

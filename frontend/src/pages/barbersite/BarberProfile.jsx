@@ -46,15 +46,13 @@ function BarberProfile() {
   const handleSave = async () => {
     try {
       const formData = new FormData();
-      
-      // Add profile fields
+
       Object.keys(editedProfile).forEach(key => {
         if (key !== 'profileImageFile' && key !== 'profileimage' && editedProfile[key] !== null && editedProfile[key] !== undefined) {
           formData.append(key, editedProfile[key]);
         }
       });
-      
-      // Add image file if selected
+
       if (editedProfile.profileImageFile) {
         formData.append('profileimage', editedProfile.profileImageFile);
       }
@@ -67,7 +65,7 @@ function BarberProfile() {
       
       setProfile(res.data);
       setIsEditing(false);
-      // Clean up the temporary file reference
+    
       setEditedProfile(prev => {
         const { profileImageFile, ...rest } = prev;
         return rest;

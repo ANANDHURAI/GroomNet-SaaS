@@ -23,7 +23,7 @@ function CompletedAppointments() {
       try {
         const response = await apiClient.get('/barbersite/completed-barber-appointments/');
         setAppointments(response.data);
-        setFilteredAppointments(response.data); // initialize
+        setFilteredAppointments(response.data);
       } catch (error) {
         console.error('Error fetching completed appointments:', error);
       }
@@ -32,7 +32,7 @@ function CompletedAppointments() {
     fetchCompletedAppointments();
   }, []);
 
-  // Filter appointments by booking type
+
   useEffect(() => {
     if (filterType === 'ALL') {
       setFilteredAppointments(appointments);

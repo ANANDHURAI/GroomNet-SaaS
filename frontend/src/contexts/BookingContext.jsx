@@ -14,7 +14,6 @@ export const BookingProvider = ({ children }) => {
   const barberId = sessionStorage.getItem('barber_id');
   const token = sessionStorage.getItem('access_token');
 
-  // Create WebSocket connection
   const createWebSocketConnection = () => {
     if (!barberId || !token) return;
 
@@ -57,8 +56,7 @@ export const BookingProvider = ({ children }) => {
             setCurrentBooking(newBooking);
             setNotification('New booking request received!');
             setGlobalNotificationVisible(true);
-            
-            // Show browser notification if permission granted
+         
             if (Notification.permission === 'granted') {
               new Notification('New Booking Request!', {
                 body: `${data.customer_name} requested ${data.service}`,
@@ -104,8 +102,7 @@ export const BookingProvider = ({ children }) => {
     socket.onclose = (event) => {
       console.log('Global WebSocket closed:', event.code, event.reason);
       setConnectionStatus('disconnected');
-      
-      // Auto-reconnect logic
+
       if (event.code !== 1000 && barberId && token) {
         setTimeout(() => {
           console.log('Attempting to reconnect...');
@@ -118,8 +115,7 @@ export const BookingProvider = ({ children }) => {
   useEffect(() => {
     if (barberId && token) {
       createWebSocketConnection();
-      
-      // Request notification permission
+     
       if (Notification.permission === 'default') {
         Notification.requestPermission();
       }
@@ -132,7 +128,6 @@ export const BookingProvider = ({ children }) => {
     };
   }, [barberId, token]);
 
-  // Function to accept booking (to be called from notification)
   const acceptBookingFromNotification = async () => {
     if (!currentBooking) return;
     

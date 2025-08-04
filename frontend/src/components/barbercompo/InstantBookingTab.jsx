@@ -40,7 +40,7 @@ const InstantBookingTab = ({
         });
         return activeBooking;
       } else {
-        // Only set to null if there's no pending booking from global context
+       
         if (currentBooking?.status !== 'PENDING') {
           setCurrentBooking(null);
         }
@@ -102,8 +102,7 @@ const InstantBookingTab = ({
       if (response.data.status === 'success') {
         setCurrentBooking(null);
         setNotification('Booking rejected successfully');
-        
-        // Clear notification after 3 seconds
+    
         setTimeout(() => setNotification(''), 3000);
       }
     } catch (error) {
