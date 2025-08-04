@@ -56,7 +56,7 @@ const InstantBookingTab = ({
   }, [barberId, setCurrentBooking, setNotification, currentBooking]);
 
   useEffect(() => {
-    // Fetch active bookings when component mounts
+    
     if (isOnline && barberId) {
       fetchActiveBookings();
     }
@@ -75,8 +75,7 @@ const InstantBookingTab = ({
       if (response.data.status === 'success') {
         setCurrentBooking(prev => ({ ...prev, status: 'CONFIRMED' }));
         setNotification('Booking accepted successfully!');
-        
-        // Clear notification after 3 seconds
+
         setTimeout(() => setNotification(''), 3000);
       }
     } catch (error) {
@@ -150,13 +149,13 @@ const InstantBookingTab = ({
 
       {!currentBooking && isOnline && connectionStatus === 'connected' && (
         <div className="text-center mt-6">
-          <p className="text-gray-600">⏳ Waiting for new bookings...</p>
+          <p className="text-gray-600">Waiting for new bookings...</p>
         </div>
       )}
 
       {!isOnline && (
         <div className="text-center mt-6">
-          <p className="text-gray-600">🛑 You are currently offline.</p>
+          <p className="text-gray-600">You are currently offline.</p>
         </div>
       )}
     </>

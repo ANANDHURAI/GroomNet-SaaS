@@ -306,7 +306,7 @@ def booking_summary(request):
                 if not coupon.is_valid():
                     return Response({"error": "Coupon has expired."}, status=400)
                 if not coupon.can_user_use_coupon(request.user):
-                    return Response({"error": "You have reached the maximum usage limit for this coupon."}, status=400)
+                    return Response({"error": "You have used this coupon."}, status=400)
 
                 total_before_discount = service_amount + platform_fee
                 discount = float(coupon.get_discount_amount(Decimal(str(total_before_discount))))
@@ -315,7 +315,6 @@ def booking_summary(request):
                     "code": coupon.code,
                     "discount_percentage": coupon.discount_percentage,
                     "discount_amount": discount,
-                    "max_usage_per_customer": coupon.max_usage_per_customer,
                 }
 
             except Coupon.DoesNotExist:

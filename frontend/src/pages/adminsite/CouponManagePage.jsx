@@ -11,9 +11,21 @@ function CouponManagePage() {
   const [editingCoupon, setEditingCoupon] = useState(null);
 
   const fetchCoupons = async () => {
-    const res = await apiClient.get('/adminsite/coupons/');
-    setCoupons(res.data);
-    setFiltered(res.data);
+    try {
+      const res = await apiClient.get('/adminsite/coupons/');
+      const dataWithStatus = res.data.map(coupon => {
+        const now = new Date();
+        const isExpired = new Date(coupon.expiry_date) < now;
+        return {
+          ...coupon,
+          status: !coupon.is_active ? 'Inactive' : isExpired ? 'Expired' : 'Active',
+        };
+      });
+      setCoupons(dataWithStatus);
+      setFiltered(dataWithStatus);
+    } catch (error) {
+      console.error('Failed to fetch coupons', error);
+    }
   };
 
   useEffect(() => {
@@ -22,43 +34,43 @@ function CouponManagePage() {
 
   const handleSearch = (value) => {
     setSearch(value);
-    const filtered = coupons.filter((c) =>
+    const filtered = coupons.filter(c =>
       c.code.toLowerCase().includes(value.toLowerCase())
     );
     setFiltered(filtered);
   };
 
   const handleCreateOrUpdate = async (data, isEdit = false) => {
-    if (isEdit) {
-      await apiClient.put(`/adminsite/coupons/${data.id}/`, data);
-    } else {
-      await apiClient.post('/adminsite/coupons/', data);
+    try {
+      if (isEdit) {
+        await apiClient.put(`/adminsite/coupons/${data.id}/`, data);
+      } else {
+        await apiClient.post('/adminsite/coupons/', data);
+      }
+      fetchCoupons();
+      setEditingCoupon(null);
+    } catch (error) {
+      console.error('Error saving coupon', error);
     }
-    fetchCoupons();
-    setEditingCoupon(null);
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm("Are you sure to delete this coupon?")) {
-      await apiClient.delete(`/adminsite/coupons/${id}/`);
-      fetchCoupons();
+    if (window.confirm('Are you sure to delete this coupon?')) {
+      try {
+        await apiClient.delete(`/adminsite/coupons/${id}/`);
+        fetchCoupons();
+      } catch (error) {
+        console.error('Delete failed', error);
+      }
     }
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex min-h-screen bg-gray-100">
       <AdminSidebar />
       <div className="flex-1 p-6">
-        <h2 className="text-2xl font-bold mb-4">Coupon Management</h2>
-
-        <div className="mb-4 flex justify-between items-center">
-          <input
-            type="text"
-            placeholder="Search by code..."
-            value={search}
-            onChange={(e) => handleSearch(e.target.value)}
-            className="border border-gray-300 p-2 rounded-md w-1/3"
-          />
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold text-gray-800">Coupon Management</h2>
           <button
             onClick={() => setEditingCoupon({})}
             className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md"
@@ -67,11 +79,23 @@ function CouponManagePage() {
           </button>
         </div>
 
-        <CouponTable
-          coupons={filtered}
-          onEdit={setEditingCoupon}
-          onDelete={handleDelete}
-        />
+        <div className="mb-4">
+          <input
+            type="text"
+            placeholder="Search by code..."
+            value={search}
+            onChange={(e) => handleSearch(e.target.value)}
+            className="border border-gray-300 p-2 rounded-md w-1/3"
+          />
+        </div>
+
+        <div className="bg-white shadow-md rounded-lg overflow-x-auto">
+          <CouponTable
+            coupons={filtered}
+            onEdit={setEditingCoupon}
+            onDelete={handleDelete}
+          />
+        </div>
 
         {editingCoupon !== null && (
           <CouponForm
@@ -83,6 +107,7 @@ function CouponManagePage() {
       </div>
     </div>
   );
+
 }
 
 export default CouponManagePage;

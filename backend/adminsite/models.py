@@ -42,7 +42,6 @@ class Coupon(models.Model):
     expiry_date = models.DateTimeField()
     service = models.ForeignKey(ServiceModel, on_delete=models.CASCADE, related_name='coupons')
     discount_percentage = models.PositiveIntegerField(null=True, blank=True)
-    max_usage_per_customer = models.PositiveIntegerField(default=2)
     is_active = models.BooleanField(default=True)
 
     def __str__(self):
@@ -52,8 +51,8 @@ class Coupon(models.Model):
         return timezone.now() < self.expiry_date and self.is_active
 
     def can_user_use_coupon(self, user):
-        usage_count = CouponUsage.objects.filter(customer=user, coupon=self).count()
-        return usage_count < self.max_usage_per_customer
+        return not CouponUsage.objects.filter(customer=user, coupon=self).exists()
+
 
     def get_discount_amount(self, total_amount):
         if self.discount_percentage:

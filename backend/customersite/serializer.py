@@ -76,6 +76,7 @@ class BookingCreateSerializer(serializers.ModelSerializer):
             request.data.get('booking_type') or
             request.session.get('booking_type')
         )
+
         if not booking_type:
             raise serializers.ValidationError("Booking type is required.")
 
@@ -84,19 +85,16 @@ class BookingCreateSerializer(serializers.ModelSerializer):
                 "booking_type": "Invalid booking type. Must be one of: ['INSTANT_BOOKING', 'SCHEDULE_BOOKING']"
             })
 
-        payment_method = data.get('payment_method')
-        if booking_type == "SCHEDULE_BOOKING" and payment_method == "COD":
-            raise serializers.ValidationError({
-                "payment_method": "Cash on Delivery is not allowed for scheduled bookings."
-            })
-
         if booking_type == "SCHEDULE_BOOKING":
+            if data.get('payment_method') == "COD":
+                raise serializers.ValidationError({
+                    "payment_method": "Cash on Delivery is not allowed for scheduled bookings."
+                })
             if not data.get('slot'):
                 raise serializers.ValidationError({"slot": "Slot is required for scheduled bookings."})
             if not data.get('barber'):
                 raise serializers.ValidationError({"barber": "Barber is required for scheduled bookings."})
-
-        if booking_type == "INSTANT_BOOKING":
+        else: 
             data['slot'] = None
             data['barber'] = None
 
@@ -108,35 +106,38 @@ class BookingCreateSerializer(serializers.ModelSerializer):
         booking_type = self.context['booking_type']
         customer = request.user
         payment_method = validated_data.pop('payment_method')
-        coupon_code = validated_data.pop('coupon_code', None) 
+        coupon_code = validated_data.pop('coupon_code', None)
         service = validated_data['service']
         slot = validated_data.get('slot')
 
         service_amount = Decimal(str(service.price))
-        platform_fee = (service_amount * Decimal('0.05')).quantize(Decimal('0.01')) 
+        platform_fee = (service_amount * Decimal('0.05')).quantize(Decimal('0.01'))
 
         discount = Decimal('0.00')
         coupon_obj = None
+
         if coupon_code:
             try:
                 coupon = Coupon.objects.get(
-                    code__iexact=coupon_code.strip(), 
+                    code__iexact=coupon_code.strip(),
                     is_active=True,
                     service=service
                 )
-                
+
                 if not coupon.is_valid():
-                    raise serializers.ValidationError({"coupon_code": "Coupon has expired."})
-                
-                if not coupon.can_user_use_coupon(customer):
-                    raise serializers.ValidationError({"coupon_code": "You have reached the maximum usage limit for this coupon."})
-                
+                    raise serializers.ValidationError({"coupon_code": "Coupon has expired or is inactive."})
+
+                if CouponUsage.objects.filter(customer=customer, coupon=coupon).exists():
+                    raise serializers.ValidationError({"coupon_code": "You have already used this coupon."})
+
                 total_before_discount = service_amount + platform_fee
                 discount = coupon.get_discount_amount(total_before_discount)
                 coupon_obj = coupon
 
             except Coupon.DoesNotExist:
-                raise serializers.ValidationError({"coupon_code": "Invalid coupon code or not applicable for this service."})
+                raise serializers.ValidationError({
+                    "coupon_code": "Invalid coupon code or not applicable for this service."
+                })
 
         total_amount = (service_amount + platform_fee - discount).quantize(Decimal('0.01'))
 
@@ -152,7 +153,6 @@ class BookingCreateSerializer(serializers.ModelSerializer):
                 wallet = CustomerWallet.objects.select_for_update().get(user=customer)
                 if wallet.account_total_balance < total_amount:
                     raise serializers.ValidationError({"payment_method": "Your wallet doesn't have enough balance."})
-
                 wallet.account_total_balance -= total_amount
                 wallet.save()
 
@@ -181,23 +181,23 @@ class BookingCreateSerializer(serializers.ModelSerializer):
                 discount=discount,
                 final_amount=total_amount,
             )
+
             if payment_method == "WALLET":
                 AdminWalletTransaction.objects.create(
                     wallet=admin_wallet,
                     amount=total_amount,
                     note=f"Booking #{booking.id} - WALLET payment received"
                 )
-
                 CustomerWalletTransaction.objects.create(
                     wallet=wallet,
-                    amount=-total_amount, 
-                    note = f"Wallet payment for Booking #{booking.id} - {service.name}"
+                    amount=-total_amount,
+                    note=f"Wallet payment for Booking #{booking.id} - {service.name}"
                 )
 
             if coupon_obj:
-                CouponUsage.objects.get_or_create(customer=customer, coupon=coupon_obj)
-        return booking
+                CouponUsage.objects.create(customer=customer, coupon=coupon_obj)
 
+        return booking
 
 
 class BookingSummarySerializer(serializers.ModelSerializer):

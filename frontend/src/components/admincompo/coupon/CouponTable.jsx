@@ -9,6 +9,7 @@ function CouponTable({ coupons, onEdit, onDelete }) {
           <th className="p-4">Service</th>
           <th className="p-4">Discount (%)</th>
           <th className="p-4">Expiry Date</th>
+          <th className="p-4">Status</th>
           <th className="p-4 text-center">Actions</th>
         </tr>
       </thead>
@@ -16,9 +17,24 @@ function CouponTable({ coupons, onEdit, onDelete }) {
         {coupons.map((coupon) => (
           <tr key={coupon.id} className="border-b hover:bg-gray-50">
             <td className="p-4">{coupon.code}</td>
-            <td className="p-4">{coupon.service}</td>
+            <td className="p-4">{coupon.service_name || 'N/A'}</td>
             <td className="p-4">{coupon.discount_percentage}%</td>
-            <td className="p-4">{new Date(coupon.expiry_date).toLocaleDateString()}</td>
+            <td className="p-4">
+              {new Date(coupon.expiry_date).toLocaleDateString()}
+            </td>
+            <td className="p-4">
+              <span
+                className={`px-2 py-1 text-xs rounded font-semibold ${
+                  coupon.status === 'Active'
+                    ? 'bg-green-100 text-green-700'
+                    : coupon.status === 'Expired'
+                    ? 'bg-red-100 text-red-700'
+                    : 'bg-yellow-100 text-yellow-700'
+                }`}
+              >
+                {coupon.status}
+              </span>
+            </td>
             <td className="p-4 text-center space-x-2">
               <button
                 onClick={() => onEdit(coupon)}
@@ -35,6 +51,13 @@ function CouponTable({ coupons, onEdit, onDelete }) {
             </td>
           </tr>
         ))}
+        {coupons.length === 0 && (
+          <tr>
+            <td colSpan="7" className="p-4 text-center text-gray-500">
+              No coupons found.
+            </td>
+          </tr>
+        )}
       </tbody>
     </table>
   );

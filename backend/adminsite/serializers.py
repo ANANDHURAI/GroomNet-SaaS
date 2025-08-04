@@ -70,9 +70,20 @@ class AdminWalletSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'last_updated']
 
 class CouponSerializer(serializers.ModelSerializer):
+    service_name = serializers.CharField(source='service.name', read_only=True)
+
     class Meta:
         model = Coupon
-        fields = '__all__'
+        fields = [
+            'id',
+            'code',
+            'expiry_date',
+            'service',
+            'service_name',
+            'discount_percentage',
+            'is_active',
+        ]
+
 
 class ComplaintSerializer(serializers.ModelSerializer):
     class Meta:
