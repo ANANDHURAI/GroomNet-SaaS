@@ -61,7 +61,7 @@ function AdminLogin() {
                             onChange={(e) => setEmail(e.target.value)} 
                             placeholder="Email" 
                             type="email"
-                            required
+                           
                             autoComplete="email"
                             className="w-full px-4 py-3 bg-white/20 backdrop-blur border border-purple-300/30 rounded-lg text-white placeholder-purple-200 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all duration-200"
                         />
@@ -70,7 +70,7 @@ function AdminLogin() {
                             onChange={(e) => setPassword(e.target.value)} 
                             placeholder="Password" 
                             type="password"
-                            required
+                           
                             autoComplete="current-password"
                             className="w-full px-4 py-3 bg-white/20 backdrop-blur border border-purple-300/30 rounded-lg text-white placeholder-purple-200 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all duration-200"
                         />

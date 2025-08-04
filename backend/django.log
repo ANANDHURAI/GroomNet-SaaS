@@ -8517,3 +8517,243 @@ Not Found: /ws/instant-booking/48/
 Not Found: /ws/instant-booking/3/
 "GET /ws/instant-booking/3/?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU0MjYxNTQ0LCJpYXQiOjE3NTQyNTc5NDQsImp0aSI6IjYyOTQ4NjFhYzVmNjRiYjVhZTVlOTFlZjQ2NGI3N2MwIiwidXNlcl9pZCI6M30.Vo4G2q-Qh2AmqQgu6XY3JG5XvmC07jV4N05_g6f13mQ HTTP/1.1" 404 4363
 Bad Request: /auth/customer-barber-login/
+Bad Request: /adminsite/services/
+Anandhurai joined group: barber_3
+User disconnected from group: barber_3
+Anandhurai joined group: barber_3
+Sent booking 1 to barber 3
+Sent booking 1 to barber 3
+ilakkiya joined group: customer_2
+ilakkiya joined group: customer_2
+Not Found: /chat-service/chat/1/mark-as-read/
+Not Found: /chat-service/chat/1/mark-as-read/
+Not Found: /chat-service/chat/1/mark-as-read/
+Not Found: /chat-service/chat/1/mark-as-read/
+Not Found: /chat-service/chat/1/mark-as-read/
+Not Found: /chat-service/chat/1/mark-as-read/
+User disconnected from group: customer_2
+User disconnected from group: customer_2
+User disconnected from group: barber_3
+Bad Request: /auth/admin-login/
+Sent booking 2 to barber 3
+Sent booking 2 to barber 3
+ilakkiya joined group: customer_2
+ilakkiya joined group: customer_2
+User disconnected from group: customer_2
+Sent booking 2 to barber 3
+ilakkiya joined group: customer_2
+ilakkiya joined group: customer_2
+Anandhurai joined group: barber_3
+User disconnected from group: barber_3
+Anandhurai joined group: barber_3
+User disconnected from group: customer_2
+Sent booking 2 to barber 3
+ilakkiya joined group: customer_2
+ilakkiya joined group: customer_2
+Not Found: /chat-service/chat/2/mark-as-read/
+Not Found: /chat-service/chat/2/mark-as-read/
+User disconnected from group: customer_2
+User disconnected from group: customer_2
+User disconnected from group: customer_2
+User disconnected from group: customer_2
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Not Found: /chat-service/chat/2/mark-as-read/
+Not Found: /chat-service/chat/2/mark-as-read/
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Not Found: /chat-service/chat/2/mark-as-read/
+Not Found: /chat-service/chat/2/mark-as-read/
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Not Found: /chat-service/chat/2/mark-as-read/
+Not Found: /chat-service/chat/2/mark-as-read/
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Not Found: /chat-service/chat/2/mark-as-read/
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking
+Barber 3 has active instant booking

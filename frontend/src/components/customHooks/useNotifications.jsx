@@ -4,7 +4,8 @@ import apiClient from '../../slices/api/apiIntercepters';
 export const useNotifications = () => {
   const [totalUnreadCount, setTotalUnreadCount] = useState(0);
   const [bookingUnreadCounts, setBookingUnreadCounts] = useState({});
-  const websocketConnections = useRef(new Set());
+  const websocketRef = useRef(null);
+  const isConnectedRef = useRef(false);
 
   const fetchTotalUnreadCount = useCallback(async () => {
     try {
@@ -43,6 +44,55 @@ export const useNotifications = () => {
     });
   }, []);
 
+
+  const connectGlobalWebSocket = useCallback(() => {
+    if (isConnectedRef.current || websocketRef.current?.readyState === WebSocket.OPEN) {
+      return;
+    }
+
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const token = sessionStorage.getItem('access_token');
+    if (!token) return;
+
+    const wsUrl = `${protocol}//localhost:8000/ws/notifications/?token=${token}`;
+    websocketRef.current = new WebSocket(wsUrl);
+
+    websocketRef.current.onopen = () => {
+      console.log('Global notification WebSocket connected');
+      isConnectedRef.current = true;
+    };
+
+    websocketRef.current.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        
+        switch (data.type) {
+          case 'total_unread_update':
+            setTotalUnreadCount(data.total_count);
+            setBookingUnreadCounts(data.booking_counts || {});
+            break;
+          case 'unread_count_update':
+            updateBookingUnreadCount(data.booking_id, data.unread_count);
+            break;
+        }
+      } catch (error) {
+        console.error('Error parsing notification WebSocket message:', error);
+      }
+    };
+
+    websocketRef.current.onclose = () => {
+      console.log('Global notification WebSocket disconnected');
+      isConnectedRef.current = false;
+  
+      setTimeout(connectGlobalWebSocket, 3000);
+    };
+
+    websocketRef.current.onerror = (error) => {
+      console.error('Global notification WebSocket error:', error);
+      isConnectedRef.current = false;
+    };
+  }, [updateBookingUnreadCount]);
+
   useEffect(() => {
     const handleUnreadUpdate = (event) => {
       const { bookingId, count } = event.detail;
@@ -59,15 +109,18 @@ export const useNotifications = () => {
     window.addEventListener('totalUnreadUpdate', handleTotalUpdate);
 
     fetchTotalUnreadCount();
-    
-    const pollInterval = setInterval(fetchTotalUnreadCount, 30000);
+    connectGlobalWebSocket();
 
     return () => {
       window.removeEventListener('unreadCountUpdate', handleUnreadUpdate);
       window.removeEventListener('totalUnreadUpdate', handleTotalUpdate);
-      clearInterval(pollInterval);
+      
+      if (websocketRef.current) {
+        websocketRef.current.close();
+      }
+      isConnectedRef.current = false;
     };
-  }, [fetchTotalUnreadCount, updateBookingUnreadCount]);
+  }, [fetchTotalUnreadCount, updateBookingUnreadCount, connectGlobalWebSocket]);
 
   return {
     totalUnreadCount,

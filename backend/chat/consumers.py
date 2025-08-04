@@ -324,12 +324,12 @@ class ChatConsumer(AsyncWebsocketConsumer):
             )
             print("WebSocket: Message broadcast to group")
 
-            # Update unread counts immediately
+         
             other_user_id = await database_sync_to_async(self.get_other_user_id)(
                 self.booking, self.user.id
             )
 
-            # Send total unread update immediately
+         
             await self.send_total_unread_update(other_user_id)
 
         except Exception as e:
@@ -388,33 +388,26 @@ class ChatConsumer(AsyncWebsocketConsumer):
         else:
             print(f"WebSocket: Skipping status update for sender")
 
+
     async def send_total_unread_update(self, user_id):
-        """Send total unread count update to user"""
+        """Send total unread count update to user via global notification channel"""
         try:
             total_count, booking_counts = await self.get_total_unread_count_for_user(user_id)
             
-            # Send to all chat rooms where this user is connected
-            from customersite.models import Booking
-            user_bookings = await database_sync_to_async(list)(
-                Booking.objects.filter(
-                    models.Q(customer_id=user_id) | models.Q(barber_id=user_id)
-                ).values_list('id', flat=True)
+            # Send to global notification channel
+            await self.channel_layer.group_send(
+                f'notifications_{user_id}',
+                {
+                    'type': 'notification_update',
+                    'update_type': 'total_unread_update',
+                    'total_count': total_count,
+                    'booking_counts': booking_counts
+                }
             )
             
-            for booking_id in user_bookings:
-                room_group_name = f'chat_{booking_id}'
-                await self.channel_layer.group_send(
-                    room_group_name,
-                    {
-                        'type': 'total_unread_update',
-                        'user_id': user_id,
-                        'total_count': total_count,
-                        'booking_counts': booking_counts
-                    }
-                )
-            print(f"Sent total unread update to user {user_id}: {total_count}")
+            print(f"Sent global notification update to user {user_id}: {total_count}")
         except Exception as e:
-            print(f"Error sending total unread update: {e}")
+            print(f"Error sending global notification update: {e}")
 
     async def unread_count_update(self, event):
         user_id = event['user_id']
@@ -445,3 +438,52 @@ class ChatConsumer(AsyncWebsocketConsumer):
     async def send_total_unread_update_wrapper(self, event):
         user_id = event['user_id']
         await self.send_total_unread_update(user_id)
+
+
+class NotificationConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
+        query_string = self.scope.get('query_string', b'').decode()
+        token = None
+        
+        if 'token=' in query_string:
+            token = query_string.split('token=')[1].split('&')[0]
+
+        if token:
+            try:
+                UntypedToken(token)
+                decoded_data = jwt_decode(token, settings.SECRET_KEY, algorithms=["HS256"])
+                user_id = decoded_data.get("user_id")
+                
+                if user_id:
+                    self.user = await database_sync_to_async(User.objects.get)(id=user_id)
+                    self.group_name = f'notifications_{user_id}'
+                    
+                    await self.channel_layer.group_add(
+                        self.group_name,
+                        self.channel_name
+                    )
+                    
+                    await self.accept()
+                    print(f"Notification WebSocket connected for user {user_id}")
+                    return
+                        
+            except Exception as e:
+                print(f"Notification WebSocket error: {e}")
+        
+        await self.close(code=4001)
+
+    async def disconnect(self, close_code):
+        if hasattr(self, 'group_name'):
+            await self.channel_layer.group_discard(
+                self.group_name,
+                self.channel_name
+            )
+
+    async def notification_update(self, event):
+        await self.send(text_data=json.dumps({
+            'type': event['update_type'],
+            'total_count': event.get('total_count'),
+            'booking_counts': event.get('booking_counts'),
+            'booking_id': event.get('booking_id'),
+            'unread_count': event.get('unread_count')
+        }))

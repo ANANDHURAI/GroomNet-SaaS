@@ -87,7 +87,6 @@ function BookingHistoryPage() {
                     className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 transition relative"
                   >
                     View Details
-                    {/* Add badge to button if there are unread messages */}
                     {bookingUnreadCounts[booking.id] > 0 && (
                       <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
                         {bookingUnreadCounts[booking.id] > 9 ? '9+' : bookingUnreadCounts[booking.id]}

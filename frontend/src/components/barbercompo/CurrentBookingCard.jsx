@@ -1,7 +1,11 @@
 import React from 'react';
 import { User, Clock, MapPin, IndianRupee, MessageCircle, Play } from 'lucide-react';
+import NotificationBadge from '../notification/NotificationBadge';
+import { useNotifications } from '../customHooks/useNotifications';
 
 export const CurrentBookingCard = ({ booking, navigate }) => {
+  const { bookingUnreadCounts } = useNotifications();
+
   const handleStartService = () => {
     navigate(`/travel-status/${booking.booking_id}`);
   };
@@ -45,7 +49,6 @@ export const CurrentBookingCard = ({ booking, navigate }) => {
           </div>
         </div>
 
-        {/* Customer info - Featured */}
         <div className="mb-6 relative z-10">
           <div className="bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 p-6 rounded-3xl border-2 border-blue-100 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
             <div className="flex items-center space-x-5">
@@ -99,7 +102,6 @@ export const CurrentBookingCard = ({ booking, navigate }) => {
           </div>
         </div>
 
-        {/* Location */}
         <div className="mb-8 relative z-10">
           <div className="bg-gradient-to-r from-red-50 via-orange-50 to-yellow-50 p-6 rounded-2xl border border-red-100 hover:shadow-lg transition-all duration-300">
             <div className="flex items-start space-x-4">
@@ -119,12 +121,17 @@ export const CurrentBookingCard = ({ booking, navigate }) => {
           </div>
         </div>
 
-        {/* Action buttons */}
+       
         <div className="flex space-x-4 relative z-10">
           <button
             className="flex-1 relative group/btn bg-gradient-to-r from-gray-100 via-gray-200 to-gray-100 hover:from-gray-200 hover:via-gray-300 hover:to-gray-200 text-gray-700 py-4 px-6 rounded-2xl font-bold text-lg shadow-xl hover:shadow-2xl transition-all duration-300 flex items-center justify-center space-x-3 transform hover:scale-105 active:scale-95 border-2 border-gray-200"
             onClick={() => navigate(`/barber/chat/${booking.booking_id}`)}
           >
+            {/* Badge */}
+            {booking.booking_id && bookingUnreadCounts[booking.booking_id] > 0 && (
+              <NotificationBadge count={bookingUnreadCounts[booking.booking_id]} />
+            )}
+            
             <div className="absolute inset-0 bg-gradient-to-r from-blue-100 to-purple-100 rounded-2xl opacity-0 group-hover/btn:opacity-30 transition-opacity duration-300"></div>
             <MessageCircle className="w-6 h-6 relative z-10" />
             <span className="relative z-10">Chat</span>

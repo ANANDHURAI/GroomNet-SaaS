@@ -16,7 +16,6 @@ function CustomerChatPage() {
   const messagesEndRef = useRef(null);
   const websocketRef = useRef(null);
   const typingTimeoutRef = useRef(null);
-  const reconnectTimeoutRef = useRef(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -27,22 +26,22 @@ function CustomerChatPage() {
   }, [messages]);
 
   useEffect(() => {
-    fetchChatData();
-    connectWebSocket();
-    markAsRead();
-
-    return () => {
-      if (websocketRef.current) {
-        websocketRef.current.close();
-      }
-      if (typingTimeoutRef.current) {
-        clearTimeout(typingTimeoutRef.current);
-      }
-      if (reconnectTimeoutRef.current) {
-        clearTimeout(reconnectTimeoutRef.current);
-      }
-    };
+    initializeChat();
+    return cleanup;
   }, [bookingId]);
+
+  const initializeChat = async () => {
+    try {
+      await Promise.all([
+        fetchChatData(),
+        connectWebSocket(),
+        markAsRead()
+      ]);
+    } catch (error) {
+      console.error('Error initializing chat:', error);
+      setLoading(false);
+    }
+  };
 
   const fetchChatData = async () => {
     try {
@@ -70,122 +69,90 @@ function CustomerChatPage() {
     }
 
     websocketRef.current = new WebSocket(wsUrl);
+    websocketRef.current.onopen = () => console.log('WebSocket connected');
+    websocketRef.current.onmessage = handleWebSocketMessage;
+    websocketRef.current.onclose = handleWebSocketClose;
+    websocketRef.current.onerror = (error) => console.error('WebSocket error:', error);
+  };
 
-    websocketRef.current.onopen = () => {
-      console.log('Chat WebSocket connected');
-      if (reconnectTimeoutRef.current) {
-        clearTimeout(reconnectTimeoutRef.current);
-        reconnectTimeoutRef.current = null;
-      }
-    };
-
-    websocketRef.current.onmessage = (event) => {
-      console.log('Raw WebSocket message received:', event.data);
-      try {
-        const data = JSON.parse(event.data);
-        console.log('Parsed WebSocket data:', data);
-
-        switch (data.type) {
-          case 'message':
-            console.log('Processing message:', data.data);
-            setMessages(prev => {
-              // Remove any temporary messages with the same content
-              const filteredPrev = prev.filter(msg => 
-                !(msg.id && msg.id.toString().startsWith('temp_') && msg.message === data.data.message)
-              );
-              
-              const exists = filteredPrev.some(msg => msg.id === data.data.id);
-              if (exists) {
-                console.log('Message already exists, skipping');
-                return filteredPrev;
-              }
-              console.log('Adding new message to state');
-              return [...filteredPrev, data.data];
-            });
-            
-            // Trigger unread count update
-            if (data.unread_count !== undefined) {
-              console.log('Updating unread count:', data.unread_count);
-              window.dispatchEvent(new CustomEvent('unreadCountUpdate', {
-                detail: { bookingId: bookingId, count: data.unread_count }
-              }));
+  const handleWebSocketMessage = (event) => {
+    try {
+      const data = JSON.parse(event.data);
+      
+      switch (data.type) {
+        case 'message':
+          handleNewMessage(data.data);
+          break;
+        case 'user_status':
+          setIsOnline(data.is_online);
+          break;
+        case 'typing':
+          handleTypingIndicator(data.is_typing);
+          break;
+        case 'mark_as_read':
+          window.dispatchEvent(new CustomEvent('unreadCountUpdate', {
+            detail: { bookingId, count: 0 }
+          }));
+          break;
+        case 'total_unread_update':
+          window.dispatchEvent(new CustomEvent('totalUnreadUpdate', {
+            detail: { 
+              totalCount: data.total_count, 
+              bookingCounts: data.booking_counts 
             }
-            break;
-            
-          case 'user_status':
-            console.log('User status update:', data.is_online);
-            setIsOnline(data.is_online);
-            break;
-            
-          case 'typing':
-            console.log('Typing indicator:', data.is_typing);
-            setIsTyping(data.is_typing);
-            if (typingTimeoutRef.current) {
-              clearTimeout(typingTimeoutRef.current);
-            }
-            if (data.is_typing) {
-              typingTimeoutRef.current = setTimeout(() => setIsTyping(false), 3000);
-            }
-            break;
-            
-          case 'mark_as_read':
-            console.log('Messages marked as read');
-            window.dispatchEvent(new CustomEvent('unreadCountUpdate', {
-              detail: { bookingId: bookingId, count: 0 }
-            }));
-            break;
-
-          case 'total_unread_update':
-            console.log('Total unread update:', data);
-            window.dispatchEvent(new CustomEvent('totalUnreadUpdate', {
-              detail: { 
-                totalCount: data.total_count, 
-                bookingCounts: data.booking_counts 
-              }
-            }));
-            break;
-
-          case 'unread_count_update':
-            console.log('Unread count update:', data);
-            window.dispatchEvent(new CustomEvent('unreadCountUpdate', {
-              detail: { bookingId: data.booking_id, count: data.unread_count }
-            }));
-            break;
-
-          case 'error':
-            console.error('WebSocket error:', data.message);
-            break;
-
-          default:
-            console.log('Unknown message type:', data.type);
-        }
-      } catch (error) {
-        console.error('Error parsing WebSocket message:', error);
+          }));
+          break;
+        case 'unread_count_update':
+          window.dispatchEvent(new CustomEvent('unreadCountUpdate', {
+            detail: { bookingId: data.booking_id, count: data.unread_count }
+          }));
+          break;
+        default:
+          console.log('Unknown message type:', data.type);
       }
-    };
+    } catch (error) {
+      console.error('Error parsing WebSocket message:', error);
+    }
+  };
 
-    websocketRef.current.onclose = (event) => {
-      console.log('Chat WebSocket disconnected:', event.code, event.reason);
-      // Only reconnect if it wasn't a clean close
-      if (event.code !== 1000 && !reconnectTimeoutRef.current) {
-        reconnectTimeoutRef.current = setTimeout(() => {
-          console.log('Attempting to reconnect WebSocket...');
-          connectWebSocket();
-        }, 3000);
-      }
-    };
+  const handleNewMessage = (messageData) => {
+    setMessages(prev => {
+      // Remove any temporary messages with the same content
+      const filteredPrev = prev.filter(msg => 
+        !(msg.id && msg.id.toString().startsWith('temp_') && msg.message === messageData.message)
+      );
+      
+      // Check if message already exists
+      const exists = filteredPrev.some(msg => msg.id === messageData.id);
+      if (exists) return filteredPrev;
+      
+      return [...filteredPrev, messageData];
+    });
+  };
 
-    websocketRef.current.onerror = (error) => {
-      console.error('WebSocket error:', error);
-    };
+  const handleTypingIndicator = (isTyping) => {
+    setIsTyping(isTyping);
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+    if (isTyping) {
+      typingTimeoutRef.current = setTimeout(() => setIsTyping(false), 3000);
+    }
+  };
+
+  const handleWebSocketClose = (event) => {
+    console.log('WebSocket disconnected:', event.code);
+    // Auto-reconnect after 3 seconds if not a clean close
+    if (event.code !== 1000) {
+      setTimeout(connectWebSocket, 3000);
+    }
   };
 
   const markAsRead = async () => {
     try {
       await apiClient.post(`/chat-service/chat/${bookingId}/mark-as-read/`);
-      // Update local unread count immediately
       window.dispatchEvent(new CustomEvent('unreadCountUpdate', {
-        detail: { bookingId: bookingId, count: 0 }
+        detail: { bookingId, count: 0 }
       }));
     } catch (error) {
       console.error('Failed to mark as read:', error);
@@ -215,51 +182,57 @@ function CustomerChatPage() {
     const messageText = newMessage.trim();
     setSending(true);
     
-    // Create temporary message for immediate UI update
-    const tempId = `temp_${Date.now()}`;
-    const tempMessage = {
-      id: tempId,
-      message: messageText,
-      sender: {
-        id: bookingInfo?.current_user_id,
-        name: 'You',
-        email: ''
-      },
-      timestamp: new Date().toISOString(),
-      is_read: false
-    };
-    
-    // Add message to UI immediately for better UX
+    // Create temporary message for immediate UI feedback
+    const tempMessage = createTempMessage(messageText);
     setMessages(prev => [...prev, tempMessage]);
     setNewMessage('');
     
     try {
-      // Try WebSocket first
       if (websocketRef.current?.readyState === WebSocket.OPEN) {
-        console.log('Sending message via WebSocket');
         websocketRef.current.send(JSON.stringify({ 
           type: 'message',
           message: messageText 
         }));
       } else {
-        console.log('WebSocket not available, using HTTP fallback');
+        // Fallback to HTTP
         const response = await apiClient.post(`/chat-service/chat/${bookingId}/messages/`, {
           message: messageText
         });
         
-        // Replace temp message with real message from server
+        // Replace temp message with real message
         setMessages(prev => 
-          prev.map(msg => msg.id === tempId ? response.data : msg)
+          prev.map(msg => msg.id === tempMessage.id ? response.data : msg)
         );
       }
     } catch (error) {
       console.error('Send error:', error);
-      // Remove temp message on error
-      setMessages(prev => prev.filter(msg => msg.id !== tempId));
+      // Remove temp message and restore input on error
+      setMessages(prev => prev.filter(msg => msg.id !== tempMessage.id));
+      setNewMessage(messageText);
       alert('Failed to send message. Please try again.');
-      setNewMessage(messageText); // Restore message on error
     } finally {
       setSending(false);
+    }
+  };
+
+  const createTempMessage = (messageText) => ({
+    id: `temp_${Date.now()}`,
+    message: messageText,
+    sender: {
+      id: bookingInfo?.current_user_id,
+      name: 'You',
+      email: ''
+    },
+    timestamp: new Date().toISOString(),
+    is_read: false
+  });
+
+  const cleanup = () => {
+    if (websocketRef.current) {
+      websocketRef.current.close();
+    }
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
     }
   };
 
@@ -284,6 +257,42 @@ function CustomerChatPage() {
     } catch (error) {
       return '';
     }
+  };
+
+  const renderMessage = (message, index) => {
+    const isCurrentUser = message.sender.id === bookingInfo?.current_user_id;
+    const showDate = index === 0 || formatDate(messages[index - 1].timestamp) !== formatDate(message.timestamp);
+    const isTemporary = message.id && message.id.toString().startsWith('temp_');
+
+    return (
+      <div key={message.id}>
+        {showDate && (
+          <div className="text-center text-gray-500 text-sm py-2">
+            {formatDate(message.timestamp)}
+          </div>
+        )}
+        <div className={`flex ${isCurrentUser ? 'justify-end' : 'justify-start'}`}>
+          <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg transition-opacity ${
+            isCurrentUser 
+              ? `bg-blue-600 text-white ${isTemporary ? 'opacity-70' : ''}` 
+              : 'bg-white text-gray-800 border'
+          }`}>
+            {!isCurrentUser && (
+              <p className="text-xs text-gray-500 mb-1">{message.sender.name}</p>
+            )}
+            <p className="text-sm break-words">{message.message}</p>
+            <div className="flex items-center justify-between mt-1">
+              <p className={`text-xs ${isCurrentUser ? 'text-blue-100' : 'text-gray-500'}`}>
+                {formatTime(message.timestamp)}
+              </p>
+              {isTemporary && (
+                <div className="text-xs text-blue-200 ml-2">Sending...</div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   };
 
   if (loading) {
@@ -342,43 +351,7 @@ function CustomerChatPage() {
             <p>No messages yet. Start the conversation!</p>
           </div>
         ) : (
-          messages.map((message, index) => {
-            const isCurrentUser = message.sender.id === bookingInfo?.current_user_id;
-            const showDate = index === 0 || formatDate(messages[index - 1].timestamp) !== formatDate(message.timestamp);
-            const isTemporary = message.id && message.id.toString().startsWith('temp_');
-
-            return (
-              <div key={message.id}>
-                {showDate && (
-                  <div className="text-center text-gray-500 text-sm py-2">
-                    {formatDate(message.timestamp)}
-                  </div>
-                )}
-                <div className={`flex ${isCurrentUser ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg transition-opacity ${
-                    isCurrentUser 
-                      ? `bg-blue-600 text-white ${isTemporary ? 'opacity-70' : ''}` 
-                      : 'bg-white text-gray-800 border'
-                  }`}>
-                    {!isCurrentUser && (
-                      <p className="text-xs text-gray-500 mb-1">{message.sender.name}</p>
-                    )}
-                    <p className="text-sm break-words">{message.message}</p>
-                    <div className="flex items-center justify-between mt-1">
-                      <p className={`text-xs ${isCurrentUser ? 'text-blue-100' : 'text-gray-500'}`}>
-                        {formatTime(message.timestamp)}
-                      </p>
-                      {isTemporary && (
-                        <div className="text-xs text-blue-200 ml-2">
-                          Sending...
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            );
-          })
+          messages.map(renderMessage)
         )}
 
         {/* Typing indicator */}

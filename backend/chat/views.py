@@ -96,31 +96,14 @@ class ChatMessagesView(APIView):
         from asgiref.sync import async_to_sync
 
         channel_layer = get_channel_layer()
-        room_group_name = f'chat_{booking_id}'
-
         other_user = booking.barber if request.user == booking.customer else booking.customer
-        other_user_unread_count = ChatMessage.objects.filter(
-            booking=booking,
-            is_read=False
-        ).exclude(sender=request.user).count()
-
-        # Send unread count update for this specific booking
+        
         async_to_sync(channel_layer.group_send)(
-            room_group_name,
+            f'notifications_{other_user.id}',
             {
-                'type': 'unread_count_update',
-                'booking_id': booking_id,
-                'user_id': other_user.id,
-                'unread_count': other_user_unread_count
-            }
-        )
-
-        # Trigger total unread count update for the other user
-        async_to_sync(channel_layer.group_send)(
-            room_group_name,
-            {
-                'type': 'send_total_unread_update_wrapper',
-                'user_id': other_user.id
+                'type': 'notification_update',
+                'update_type': 'message_received',
+                'booking_id': str(booking_id)
             }
         )
 
@@ -128,10 +111,13 @@ class ChatMessagesView(APIView):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
+    
+
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_total_unread_count(request):
-    """Get total unread messages across all bookings for the user"""
+   
     total_unread = ChatMessage.objects.filter(
         booking__customer=request.user,
         is_read=False
