@@ -119,7 +119,6 @@ function BarberPersonalDetails() {
                 value={formData.name}
                 onChange={handleInputChange}
                 placeholder="Enter your full name"
-                required
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
               {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
@@ -136,7 +135,6 @@ function BarberPersonalDetails() {
                 value={formData.email}
                 onChange={handleInputChange}
                 placeholder="Enter your email"
-                required
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
               {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
@@ -153,7 +151,6 @@ function BarberPersonalDetails() {
                 value={formData.phone}
                 onChange={handleInputChange}
                 placeholder="Enter your phone number"
-                required
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
               {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone}</p>}
@@ -168,7 +165,6 @@ function BarberPersonalDetails() {
                 name="gender"
                 value={formData.gender}
                 onChange={handleInputChange}
-                required
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="">Select Gender</option>
@@ -190,7 +186,6 @@ function BarberPersonalDetails() {
                 value={formData.password}
                 onChange={handleInputChange}
                 placeholder="Create a password"
-                required
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
               {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
@@ -207,7 +202,6 @@ function BarberPersonalDetails() {
                 value={formData.confirm_password}
                 onChange={handleInputChange}
                 placeholder="Confirm your password"
-                required
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
               {errors.confirm_password && <p className="text-red-500 text-sm mt-1">{errors.confirm_password}</p>}

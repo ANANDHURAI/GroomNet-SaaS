@@ -137,7 +137,6 @@ function RegisterPage() {
                 value={formData.name}
                 onChange={e => handleInputChange('name', e.target.value)}
                 placeholder="Full Name"
-                required
                 autoComplete="off"
               />
               {validationErrors.name && (
@@ -151,7 +150,6 @@ function RegisterPage() {
                 onChange={e => handleInputChange('email', e.target.value)}
                 placeholder="Email Address"
                 type="email"
-                required
                 autoComplete="off"
               />
               {validationErrors.email && (
@@ -166,7 +164,6 @@ function RegisterPage() {
                 placeholder="Phone Number (10 digits)"
                 type="tel"
                 maxLength="10"
-                required
                 autoComplete="off"
               />
               {validationErrors.phone && (
@@ -180,7 +177,6 @@ function RegisterPage() {
                 onChange={e => handleInputChange('password', e.target.value)}
                 placeholder="Password (min 8 characters)"
                 type="password"
-                required
                 autoComplete="new-password"
               />
               {validationErrors.password && (

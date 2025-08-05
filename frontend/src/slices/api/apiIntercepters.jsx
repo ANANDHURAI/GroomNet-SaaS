@@ -22,6 +22,7 @@ const onRefreshed = (token) => {
 const authEndpoints = [
   '/auth/admin-login/',
   '/auth/customer-barber-login/',
+  '/auth/google-login/',
   '/auth/register/',
   '/auth/token/',
   '/auth/otp-verification/',

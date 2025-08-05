@@ -112,13 +112,13 @@ class ResetPasswordSerializer(serializers.Serializer):
         return data
     
 
-
-class GoogleAuthResponseSerializer(serializers.Serializer):
-    sub = serializers.CharField()
-    email = serializers.EmailField()
-    email_verified = serializers.BooleanField()
-    name = serializers.CharField()
-    picture = serializers.URLField()
-    given_name = serializers.CharField()
-    family_name = serializers.CharField(required=False)
+class GoogleUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = [
+            'id', 'name', 'email', 'phone', 'user_type', 
+            'gender', 'is_active', 'is_verified', 'created_at', 
+            'profileimage'
+        ]
+        read_only_fields = ['id', 'created_at']
 
