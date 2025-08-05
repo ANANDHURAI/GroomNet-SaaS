@@ -1,7 +1,6 @@
 import React from 'react';
 import { Scissors, User, Bell } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import Logout from './Logout';
 import NotificationBadge from '../../components/notification/NotificationBadge';
 import { useNotifications } from '../../components/customHooks/useNotifications';
 
@@ -67,9 +66,6 @@ function Navbar() {
               )}
             </Link>
 
-            <div className="ml-2">
-              <Logout />
-            </div>
           </div>
         </div>
       </div>

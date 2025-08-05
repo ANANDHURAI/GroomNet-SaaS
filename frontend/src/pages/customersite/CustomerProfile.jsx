@@ -6,6 +6,7 @@ import LoadingSpinner from '../../components/profilecompo/LoadingSpinner';
 import ProfileCard from '../../components/profilecompo/ProfileCard';
 import ProfileField from '../../components/profilecompo/ProfileField';
 import Navbar from '../../components/basics/Navbar';
+import CustomerLayout from '../../components/customercompo/CustomerLayout';
 
 function CustomerProfile() {
   const [profile, setProfile] = useState(null);
@@ -109,103 +110,99 @@ function CustomerProfile() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-
-      <Navbar />
-
-      <div className="flex">
-    
-        <div className="w-64 bg-gradient-to-b from-green-600 to-green-700 text-white shadow-2xl min-h-screen">
-          <CustomerSidebar />
-        </div>
-        <div className="flex-1 p-8">
-          <div className="max-w-4xl mx-auto">
-            <div className="mb-8">
-              <h2 className="text-3xl font-bold text-gray-800 mb-2">My Profile</h2>
-              <p className="text-gray-600">
-                Manage your personal information and preferences
-              </p>
-            </div>
-
-            {loading ? (
-              <div className="bg-white rounded-2xl shadow-xl">
-                <LoadingSpinner />
-              </div>
-            ) : profile ? (
-              <ProfileCard
-                profile={profile}
-                isEditing={isEditing}
-                onEdit={handleEdit}
-                onSave={handleSave}
-                onCancel={handleCancel}
-                onImageUpload={handleImageUpload}
-              >
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <ProfileField
-                    label="Full Name"
-                    value={isEditing ? editedProfile.name : profile.name}
-                    isEditing={isEditing}
-                    onChange={handleChange}
-                    name="name"
-                    placeholder="Enter your full name"
-                  />
-
-                  <ProfileField
-                    label="Email Address"
-                    value={profile.email}
-                    isEditing={false}
-                  />
-
-                  <ProfileField
-                    label="Phone Number"
-                    value={isEditing ? editedProfile.phone : profile.phone}
-                    isEditing={isEditing}
-                    onChange={handleChange}
-                    name="phone"
-                    type="tel"
-                    placeholder="Enter your phone number"
-                  />
-
-                  <ProfileField
-                    label="Gender"
-                    value={isEditing ? editedProfile.gender : profile.gender}
-                    isEditing={isEditing}
-                    onChange={handleChange}
-                    name="gender"
-                    options={genderOptions}
-                  />
-
-                  <ProfileField
-                    label="Date of Birth"
-                    value={isEditing ? editedProfile.date_of_birth : profile.date_of_birth}
-                    isEditing={isEditing}
-                    onChange={handleChange}
-                    name="date_of_birth"
-                    type="date"
-                  />
-
-                  <div className="md:col-span-2">
-                    <ProfileField
-                      label="About Me"
-                      value={isEditing ? editedProfile.bio : profile.bio}
-                      isEditing={isEditing}
-                      onChange={handleChange}
-                      name="bio"
-                      multiline={true}
-                      placeholder="Tell us a bit about yourself..."
-                    />
-                  </div>
+    <CustomerLayout>
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+          <div className="flex">
+            <div className="flex-1 p-8">
+              <div className="max-w-4xl mx-auto">
+                <div className="mb-8">
+                  <h2 className="text-3xl font-bold text-gray-800 mb-2">My Profile</h2>
+                  <p className="text-gray-600">
+                    Manage your personal information and preferences
+                  </p>
                 </div>
-              </ProfileCard>
-            ) : (
-              <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
-                <p className="text-gray-600">No profile data available</p>
+
+                {loading ? (
+                  <div className="bg-white rounded-2xl shadow-xl">
+                    <LoadingSpinner />
+                  </div>
+                ) : profile ? (
+                  <ProfileCard
+                    profile={profile}
+                    isEditing={isEditing}
+                    onEdit={handleEdit}
+                    onSave={handleSave}
+                    onCancel={handleCancel}
+                    onImageUpload={handleImageUpload}
+                  >
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <ProfileField
+                        label="Full Name"
+                        value={isEditing ? editedProfile.name : profile.name}
+                        isEditing={isEditing}
+                        onChange={handleChange}
+                        name="name"
+                        placeholder="Enter your full name"
+                      />
+
+                      <ProfileField
+                        label="Email Address"
+                        value={profile.email}
+                        isEditing={false}
+                      />
+
+                      <ProfileField
+                        label="Phone Number"
+                        value={isEditing ? editedProfile.phone : profile.phone}
+                        isEditing={isEditing}
+                        onChange={handleChange}
+                        name="phone"
+                        type="tel"
+                        placeholder="Enter your phone number"
+                      />
+
+                      <ProfileField
+                        label="Gender"
+                        value={isEditing ? editedProfile.gender : profile.gender}
+                        isEditing={isEditing}
+                        onChange={handleChange}
+                        name="gender"
+                        options={genderOptions}
+                      />
+
+                      <ProfileField
+                        label="Date of Birth"
+                        value={isEditing ? editedProfile.date_of_birth : profile.date_of_birth}
+                        isEditing={isEditing}
+                        onChange={handleChange}
+                        name="date_of_birth"
+                        type="date"
+                      />
+
+                      <div className="md:col-span-2">
+                        <ProfileField
+                          label="About Me"
+                          value={isEditing ? editedProfile.bio : profile.bio}
+                          isEditing={isEditing}
+                          onChange={handleChange}
+                          name="bio"
+                          multiline={true}
+                          placeholder="Tell us a bit about yourself..."
+                        />
+                      </div>
+                    </div>
+                  </ProfileCard>
+                ) : (
+                  <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
+                    <p className="text-gray-600">No profile data available</p>
+                  </div>
+                )}
               </div>
-            )}
+            </div>
           </div>
         </div>
-      </div>
-    </div>
+    </CustomerLayout>
+
   );
 }
 

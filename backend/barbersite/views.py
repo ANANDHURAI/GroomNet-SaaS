@@ -371,6 +371,7 @@ class BarberWalletView(APIView):
         return Response(serializer.data)
         
 
+
 class BarberDashboardView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -384,7 +385,6 @@ class BarberDashboardView(APIView):
         total_bookings = bookings.count()
         completed_bookings = bookings.filter(status='COMPLETED').count()
         cancelled_bookings = bookings.filter(status='CANCELLED').count()
-        
 
         wallet = BarberWallet.objects.filter(barber=user).first()
         wallet_balance = wallet.balance if wallet else 0
@@ -396,11 +396,17 @@ class BarberDashboardView(APIView):
         average_rating = rating_info['avg_rating'] or 0
         total_reviews = rating_info['total_reviews']
 
+        profile_image_url = request.build_absolute_uri(user.profileimage.url) if user.profileimage else None
+
         return Response({
             'total_bookings': total_bookings,
             'completed_bookings': completed_bookings,
             'cancelled_bookings': cancelled_bookings,
             'wallet_balance': wallet_balance,
             'average_rating': round(average_rating, 1),
-            'total_reviews': total_reviews
+            'total_reviews': total_reviews,
+            'profile_image': profile_image_url,
         })
+
+
+

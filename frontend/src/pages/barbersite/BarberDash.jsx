@@ -202,11 +202,26 @@ function BarberDash() {
                 )}
               </div>
 
-              <div className="bg-blue-100 p-4 rounded-full">
-                <svg className="w-12 h-12 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                </svg>
+              <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-blue-500 shadow-md">
+                {data?.profile_image ? (
+                  <img
+                    src={data.profile_image}
+                    alt="Profile"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-blue-100 text-blue-600">
+                    <svg className="w-12 h-12" fill="currentColor" viewBox="0 0 20 20">
+                      <path
+                        fillRule="evenodd"
+                        d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </div>
+                )}
               </div>
+
             </div>
           </div>
 

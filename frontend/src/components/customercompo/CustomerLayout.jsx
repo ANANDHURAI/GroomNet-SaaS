@@ -6,9 +6,14 @@ const CustomerLayout = ({ children }) => {
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
-      <div className="flex flex-1">
-        <CusSideNavBar />
-        <main className="ml-64 p-6 w-full bg-gray-50">
+      <div className="flex flex-row flex-1 min-h-[calc(100vh-80px)]">
+        {/* Sidebar (fixed) */}
+        <div className="fixed top-[80px] left-0 h-[calc(100vh-80px)] w-72 z-30">
+          <CusSideNavBar />
+        </div>
+
+        {/* Main content with left margin and spacing */}
+        <main className="ml-80 w-full p-8 bg-gray-50">
           {children}
         </main>
       </div>
