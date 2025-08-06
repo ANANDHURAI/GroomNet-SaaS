@@ -134,7 +134,7 @@ const ServiceRequestsList = () => {
             </button>
           </div>
 
-          {/* Stats Cards */}
+
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
             <div className="bg-white p-6 rounded-lg shadow-sm">
               <div className="flex items-center justify-between">
@@ -185,7 +185,7 @@ const ServiceRequestsList = () => {
             </div>
           </div>
 
-          {/* Filters */}
+   
           <div className="bg-white p-6 rounded-lg shadow-sm mb-8">
             <div className="flex flex-col lg:flex-row gap-4">
               <div className="relative flex-1">
@@ -231,7 +231,7 @@ const ServiceRequestsList = () => {
             </div>
           </div>
 
-          {/* Error Message */}
+
           {error && (
             <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6 flex items-center gap-2">
               <AlertCircle size={20} />
@@ -239,7 +239,7 @@ const ServiceRequestsList = () => {
             </div>
           )}
 
-          {/* Requests List */}
+    
           {loading ? (
             <div className="flex justify-center items-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
@@ -360,7 +360,7 @@ const ServiceRequestsList = () => {
             </div>
           )}
 
-          {/* Delete Confirmation Modal */}
+ 
           {deleteConfirm && (
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
               <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">

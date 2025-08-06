@@ -132,14 +132,10 @@ const AdminServiceRequestsManagement = () => {
       <AdminSidebar />
       <div className="flex-1 p-8">
         <div className="max-w-7xl mx-auto">
-
-          {/* Header */}
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Service Requests Management</h1>
             <p className="text-gray-600">Review and manage barber service requests</p>
           </div>
-
-          {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
             <StatsCard label="Total" value={stats.total || 0} icon={<Eye className="w-6 h-6 text-blue-600" />} bg="bg-blue-100" />
             <StatsCard label="Pending" value={stats.pending || 0} icon={<Clock className="w-6 h-6 text-yellow-600" />} bg="bg-yellow-100" />
@@ -148,7 +144,6 @@ const AdminServiceRequestsManagement = () => {
             <StatsCard label="This Week" value={stats.recent_requests || 0} icon={<Calendar className="w-6 h-6 text-purple-600" />} bg="bg-purple-100" />
           </div>
 
-          {/* Filters */}
           <div className="bg-white p-6 rounded-lg shadow-sm mb-8">
             <div className="flex flex-col lg:flex-row gap-4">
               <SearchInput value={searchTerm} onChange={setSearchTerm} />
@@ -165,7 +160,6 @@ const AdminServiceRequestsManagement = () => {
             </div>
           </div>
 
-          {/* Service Requests Table */}
           {loading ? (
             <div className="flex justify-center items-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
@@ -221,7 +215,6 @@ const AdminServiceRequestsManagement = () => {
             </div>
           )}
 
-          {/* Detail Modal */}
           {showDetailModal && selectedRequest && (
             <Modal onClose={() => setShowDetailModal(false)} title="Service Request Details">
               <p><strong>Name:</strong> {selectedRequest.name}</p>
@@ -233,7 +226,6 @@ const AdminServiceRequestsManagement = () => {
             </Modal>
           )}
 
-          {/* Action Modal */}
           {showActionModal && (
             <Modal onClose={() => setShowActionModal(false)} title={`${actionType === 'approve' ? 'Approve' : 'Reject'} Request`}>
               <textarea
@@ -264,7 +256,6 @@ const AdminServiceRequestsManagement = () => {
   );
 };
 
-// Reusable UI Components
 const StatsCard = ({ label, value, icon, bg }) => (
   <div className="bg-white p-6 rounded-lg shadow-sm">
     <div className="flex items-center justify-between">

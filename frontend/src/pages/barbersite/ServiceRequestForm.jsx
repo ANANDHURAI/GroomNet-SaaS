@@ -131,7 +131,6 @@ const ServiceRequestForm = ({ onCancel, onSuccess, selectedCategory = null }) =>
           )}
         </div>
 
-        {/* Service Name */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Service Name *
@@ -154,7 +153,6 @@ const ServiceRequestForm = ({ onCancel, onSuccess, selectedCategory = null }) =>
           )}
         </div>
 
-        {/* Description */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Description
@@ -169,7 +167,6 @@ const ServiceRequestForm = ({ onCancel, onSuccess, selectedCategory = null }) =>
           />
         </div>
 
-        {/* Price and Duration */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -219,7 +216,7 @@ const ServiceRequestForm = ({ onCancel, onSuccess, selectedCategory = null }) =>
           </div>
         </div>
 
-        {/* Image Upload */}
+
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Service Image *
@@ -256,7 +253,7 @@ const ServiceRequestForm = ({ onCancel, onSuccess, selectedCategory = null }) =>
           )}
         </div>
 
-        {/* Submit Buttons */}
+
         <div className="flex gap-4 pt-6">
           <button
             type="button"
