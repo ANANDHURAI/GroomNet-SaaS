@@ -15,8 +15,22 @@ logger = logging.getLogger(__name__)
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.generics import ListAPIView
 from customersite.models import PaymentModel
-from .models import ServiceModel, CategoryModel , AdminWallet  ,Coupon,AdminWalletTransaction
-from .serializers import CouponSerializer , AdminWalletSerializer ,AdminWalletTransactionSerializer , ServiceRequestDetailSerializer , ServiceSerializer
+from .models import (
+    ServiceModel, 
+    CategoryModel , 
+    AdminWallet  ,
+    Coupon,
+    AdminWalletTransaction,
+    ServiceRequestModel
+)
+from .serializers import (
+CouponSerializer , 
+AdminWalletSerializer ,
+AdminWalletTransactionSerializer , 
+ServiceRequestDetailSerializer , 
+ServiceSerializer , 
+ServiceRequestSerializer
+)
 
 from rest_framework import generics
 from customersite.models import Complaints
@@ -26,6 +40,9 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.db.models import Count, Avg, Sum
 from customersite.models import Booking , Rating
+from rest_framework.decorators import api_view, permission_classes
+from django.utils import timezone
+
 
 
 
@@ -409,14 +426,6 @@ class AdminDashboardView(APIView):
     
 
 
-from rest_framework import generics, status
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-from django.shortcuts import get_object_or_404
-from django.utils import timezone
-from .models import ServiceRequestModel, ServiceModel
-from .serializers import ServiceRequestSerializer, ServiceRequestDetailSerializer
 
 class AdminServiceRequestListView(generics.ListAPIView):
     queryset = ServiceRequestModel.objects.all()
@@ -437,6 +446,7 @@ class AdminServiceRequestListView(generics.ListAPIView):
             queryset = queryset.filter(category_id=category_filter)
             
         return queryset
+
 
 class AdminServiceRequestDetailView(generics.RetrieveAPIView):
     queryset = ServiceRequestModel.objects.all()

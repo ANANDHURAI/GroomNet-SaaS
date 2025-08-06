@@ -427,11 +427,9 @@ class ServiceRequestDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        # Only allow barbers to access their own requests
         return ServiceRequestModel.objects.filter(barber=self.request.user)
 
     def update(self, request, *args, **kwargs):
-        # Only allow updates if status is pending
         instance = self.get_object()
         if instance.status != 'pending':
             return Response(
@@ -441,7 +439,6 @@ class ServiceRequestDetailView(generics.RetrieveUpdateDestroyAPIView):
         return super().update(request, *args, **kwargs)
 
     def destroy(self, request, *args, **kwargs):
-        # Only allow deletion if status is pending
         instance = self.get_object()
         if instance.status != 'pending':
             return Response(
@@ -453,7 +450,6 @@ class ServiceRequestDetailView(generics.RetrieveUpdateDestroyAPIView):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_barber_categories(request):
-    """Get all active categories for service requests"""
     categories = CategoryModel.objects.filter(is_blocked=False)
     category_data = [
         {
@@ -468,7 +464,6 @@ def get_barber_categories(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def service_request_stats(request):
-    """Get stats for barber's service requests"""
     user_requests = ServiceRequestModel.objects.filter(barber=request.user)
     stats = {
         'total': user_requests.count(),
