@@ -40,7 +40,7 @@ class Home(APIView):
 
     def get(self, request):
         categories = CategoryModel.objects.filter(is_blocked=False).order_by('-id')
-        services = ServiceModel.objects.filter(is_blocked=False).order_by('-id')
+        services = ServiceModel.objects.filter(is_blocked=False , category__is_blocked=False).order_by('-id')
 
         data = {
             'greeting_message': f'Hello, welcome {request.user.name}!',
@@ -96,7 +96,7 @@ class ServiceListView(generics.ListAPIView):
     
     def get_queryset(self):
         category_id = self.request.query_params.get('category_id')
-        queryset = ServiceModel.objects.filter(is_blocked=False)
+        queryset = ServiceModel.objects.filter(is_blocked=False,category__is_blocked=False)
         if category_id:
             queryset = queryset.filter(category_id=category_id)
         return queryset

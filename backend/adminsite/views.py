@@ -31,7 +31,7 @@ ServiceRequestDetailSerializer ,
 ServiceSerializer , 
 ServiceRequestSerializer
 )
-
+from datetime import datetime, timedelta
 from rest_framework import generics
 from customersite.models import Complaints
 from .serializers import ComplaintSerializer
@@ -42,6 +42,7 @@ from django.db.models import Count, Avg, Sum
 from customersite.models import Booking , Rating
 from rest_framework.decorators import api_view, permission_classes
 from django.utils import timezone
+from django.db.models import Q
 
 
 
@@ -246,12 +247,31 @@ class BarberDetailsView(APIView):
                 'error': 'Failed to fetch barber details'
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
+
 class UsersListView(ListAPIView):
     serializer_class = UsersListSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return User.objects.filter(user_type='customer')
+        queryset = User.objects.filter(user_type='customer')
+        search = self.request.query_params.get('search')
+        is_active = self.request.query_params.get('is_active')
+        is_blocked = self.request.query_params.get('is_blocked')
+
+        if search:
+            queryset = queryset.filter(
+                Q(name__icontains=search) |
+                Q(email__icontains=search) |
+                Q(phone__icontains=search)
+            )
+        if is_active in ['true', 'false']:
+            queryset = queryset.filter(is_active=(is_active == 'true'))
+
+        if is_blocked in ['true', 'false']:
+            queryset = queryset.filter(is_blocked=(is_blocked == 'true'))
+
+        return queryset.distinct()
+
     
     
 class UserDetailView(RetrieveAPIView):
@@ -266,7 +286,25 @@ class BarbersListView(ListAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return User.objects.filter(user_type='barber', is_verified=True)
+        queryset = User.objects.filter(user_type='barber')
+        search = self.request.query_params.get('search')
+        is_active = self.request.query_params.get('is_active')
+        is_blocked = self.request.query_params.get('is_blocked')
+
+        if search:
+            queryset = queryset.filter(
+                Q(name__icontains=search) |
+                Q(email__icontains=search) |
+                Q(phone__icontains=search)
+            )
+        if is_active in ['true', 'false']:
+            queryset = queryset.filter(is_active=(is_active == 'true'))
+
+        if is_blocked in ['true', 'false']:
+            queryset = queryset.filter(is_blocked=(is_blocked == 'true'))
+
+        return queryset.distinct()
+    
 
 
 class BarberDetailView(RetrieveAPIView):
@@ -298,9 +336,12 @@ class CategoryViewSet(ModelViewSet):
     permission_classes = [IsAuthenticated]
 
 class ServiceViewSet(ModelViewSet):
-    queryset = ServiceModel.objects.all().order_by('-id')
     serializer_class = ServiceSerializer
     permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return ServiceModel.objects.filter(category__is_blocked=False).order_by('-id')
+
 
 
 class AdminWalletView(APIView):
@@ -320,7 +361,6 @@ class AdminWalletView(APIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
             
         except Exception as e:
-            logger.error(f"Error fetching admin wallet: {str(e)}")
             return Response(
                 {"error": "Failed to fetch admin wallet", "details": str(e)}, 
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -331,9 +371,76 @@ class AdminWalletTransactionHistoryView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        transactions = AdminWalletTransaction.objects.all().order_by('-created_at')
-        serializer = AdminWalletTransactionSerializer(transactions, many=True)
-        return Response({'history': serializer.data})
+        try:
+            period = request.query_params.get('period', 'all')
+            transactions = AdminWalletTransaction.objects.all()
+            if period != 'all':
+                now = timezone.now()
+                
+                if period == 'today':
+                    start_date = now.replace(hour=0, minute=0, second=0, microsecond=0)
+                    end_date = start_date + timedelta(days=1)
+                    
+                elif period == 'week':
+                    days_since_monday = now.weekday()
+                    start_date = (now - timedelta(days=days_since_monday)).replace(
+                        hour=0, minute=0, second=0, microsecond=0
+                    )
+                    end_date = start_date + timedelta(days=7)
+                    
+                elif period == 'month':
+                    start_date = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+                   
+                    if now.month == 12:
+                        end_date = now.replace(year=now.year + 1, month=1, day=1, 
+                                             hour=0, minute=0, second=0, microsecond=0)
+                    else:
+                        end_date = now.replace(month=now.month + 1, day=1, 
+                                             hour=0, minute=0, second=0, microsecond=0)
+                
+                else:  
+                    start_date = None
+                    end_date = None
+                
+                if start_date and end_date:
+                    transactions = transactions.filter(
+                        created_at__gte=start_date,
+                        created_at__lt=end_date
+                    )
+       
+            transactions = transactions.order_by('-created_at')
+            serializer = AdminWalletTransactionSerializer(transactions, many=True)
+            total_income = 0
+            total_expense = 0
+            
+            for txn in transactions:
+                is_expense = ('payout' in txn.note.lower() or 
+                             'refund' in txn.note.lower())
+                amount = abs(txn.amount)
+                
+                if is_expense:
+                    total_expense += amount
+                else:
+                    total_income += amount
+            
+            response_data = {
+                'history': serializer.data,
+                'statistics': {
+                    'total_income': total_income,
+                    'total_expense': total_expense,
+                    'net_amount': total_income - total_expense,
+                    'transaction_count': len(serializer.data),
+                    'period': period
+                }
+            }
+            
+            return Response(response_data, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            return Response(
+                {"error": "Failed to fetch transaction history", "details": str(e)}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 
 class CouponViewSet(ModelViewSet):

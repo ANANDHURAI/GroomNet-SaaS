@@ -36,7 +36,7 @@ def download_bookings_report(request):
     
     bookings = Booking.objects.select_related(
         'customer', 'barber', 'service', 'coupon'
-    ).order_by('-created_at')
+    ).order_by('created_at')
     
     for booking in bookings:
         data.append([
@@ -74,6 +74,7 @@ def download_bookings_report(request):
     p.save()
 
     return response
+
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -147,10 +148,7 @@ def download_revenue_report(request):
 
     return response
 
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
-from django.http import HttpResponse
-from django.db.models import Count
+
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -174,7 +172,7 @@ def download_users_report(request):
     users = User.objects.annotate(
         total_customer_bookings=Count('customer_bookings'),
         total_barber_bookings=Count('barber_bookings')
-    ).order_by('-created_at')
+    ).order_by('created_at')
     
     for user in users:
         total_bookings = user.total_customer_bookings + user.total_barber_bookings
@@ -236,7 +234,7 @@ def download_services_report(request):
         completed_bookings=Count('booking', filter=Q(booking__status='completed')),
         total_revenue=Sum('booking__payment__final_amount'),
         active_barbers=Count('barber_services', filter=Q(barber_services__is_active=True))
-    ).select_related('category').order_by('-total_bookings')
+    ).select_related('category').order_by('total_bookings')
 
     for service in services:
         data.append([
@@ -461,7 +459,7 @@ def download_financial_summary_report(request):
         Sum('balance'))['balance__sum'] or 0
     
     payment_methods = PaymentModel.objects.values('payment_method').annotate(
-        count=Count('id')).order_by('-count')
+        count=Count('id')).order_by('count')
     
     metrics = [
         ('Total Bookings', str(total_bookings), 'Total number of bookings created'),

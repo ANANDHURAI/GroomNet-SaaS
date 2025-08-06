@@ -1,7 +1,31 @@
-export const CategoryForm = ({ formData, onFormChange, onSubmit, onCancel, isEditing, error }) => {
+import React, { useState } from 'react';
+
+export const CategoryForm = ({
+    formData,
+    onFormChange,
+    onSubmit,
+    onCancel,
+    isEditing,
+    error,
+}) => {
+    const [imageError, setImageError] = useState(null);
+
+    const handleImageChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const validTypes = ['image/jpeg', 'image/png'];
+            if (!validTypes.includes(file.type)) {
+                setImageError('Only JPG and PNG images are allowed.');
+                onFormChange({ ...formData, image: null }); // clear previous image if any
+            } else {
+                setImageError(null);
+                onFormChange({ ...formData, image: file });
+            }
+        }
+    };
+
     return (
         <form onSubmit={onSubmit} className="space-y-5">
-
             {error && (
                 <div className="bg-red-100 text-red-700 border border-red-300 px-4 py-2 rounded text-sm">
                     {error}
@@ -14,7 +38,7 @@ export const CategoryForm = ({ formData, onFormChange, onSubmit, onCancel, isEdi
                 </label>
                 <input
                     type="text"
-                    value={formData.name}
+                    value={formData.name || ""}
                     onChange={(e) =>
                         onFormChange({ ...formData, name: e.target.value })
                     }
@@ -27,25 +51,40 @@ export const CategoryForm = ({ formData, onFormChange, onSubmit, onCancel, isEdi
                 <label className="block mb-1 font-medium text-sm text-gray-700">
                     Category Image
                 </label>
+
+                {isEditing && formData.image && typeof formData.image === "string" && (
+                    <div className="mb-2">
+                        <img
+                            src={formData.image}
+                            alt="Current category"
+                            className="h-20 w-auto rounded"
+                        />
+                        <p className="text-xs text-gray-500 mt-1">Current image</p>
+                    </div>
+                )}
+
                 <input
                     type="file"
                     accept="image/*"
-                    onChange={(e) =>
-                        onFormChange({ ...formData, image: e.target.files[0] })
-                    }
+                    onChange={handleImageChange}
                     className="w-full border border-gray-300 rounded-md px-4 py-2"
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                    Must upload an image for this category
+                    Upload a new image only if you want to replace the current one.
                 </p>
+
+                {imageError && (
+                    <p className="text-red-600 text-sm mt-1">{imageError}</p>
+                )}
             </div>
 
             <div className="flex justify-end gap-3 pt-4">
                 <button
                     type="submit"
                     className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-md font-medium transition"
+                    disabled={!!imageError}
                 >
-                    {isEditing ? 'Update Category' : 'Create Category'}
+                    {isEditing ? "Update Category" : "Create Category"}
                 </button>
                 <button
                     type="button"

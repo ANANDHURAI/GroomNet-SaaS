@@ -90,7 +90,6 @@ function OtpPage() {
               placeholder="Enter 4-digit OTP"
               type="text"
               maxLength="4"
-              required
               className="appearance-none"
             />
 

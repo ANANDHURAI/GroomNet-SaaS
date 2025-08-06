@@ -32,6 +32,9 @@ from django.db.models import Avg, Count
 from customersite.models import Booking, Rating
 from rest_framework import generics, status
 from rest_framework.decorators import api_view, permission_classes
+from datetime import timedelta
+from django.utils.timezone import now
+from django.db.models import Sum
 
 
 class BarberDashboard(APIView): 
@@ -355,26 +358,40 @@ class CompletedAppointments(APIView):
         return Response(data)
 
 
+
+
+
 class BarberWalletView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        print(f"User: {request.user}")
-        print(f"User type: {getattr(request.user, 'user_type', 'No user_type attribute')}")
-        
         if not hasattr(request.user, 'user_type') or request.user.user_type != 'barber':
             return Response({'detail': 'Access denied'}, status=403)
 
-        try:
-            wallet = BarberWallet.objects.get(barber=request.user)
-            print(f"Wallet found: {wallet}")
-        except BarberWallet.DoesNotExist:
-            print("Wallet not found, creating one...")
-            wallet = BarberWallet.objects.create(barber=request.user, balance=0)
+        wallet, _ = BarberWallet.objects.get_or_create(barber=request.user)
+
+        today = now().date()
+        start_of_week = today - timedelta(days=today.weekday())
+        start_of_month = today.replace(day=1)
+
+        transactions = wallet.transactions.all()
+
+        day_total = transactions.filter(created_at__date=today).aggregate(total=Sum('amount'))['total'] or 0
+        week_total = transactions.filter(created_at__date__gte=start_of_week).aggregate(total=Sum('amount'))['total'] or 0
+        month_total = transactions.filter(created_at__date__gte=start_of_month).aggregate(total=Sum('amount'))['total'] or 0
 
         serializer = BarberWalletSerializer(wallet)
-        return Response(serializer.data)
-        
+        data = serializer.data
+        data.update({
+            'day_total': day_total,
+            'week_total': week_total,
+            'month_total': month_total,
+        })
+
+        return Response(data)
+
+
+
 class BarberDashboardView(APIView):
     permission_classes = [IsAuthenticated]
 

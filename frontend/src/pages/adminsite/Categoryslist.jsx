@@ -73,7 +73,8 @@ export function Categoryslist() {
             }
 
             if (editingCategory) {
-                await apiClient.put(`/adminsite/categories/${editingCategory.id}/`, formDataToSend);
+                await apiClient.patch(`/adminsite/categories/${editingCategory.id}/`, formDataToSend);
+
             } else {
                 await apiClient.post('/adminsite/categories/', formDataToSend);
             }

@@ -10,6 +10,7 @@ function RegisterPage() {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
+    confirmPassword: '',
     name: '',
     phone: ''
   });
@@ -35,6 +36,9 @@ function RegisterPage() {
     password: Yup.string()
       .min(8, 'Password must be at least 8 characters long')
       .required('Password is required'),
+    confirmPassword: Yup.string()
+      .oneOf([Yup.ref('password'), null], 'Passwords must match')
+      .required('Confirm password is required'),
   });
 
   const handleInputChange = (field, value) => {
@@ -42,6 +46,7 @@ function RegisterPage() {
       ...prev,
       [field]: value
     }));
+
     if (error) setError('');
     if (validationErrors[field]) {
       setValidationErrors(prev => ({ ...prev, [field]: '' }));
@@ -53,7 +58,6 @@ function RegisterPage() {
     setValidationErrors({});
 
     try {
-      
       await registerSchema.validate(formData, { abortEarly: false });
 
       setLoading(true);
@@ -73,14 +77,12 @@ function RegisterPage() {
       }
     } catch (err) {
       if (err.name === 'ValidationError') {
-        
         const errors = {};
         err.inner.forEach(e => {
           errors[e.path] = e.message;
         });
         setValidationErrors(errors);
       } else {
-       
         console.error("Registration error", err);
         const errorData = err.response?.data;
         if (errorData) {
@@ -110,7 +112,7 @@ function RegisterPage() {
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-          Create your account
+          Create your account in GroomNet
         </h2>
         <p className="mt-2 text-center text-sm text-gray-600">
           Already have an account?{' '}
@@ -181,6 +183,19 @@ function RegisterPage() {
               />
               {validationErrors.password && (
                 <p className="text-red-500 text-xs mt-1">{validationErrors.password}</p>
+              )}
+            </div>
+
+            <div>
+              <Input
+                value={formData.confirmPassword}
+                onChange={e => handleInputChange('confirmPassword', e.target.value)}
+                placeholder="Confirm Password"
+                type="password"
+                autoComplete="new-password"
+              />
+              {validationErrors.confirmPassword && (
+                <p className="text-red-500 text-xs mt-1">{validationErrors.confirmPassword}</p>
               )}
             </div>
 

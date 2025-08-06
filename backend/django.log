@@ -15403,3 +15403,383 @@ Anandkumar joined group: barber_3
 User disconnected from group: barber_3
 Anandkumar joined group: barber_3
 User disconnected from group: barber_3
+Bad Request: /auth/customer-barber-login/
+Bad Request: /auth/customer-barber-login/
+Bad Request: /auth/customer-barber-login/
+Bad Request: /auth/customer-barber-login/
+Unauthorized: /chat-service/chat/total-unread/
+Unauthorized: /profile-service/user-profile/
+Unauthorized: /chat-service/chat/total-unread/
+Unauthorized: /profile-service/user-profile/
+Bad Request: /auth/otp-verification/
+Bad Request: /auth/customer-barber-login/
+Bad Request: /barbersite/barber-portfolio/
+Bad Request: /auth/admin-login/
+Bad Request: /auth/admin-login/
+Bad Request: /auth/admin-login/
+Bad Request: /adminsite/categories/1/
+Bad Request: /adminsite/categories/1/
+Anandkumar joined group: barber_3
+User disconnected from group: barber_3
+Anandkumar joined group: barber_3
+Anandkumar joined group: barber_3
+User disconnected from group: barber_3
+Anandkumar joined group: barber_3
+User disconnected from group: barber_3
+Anandkumar joined group: barber_3
+Anandkumar joined group: barber_3
+User disconnected from group: barber_3
+Anandkumar joined group: barber_3
+User disconnected from group: barber_3
+Anandkumar joined group: barber_3
+Anandkumar joined group: barber_3
+User disconnected from group: barber_3
+Anandkumar joined group: barber_3
+User disconnected from group: barber_3
+Anandkumar joined group: barber_3
+User disconnected from group: barber_3
+Anandkumar joined group: barber_3
+User disconnected from group: barber_3
+Anandkumar joined group: barber_3
+Anandkumar joined group: barber_3
+User disconnected from group: barber_3
+Anandkumar joined group: barber_3
+User disconnected from group: barber_3
+Anandkumar joined group: barber_3
+Anandkumar joined group: barber_3
+User disconnected from group: barber_3
+Anandkumar joined group: barber_3
+User disconnected from group: barber_3
+Anandkumar joined group: barber_3
+User disconnected from group: barber_3
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Unauthorized: /adminsite/customers-list/
+Unauthorized: /adminsite/customers-list/
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Bad Request: /auth/logout/
+Unauthorized: /barbersite/barber-services/services_by_category/
+Unauthorized: /barbersite/barber-services/my_services/
+Unauthorized: /barbersite/barber-services/services_by_category/
+Unauthorized: /barbersite/barber-services/my_services/
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Anandkumar joined group: barber_3
+User disconnected from group: barber_3
+Anandkumar joined group: barber_3
+Anandkumar joined group: barber_3
+User disconnected from group: barber_3
+Anandkumar joined group: barber_3
+Bad Request: /adminsite/categories/
+Unauthorized: /chat-service/chat/total-unread/
+Unauthorized: /customersite/home/
+Unauthorized: /chat-service/chat/total-unread/
+Unauthorized: /customersite/home/
+Anandkumar joined group: barber_3
+User disconnected from group: barber_3
+Anandkumar joined group: barber_3
+User disconnected from group: barber_3
+Anandkumar joined group: barber_3
+Anandkumar joined group: barber_3
+User disconnected from group: barber_3
+Anandkumar joined group: barber_3
+User disconnected from group: barber_3
+Anandkumar joined group: barber_3
+Unauthorized: /barbersite/completed-barber-appointments/
+Unauthorized: /barbersite/completed-barber-appointments/
+Unauthorized: /auth/token/refresh/
+User disconnected from group: barber_3
+Unauthorized: /barbersite/completed-barber-appointments/
+Unauthorized: /barbersite/completed-barber-appointments/
+Unauthorized: /auth/token/refresh/
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Unauthorized: /instant-booking/working/status/3/
+Unauthorized: /instant-booking/working/status/3/
+Unauthorized: /auth/token/refresh/
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Unauthorized: /barbersite/barber/wallet/
+Unauthorized: /barbersite/barber/wallet/
+Unauthorized: /auth/token/refresh/
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token

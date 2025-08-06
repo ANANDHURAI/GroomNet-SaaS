@@ -14,20 +14,27 @@ function BarbersList() {
                 setLoading(false);
             })
             .catch(error => {
-                console.error('customers list load error:', error);
+                console.error('barbers list load error:', error);
                 setLoading(false);
             });
     }, []);
 
     return (
-        <div className="flex min-h-screen">
+        <div className="flex min-h-screen bg-gray-50">
             <AdminSidebar />
             {loading ? (
-                <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
-                    <div className="text-white text-xl">Loading...</div>
+                <div className="flex-1 flex items-center justify-center bg-gray-50">
+                    <div className="flex flex-col items-center">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+                        <div className="text-gray-700 text-lg">Loading barbers...</div>
+                    </div>
                 </div>
             ) : (
-                <TableList listname={'Barbers List'} data={data} setData={setData} />
+                <TableList 
+                    listname={'Barbers List'} 
+                    data={data} 
+                    setData={setData} 
+                />
             )}
         </div>
     )

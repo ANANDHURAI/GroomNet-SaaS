@@ -19,6 +19,7 @@
     "@stripe/stripe-js": "^7.4.0",
     "axios": "^1.11.0",
     "framer-motion": "^12.23.12",
+    "lodash.debounce": "^4.0.8",
     "lucide-react": "^0.511.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
