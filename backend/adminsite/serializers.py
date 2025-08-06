@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from authservice.models import User 
-from .models import CategoryModel , ServiceModel , AdminWallet , Coupon ,AdminWalletTransaction
+from .models import CategoryModel , ServiceModel , AdminWallet , Coupon ,AdminWalletTransaction , ServiceRequestModel
 from customersite.models import Complaints
 
 class UsersListSerializer(serializers.ModelSerializer):
@@ -94,3 +94,56 @@ class AdminWalletTransactionSerializer(serializers.ModelSerializer):
     class Meta:
         model = AdminWalletTransaction
         fields = ['id', 'amount', 'note', 'created_at']
+
+    
+class ServiceRequestSerializer(serializers.ModelSerializer):
+    barber_name = serializers.CharField(source='barber.name', read_only=True)
+    barber_email = serializers.CharField(source='barber.email', read_only=True)
+    category_name = serializers.CharField(source='category.name', read_only=True)
+    category_image = serializers.ImageField(source='category.image', read_only=True)
+    approved_by_name = serializers.CharField(source='approved_by.name', read_only=True)
+    
+    class Meta:
+        model = ServiceRequestModel
+        fields = [
+            'id', 'barber', 'barber_name', 'barber_email',
+            'category', 'category_name', 'category_image',
+            'name', 'description', 'price', 'duration_minutes',
+            'image', 'status', 'admin_notes',
+            'created_at', 'updated_at', 'approved_at',
+            'approved_by', 'approved_by_name'
+        ]
+        read_only_fields = ['barber', 'status', 'admin_notes', 'approved_at', 'approved_by']
+
+    def validate_category(self, value):
+        if value.is_blocked:
+            raise serializers.ValidationError("Cannot create request for blocked category")
+        return value
+
+    def validate_price(self, value):
+        if value <= 0:
+            raise serializers.ValidationError("Price must be greater than 0")
+        return value
+
+    def validate_duration_minutes(self, value):
+        if value <= 0:
+            raise serializers.ValidationError("Duration must be greater than 0 minutes")
+        return value
+
+class ServiceRequestDetailSerializer(ServiceRequestSerializer):
+    barber_profile = serializers.SerializerMethodField()
+    
+    class Meta(ServiceRequestSerializer.Meta):
+        fields = ServiceRequestSerializer.Meta.fields + ['barber_profile']
+    
+    def get_barber_profile(self, obj):
+        return {
+            'id': obj.barber.id,
+            'name': obj.barber.name,
+            'email': obj.barber.email,
+            'phone': obj.barber.phone,
+            'gender': obj.barber.gender,
+            'profileimage': obj.barber.profileimage.url if obj.barber.profileimage else None,
+            'created_at': obj.barber.created_at,
+            'is_verified': obj.barber.is_verified
+        }

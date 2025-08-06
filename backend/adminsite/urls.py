@@ -12,7 +12,13 @@ from .views import (
     AdminComplaintListView,
     AdminComplaintStatusUpdateView,
     AdminDashboardView,
-    AdminWalletTransactionHistoryView
+    AdminWalletTransactionHistoryView,
+    admin_service_request_stats,
+    reject_service_request,
+    approve_service_request,
+    AdminServiceRequestDetailView,
+    AdminServiceRequestListView
+    
 )
 
 router = DefaultRouter()
@@ -35,7 +41,13 @@ urlpatterns = [
     path('complaints/', AdminComplaintListView.as_view(), name='complaint_list'),
     path('complaints/<int:pk>/update-status/', AdminComplaintStatusUpdateView.as_view(), name='complaint_status_update'),
     path('dashboard/admin/', AdminDashboardView.as_view(), name='admin-dashboard'),
+    path('service-requests/', AdminServiceRequestListView.as_view(), name='admin-service-requests'),
+    path('service-requests/<int:pk>/', AdminServiceRequestDetailView.as_view(), name='admin-service-request-detail'),
+    path('service-requests/<int:request_id>/approve/', approve_service_request, name='admin-approve-service-request'),
+    path('service-requests/<int:request_id>/reject/', reject_service_request, name='admin-reject-service-request'),
+    path('service-request/stats/', admin_service_request_stats, name='admin-service-request-stats'),
     path('', include(router.urls)),
 ]
+
 
 

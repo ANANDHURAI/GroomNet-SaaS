@@ -12,6 +12,71 @@ class CategoryModel(models.Model):
 
     def __str__(self):
         return self.name
+    
+
+class ServiceRequestModel(models.Model):
+    STATUS_CHOICES = (
+        ('pending', 'Pending'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+    )
+    
+    barber = models.ForeignKey(User, on_delete=models.CASCADE, related_name='service_requests')
+    category = models.ForeignKey(CategoryModel, on_delete=models.CASCADE, related_name='service_requests')
+    name = models.CharField(max_length=100)
+    description = models.TextField(blank=True, null=True)
+    price = models.DecimalField(max_digits=7, decimal_places=2)
+    duration_minutes = models.PositiveIntegerField()
+    image = models.ImageField(upload_to='service_requests/', null=True, blank=True)
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
+    admin_notes = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    approved_at = models.DateTimeField(null=True, blank=True)
+    approved_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='approved_services')
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.name} → {self.category.name} ({self.status})"
+
+    def approve(self, admin_user, notes=None):
+        if self.status != 'pending':
+            raise ValueError("Only pending requests can be approved")
+        
+        service = ServiceModel.objects.create(
+            category=self.category,
+            name=self.name,
+            description=self.description,
+            price=self.price,
+            duration_minutes=self.duration_minutes,
+            image=self.image,
+            is_blocked=False,
+            created_from_request=self
+        )
+        
+        self.status = 'approved'
+        self.approved_by = admin_user
+        self.approved_at = timezone.now()
+        if notes:
+            self.admin_notes = notes
+        self.save()
+        
+        return service
+    
+    def reject(self, admin_user, notes=None):
+      
+        if self.status != 'pending':
+            raise ValueError("Only pending requests can be rejected")
+        
+        self.status = 'rejected'
+        self.approved_by = admin_user
+        if notes:
+            self.admin_notes = notes
+        self.save()
+
+
 
 class ServiceModel(models.Model):
     category = models.ForeignKey(CategoryModel, on_delete=models.CASCADE, related_name='services')
@@ -23,10 +88,17 @@ class ServiceModel(models.Model):
     is_blocked = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    created_from_request = models.ForeignKey(
+        'ServiceRequestModel',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='created_service'
+    )
 
     def __str__(self):
         return f"{self.name} → {self.category.name}"
-    
+
 
 class CouponUsage(models.Model):
 
@@ -82,3 +154,4 @@ class AdminWalletTransaction(models.Model):
     def __str__(self):
         direction = "+" if self.amount >= 0 else "-"
         return f"{direction}₹{abs(self.amount)} on {self.created_at.strftime('%Y-%m-%d')} - {self.note or 'No note'}"
+

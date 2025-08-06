@@ -9,8 +9,9 @@ from adminsite.serializers import CategorySerializer, ServiceSerializer
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from .models import BarberService
-from adminsite.models import CategoryModel, ServiceModel
+from adminsite.models import CategoryModel, ServiceModel , ServiceRequestModel
 from .models import BarberSlot
+
 from .serializers import BarberSlotSerializer
 from django.db import transaction
 from django.db.models import ProtectedError
@@ -20,14 +21,18 @@ logger = logging.getLogger(__name__)
 from rest_framework import status
 from .models import BarberWallet
 from .serializers import BarberWalletSerializer
+from adminsite.serializers import ServiceRequestSerializer
 from django.utils.timezone import localtime
 
 from django.db.models import Count, Avg
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-from django.db.models import Avg, Count, Sum
+from django.db.models import Avg, Count
 from customersite.models import Booking, Rating
+from rest_framework import generics, status
+from rest_framework.decorators import api_view, permission_classes
+
 
 class BarberDashboard(APIView): 
     permission_classes = [IsAuthenticated]
@@ -370,8 +375,6 @@ class BarberWalletView(APIView):
         serializer = BarberWalletSerializer(wallet)
         return Response(serializer.data)
         
-
-
 class BarberDashboardView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -409,4 +412,69 @@ class BarberDashboardView(APIView):
         })
 
 
+class ServiceRequestListCreateView(generics.ListCreateAPIView):
+    serializer_class = ServiceRequestSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return ServiceRequestModel.objects.filter(barber=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(barber=self.request.user)
+
+class ServiceRequestDetailView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = ServiceRequestSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        # Only allow barbers to access their own requests
+        return ServiceRequestModel.objects.filter(barber=self.request.user)
+
+    def update(self, request, *args, **kwargs):
+        # Only allow updates if status is pending
+        instance = self.get_object()
+        if instance.status != 'pending':
+            return Response(
+                {'error': 'Cannot modify request that has been processed'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        return super().update(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        # Only allow deletion if status is pending
+        instance = self.get_object()
+        if instance.status != 'pending':
+            return Response(
+                {'error': 'Cannot delete request that has been processed'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        return super().destroy(request, *args, **kwargs)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_barber_categories(request):
+    """Get all active categories for service requests"""
+    categories = CategoryModel.objects.filter(is_blocked=False)
+    category_data = [
+        {
+            'id': cat.id,
+            'name': cat.name,
+            'image': cat.image.url if cat.image else None
+        }
+        for cat in categories
+    ]
+    return Response(category_data)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def service_request_stats(request):
+    """Get stats for barber's service requests"""
+    user_requests = ServiceRequestModel.objects.filter(barber=request.user)
+    stats = {
+        'total': user_requests.count(),
+        'pending': user_requests.filter(status='pending').count(),
+        'approved': user_requests.filter(status='approved').count(),
+        'rejected': user_requests.filter(status='rejected').count(),
+    }
+    return Response(stats)
 

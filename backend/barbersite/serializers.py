@@ -1,8 +1,8 @@
 from rest_framework import serializers
-from .models import Portfolio , BarberService
+from adminsite.models import ServiceRequestModel
 from adminsite.serializers import ServiceSerializer
-from .models import BarberSlot, BarberSlotBooking 
-from .models import BarberWallet, WalletTransaction
+from .models import BarberSlot, BarberSlotBooking ,BarberWallet, WalletTransaction, Portfolio , BarberService
+
 
 class BarberSlotSerializer(serializers.ModelSerializer):
     class Meta:
@@ -47,3 +47,29 @@ class BarberWalletSerializer(serializers.ModelSerializer):
     class Meta:
         model = BarberWallet
         fields = ['balance', 'updated_at', 'transactions']
+
+
+
+
+class ServiceRequestCreateSerializer(serializers.ModelSerializer): 
+    class Meta:
+        model = ServiceRequestModel
+        fields = [
+            'category', 'name', 'description', 
+            'price', 'duration_minutes', 'image'
+        ]
+
+    def validate_category(self, value):
+        if value.is_blocked:
+            raise serializers.ValidationError("Cannot create request for blocked category")
+        return value
+
+    def validate_price(self, value):
+        if value <= 0:
+            raise serializers.ValidationError("Price must be greater than 0")
+        return value
+
+    def validate_duration_minutes(self, value):
+        if value <= 0:
+            raise serializers.ValidationError("Duration must be greater than 0 minutes")
+        return value

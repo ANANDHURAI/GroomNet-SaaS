@@ -16,7 +16,7 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework.generics import ListAPIView
 from customersite.models import PaymentModel
 from .models import ServiceModel, CategoryModel , AdminWallet  ,Coupon,AdminWalletTransaction
-from .serializers import CouponSerializer , AdminWalletSerializer ,AdminWalletTransactionSerializer
+from .serializers import CouponSerializer , AdminWalletSerializer ,AdminWalletTransactionSerializer , ServiceRequestDetailSerializer , ServiceSerializer
 
 from rest_framework import generics
 from customersite.models import Complaints
@@ -406,3 +406,122 @@ class AdminDashboardView(APIView):
             'top_customers': top_customers,
         }
         return Response(data)
+    
+
+
+from rest_framework import generics, status
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from django.shortcuts import get_object_or_404
+from django.utils import timezone
+from .models import ServiceRequestModel, ServiceModel
+from .serializers import ServiceRequestSerializer, ServiceRequestDetailSerializer
+
+class AdminServiceRequestListView(generics.ListAPIView):
+    queryset = ServiceRequestModel.objects.all()
+    serializer_class = ServiceRequestSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        if not self.request.user.user_type == 'admin':
+            return ServiceRequestModel.objects.none()
+        
+        queryset = ServiceRequestModel.objects.all()
+        status_filter = self.request.query_params.get('status', None)
+        category_filter = self.request.query_params.get('category', None)
+        
+        if status_filter:
+            queryset = queryset.filter(status=status_filter)
+        if category_filter:
+            queryset = queryset.filter(category_id=category_filter)
+            
+        return queryset
+
+class AdminServiceRequestDetailView(generics.RetrieveAPIView):
+    queryset = ServiceRequestModel.objects.all()
+    serializer_class = ServiceRequestDetailSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        if not self.request.user.user_type == 'admin':
+            return ServiceRequestModel.objects.none()
+        return ServiceRequestModel.objects.all()
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def approve_service_request(request, request_id):
+
+    if request.user.user_type != 'admin':
+        return Response({'error': 'Admin access required'}, status=status.HTTP_403_FORBIDDEN)
+    
+    service_request = get_object_or_404(ServiceRequestModel, id=request_id)
+    
+    if service_request.status != 'pending':
+        return Response(
+            {'error': 'Only pending requests can be approved'}, 
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    try:
+        admin_notes = request.data.get('admin_notes', '')
+        service = service_request.approve(request.user, admin_notes)
+        
+        return Response({
+            'message': 'Service request approved successfully',
+            'service_id': service.id,
+            'request_status': service_request.status
+        }, status=status.HTTP_200_OK)
+        
+    except Exception as e:
+        return Response(
+            {'error': f'Failed to approve request: {str(e)}'}, 
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def reject_service_request(request, request_id):
+    if request.user.user_type != 'admin':
+        return Response({'error': 'Admin access required'}, status=status.HTTP_403_FORBIDDEN)
+    
+    service_request = get_object_or_404(ServiceRequestModel, id=request_id)
+    
+    if service_request.status != 'pending':
+        return Response(
+            {'error': 'Only pending requests can be rejected'}, 
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    try:
+        admin_notes = request.data.get('admin_notes', '')
+        service_request.reject(request.user, admin_notes)
+        
+        return Response({
+            'message': 'Service request rejected',
+            'request_status': service_request.status
+        }, status=status.HTTP_200_OK)
+        
+    except Exception as e:
+        return Response(
+            {'error': f'Failed to reject request: {str(e)}'}, 
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def admin_service_request_stats(request):
+    if request.user.user_type != 'admin':
+        return Response({'error': 'Admin access required'}, status=status.HTTP_403_FORBIDDEN)
+    
+    stats = {
+        'total': ServiceRequestModel.objects.count(),
+        'pending': ServiceRequestModel.objects.filter(status='pending').count(),
+        'approved': ServiceRequestModel.objects.filter(status='approved').count(),
+        'rejected': ServiceRequestModel.objects.filter(status='rejected').count(),
+        'recent_requests': ServiceRequestModel.objects.filter(
+            created_at__gte=timezone.now() - timezone.timedelta(days=7)
+        ).count()
+    }
+    return Response(stats)
