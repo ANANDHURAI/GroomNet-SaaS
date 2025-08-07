@@ -23,7 +23,9 @@ function UsersDetails() {
 
     return (
         <div className="flex min-h-screen">
-            <AdminSidebar />
+            <div className="w-72">
+                <AdminSidebar />
+            </div>
             {loading ? (
                 <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
                     <div className="text-white text-xl">Loading...</div>

@@ -66,15 +66,12 @@ export const SelectTime = () => {
   const filterPastSlots = (slots, selectedDate) => {
     const today = new Date();
     const selectedDay = new Date(selectedDate);
-    
-    // If selected date is not today, return all slots
     if (selectedDay.toDateString() !== today.toDateString()) {
       return slots;
     }
-    
-    // Filter out past slots for today with 30-minute buffer
+  
     const currentTime = new Date();
-    const bufferTime = new Date(currentTime.getTime() + 30 * 60000); // Add 30 minutes
+    const bufferTime = new Date(currentTime.getTime() + 30 * 60000);
     
     return slots.filter(slot => {
       const [hours, minutes] = slot.start_time.split(':').map(Number);
@@ -242,7 +239,7 @@ export const SelectTime = () => {
               </p>
               {isSlotSoon(selectedSlot.start_time) && (
                 <p className="text-xs text-orange-600 mt-1">
-                  ⚠️ This slot is coming up soon. Please be ready!
+                   This slot is coming up soon. Please be ready!
                 </p>
               )}
             </div>

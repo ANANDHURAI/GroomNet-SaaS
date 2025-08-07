@@ -65,15 +65,15 @@ function SelectService() {
   return (
     <div className="flex min-h-screen bg-gray-50">
       <BarberSidebar />
-      <div className="flex-1 ml-64 p-8">
+      <div className="flex-1 ml-72 p-8"> 
         <GlobalBookingNotifier
-        currentBooking={currentBooking}
-        notification={notification}
-        setNotification={setNotification}
-        navigate={navigate}
-        location={location}
-        isOnWorkingAreaPage={isOnWorkingAreaPage}
-      />
+          currentBooking={currentBooking}
+          notification={notification}
+          setNotification={setNotification}
+          navigate={navigate}
+          location={location}
+          isOnWorkingAreaPage={isOnWorkingAreaPage}
+        />
         <div className="max-w-7xl mx-auto">
           <div className="flex justify-between items-start mb-8">
             <div>
@@ -145,6 +145,7 @@ function SelectService() {
       </div>
     </div>
   );
+
 }
 
 export default SelectService;

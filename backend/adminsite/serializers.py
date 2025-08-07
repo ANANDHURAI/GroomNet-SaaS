@@ -40,15 +40,25 @@ class CategorySerializer(serializers.ModelSerializer):
         model = CategoryModel
         fields = '__all__'
 
+    def validate_name(self, value):
+        if CategoryModel.objects.filter(name__iexact=value).exists():
+            raise serializers.ValidationError("Category with this name already exists.")
+        return value
+
 
 class ServiceSerializer(serializers.ModelSerializer):
     category_name = serializers.CharField(source='category.name', read_only=True)
     category_details = CategorySerializer(source='category', read_only=True)
-    
+
     class Meta:
         model = ServiceModel
         fields = '__all__'
-        
+
+    def validate_name(self, value):
+        if ServiceModel.objects.filter(name__iexact=value).exists():
+            raise serializers.ValidationError("Service with this name already exists.")
+        return value
+
     def to_representation(self, instance):
         representation = super().to_representation(instance)
         if instance.category:
@@ -59,6 +69,7 @@ class ServiceSerializer(serializers.ModelSerializer):
                 'is_blocked': instance.category.is_blocked
             }
         return representation
+
 
 
 class AdminWalletSerializer(serializers.ModelSerializer):

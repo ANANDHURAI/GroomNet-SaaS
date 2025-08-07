@@ -83,7 +83,7 @@ function VerificationPage() {
 
     const viewDocuments = async (barberId) => {
         try {
-            const response = await apiClient.get(`adminsite/barber-details/${barberId}/`);
+            const response = await apiClient.get(`adminsite/verification-barber-details/${barberId}/`);
             setSelectedBarber(response.data);
         } catch (error) {
             console.error('Failed to fetch barber details:', error);
@@ -148,7 +148,9 @@ function VerificationPage() {
 
     return (
         <div className="flex bg-gray-50 min-h-screen">
-            <AdminSidebar />
+            <div className="w-72">
+                <AdminSidebar />
+            </div>
             
             <div className="flex-1 p-6">
                 <div className="max-w-7xl mx-auto">

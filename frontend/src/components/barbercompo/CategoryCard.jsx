@@ -27,7 +27,6 @@ const CategoryCard = ({ category, onSelect, isSelected = false }) => {
         ) : (
           <div className="flex items-center justify-center h-full text-white">
             <div className="text-center">
-              <div className="text-4xl mb-2">✂️</div>
               <span className="text-sm font-medium">{category.name}</span>
             </div>
           </div>

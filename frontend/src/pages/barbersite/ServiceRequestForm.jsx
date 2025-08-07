@@ -31,20 +31,27 @@ const ServiceRequestForm = ({ onCancel, onSuccess, selectedCategory = null }) =>
 
   const validateForm = () => {
     const newErrors = {};
-    
+
     if (!formData.category) newErrors.category = 'Category is required';
     if (!formData.name.trim()) newErrors.name = 'Service name is required';
+    
     if (!formData.price || parseFloat(formData.price) <= 0) {
       newErrors.price = 'Valid price is required';
     }
-    if (!formData.duration_minutes || parseInt(formData.duration_minutes) <= 0) {
+
+    const duration = parseInt(formData.duration_minutes);
+    if (!formData.duration_minutes || duration <= 0) {
       newErrors.duration_minutes = 'Valid duration is required';
+    } else if (duration > 60) {
+      newErrors.duration_minutes = 'Duration cannot exceed 60 minutes';
     }
+
     if (!formData.image) newErrors.image = 'Service image is required';
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -202,7 +209,7 @@ const ServiceRequestForm = ({ onCancel, onSuccess, selectedCategory = null }) =>
               value={formData.duration_minutes}
               onChange={handleInputChange}
               placeholder="30"
-              min="1"
+              min="60"
               className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                 errors.duration_minutes ? 'border-red-500' : 'border-gray-300'
               }`}

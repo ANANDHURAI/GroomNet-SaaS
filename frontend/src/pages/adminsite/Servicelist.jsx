@@ -119,8 +119,17 @@ export function Servicelist() {
             setEditingService(null)
             resetForm()
         } catch (error) {
-            console.error('Error saving service:', error)
-            setError('Failed to save service')
+            console.error('Error saving service:', error);
+
+            if (error.response && error.response.status === 400) {
+                if (error.response.data.name) {
+                    setError(error.response.data.name[0]); 
+                } else {
+                    setError('Invalid input. Please check your data.');
+                }
+            } else {
+                setError('Failed to save service. Please try again.');
+            }
         }
     }
 
@@ -214,7 +223,9 @@ export function Servicelist() {
 
     return (
         <div className="flex">
-            <AdminSidebar />
+            <div className="w-72">
+                <AdminSidebar />
+            </div>
             <div className="flex-1 p-6">
                 <div className="flex justify-between items-center mb-6">
                     <h1 className="text-2xl font-bold text-gray-800">Service Management</h1>

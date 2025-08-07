@@ -95,7 +95,7 @@ const WorkingArea = () => {
   };
 
   return (
-    <div className="flex flex-col md:flex-row min-h-screen bg-gray-100">
+    <div className="flex flex-col lg:flex-row min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       {shouldShowNotification && currentBooking?.status === 'PENDING' && (
         <GlobalBookingNotifier
           currentBooking={currentBooking}
@@ -109,79 +109,78 @@ const WorkingArea = () => {
         />
       )}
 
-      <div className="w-full md:w-64 flex-shrink-0">
+      <div className="w-full lg:w-80 bg-white shadow-lg">
         <BarberSidebar />
       </div>
       
-      <main className="flex-1 p-4">
-        <div className="max-w-5xl mx-auto space-y-4">
-          <div className="flex flex-wrap border-b border-gray-300">
-            <button
-              className={`py-2 px-4 font-medium text-sm md:text-base ${
-                activeTab === 'instant'
-                  ? 'text-blue-600 border-b-2 border-blue-600'
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
-              onClick={() => handleTabChange('instant')}
-            >
-              Instant Booking
-
-              {currentBooking?.status === 'PENDING' && activeTab !== 'instant' && (
-                <span className="ml-2 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-500 rounded-full animate-pulse">
-                  !
-                </span>
-              )}
-            </button>
-            <button
-              className={`py-2 px-4 font-medium text-sm md:text-base relative ${
-                activeTab === 'scheduled'
-                  ? 'text-blue-600 border-b-2 border-blue-600'
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
-              onClick={() => handleTabChange('scheduled')}
-            >
-              <NotificationIndicator />
-              Scheduled Booking
-            </button>
-          </div>
-
-          <div className="bg-white rounded-lg shadow p-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
-            <div className="flex items-center gap-2">
-              <Power
-                onClick={toggleOnlineStatus}
-                className={`w-6 h-6 cursor-pointer ${
-                  isOnline ? "text-green-500" : "text-gray-400"
-                }`}
-              />
-              <span className={`font-medium ${
-                isOnline ? "text-green-600" : "text-gray-500"
-              }`}>
-                {isOnline ? "Online" : "Offline"}
-              </span>
+      <main className="flex-1 p-6">
+        <div className="max-w-6xl mx-auto">
+          {/* Header Card */}
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 mb-6 overflow-hidden">
+            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-6">
+              <h1 className="text-2xl font-bold text-white">Manage your Bookings</h1>
             </div>
-            {loading && <span className="text-xs text-gray-400">Updating...</span>}
+            
+            {/* Tab Navigation */}
+            <div className="flex bg-slate-50">
+              <button
+                className={`flex-1 py-4 px-6 font-semibold text-sm transition-all duration-200 relative ${
+                  activeTab === 'instant'
+                    ? 'bg-white text-blue-600 shadow-sm border-b-2 border-blue-600'
+                    : 'text-slate-600 hover:text-slate-800 hover:bg-slate-100'
+                }`}
+                onClick={() => handleTabChange('instant')}
+              >
+                <span>Instant Booking</span>
+                {currentBooking?.status === 'PENDING' && activeTab !== 'instant' && (
+                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center animate-pulse">
+                    <span className="text-white text-xs font-bold">!</span>
+                  </div>
+                )}
+              </button>
+              
+              <button
+                className={`flex-1 py-4 px-6 font-semibold text-sm transition-all duration-200 relative ${
+                  activeTab === 'scheduled'
+                    ? 'bg-white text-blue-600 shadow-sm border-b-2 border-blue-600'
+                    : 'text-slate-600 hover:text-slate-800 hover:bg-slate-100'
+                }`}
+                onClick={() => handleTabChange('scheduled')}
+              >
+                <NotificationIndicator />
+                <span>Scheduled Booking</span>
+              </button>
+            </div>
           </div>
 
+          {/* Notification Alert */}
           {notification && (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-              <p className="text-sm text-blue-800">{notification}</p>
+            <div className="bg-blue-500 text-white p-4 rounded-xl shadow-lg mb-6 border-l-4 border-blue-600">
+              <div className="flex items-center">
+                <div className="w-2 h-2 bg-white rounded-full mr-3 animate-pulse"></div>
+                <p className="font-medium">{notification}</p>
+              </div>
             </div>
           )}
 
+          {/* Pending Booking Alert for Scheduled Tab */}
           {activeTab === 'scheduled' && currentBooking?.status === 'PENDING' && (
-            <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white p-4 rounded-lg shadow-lg border border-orange-300 animate-pulse">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h4 className="font-bold flex items-center gap-2">
-                    🚨 New Instant Booking Request!
-                  </h4>
-                  <p className="text-sm opacity-90 mt-1">
-                    <strong>{currentBooking.customer_name}</strong> requested <strong>{currentBooking.service_name}</strong> for ₹{currentBooking.total_amount}
+            <div className="bg-gradient-to-r from-amber-400 to-orange-500 text-white p-6 rounded-2xl shadow-xl mb-6 border border-orange-200">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-3 h-3 bg-white rounded-full animate-bounce"></div>
+                    <h4 className="font-bold text-lg">New Instant Booking Request!</h4>
+                  </div>
+                  <p className="text-orange-100 text-sm leading-relaxed">
+                    <span className="font-semibold">{currentBooking.customer_name}</span> requested{' '}
+                    <span className="font-semibold">{currentBooking.service_name}</span> for{' '}
+                    <span className="font-bold">₹{currentBooking.total_amount}</span>
                   </p>
                 </div>
                 <button
                   onClick={handleGoToInstantBooking}
-                  className="bg-white text-orange-600 px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors shadow"
+                  className="bg-white text-orange-600 px-6 py-3 rounded-xl font-semibold hover:bg-orange-50 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
                 >
                   Switch to Accept
                 </button>
@@ -189,7 +188,8 @@ const WorkingArea = () => {
             </div>
           )}
 
-          <div>
+          {/* Content Area */}
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
             {activeTab === 'instant' ? (
               <InstantBookingTab
                 isOnline={isOnline}

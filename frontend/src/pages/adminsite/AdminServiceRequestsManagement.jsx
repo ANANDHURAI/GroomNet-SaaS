@@ -129,7 +129,9 @@ const AdminServiceRequestsManagement = () => {
 
   return (
     <div className="flex min-h-screen bg-gray-50">
-      <AdminSidebar />
+      <div className="w-72">
+        <AdminSidebar />
+      </div>
       <div className="flex-1 p-8">
         <div className="max-w-7xl mx-auto">
           <div className="mb-8">
@@ -170,7 +172,7 @@ const AdminServiceRequestsManagement = () => {
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
                     <tr>
-                      {['Service Details', 'Barber', 'Category', 'Price/Duration', 'Status', 'Date', 'Actions'].map((title, idx) => (
+                      {['Service image','Service Details', 'Barber', 'Category', 'Price/Duration', 'Status', 'Date', 'Actions'].map((title, idx) => (
                         <th key={idx} className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           {title}
                         </th>
@@ -181,12 +183,23 @@ const AdminServiceRequestsManagement = () => {
                     {filteredRequests.map((request) => (
                       <tr key={request.id}>
                         <td className="px-6 py-4">
+                          {request.image && (
+                            <img
+                              src={request.image}
+                              alt={request.name}
+                              className="w-16 h-16 object-cover rounded"
+                            />
+                          )}
+                        </td>
+                        <td className="px-6 py-4">
                           <div className="text-sm font-medium text-gray-900">{request.name}</div>
                           <div className="text-sm text-gray-500">{request.description}</div>
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-900">{request.barber_name}</td>
                         <td className="px-6 py-4 text-sm text-gray-500">{request.category_name}</td>
-                        <td className="px-6 py-4 text-sm text-gray-500">₹{request.price} / {request.duration} min</td>
+                        <td className="px-6 py-4 text-sm text-gray-500">
+                          ₹{request.price} / {request.duration_minutes} min
+                        </td>
                         <td className="px-6 py-4">{getStatusBadge(request.status)}</td>
                         <td className="px-6 py-4 text-sm text-gray-500">{new Date(request.created_at).toLocaleDateString()}</td>
                         <td className="px-6 py-4 space-x-2">
@@ -221,7 +234,7 @@ const AdminServiceRequestsManagement = () => {
               <p><strong>Barber:</strong> {selectedRequest.barber_name}</p>
               <p><strong>Category:</strong> {selectedRequest.category_name}</p>
               <p><strong>Price:</strong> ₹{selectedRequest.price}</p>
-              <p><strong>Duration:</strong> {selectedRequest.duration} min</p>
+              <p><strong>Duration:</strong> {selectedRequest.duration_minutes} min</p>
               <p><strong>Description:</strong> {selectedRequest.description}</p>
             </Modal>
           )}

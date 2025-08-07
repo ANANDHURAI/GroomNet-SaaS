@@ -16,6 +16,7 @@ const ServiceRequestsList = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [categoryFilter, setCategoryFilter] = useState('');
   const [stats, setStats] = useState({});
+  const [activeAdminNote, setActiveAdminNote] = useState(null);
 
   useEffect(() => {
     fetchServiceRequests();
@@ -116,8 +117,10 @@ const ServiceRequestsList = () => {
 
   return (
     <div className="flex min-h-screen bg-gray-50">
-      <BarberSidebar />
-      <div className="flex-1 ml-64 p-8">
+      <div className="w-72">
+        <BarberSidebar />
+      </div>
+      <div className="flex-1 p-8">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
           <div className="flex justify-between items-center mb-8">
@@ -134,8 +137,9 @@ const ServiceRequestsList = () => {
             </button>
           </div>
 
-
+          {/* Stats */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            {/* Total */}
             <div className="bg-white p-6 rounded-lg shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
@@ -147,7 +151,7 @@ const ServiceRequestsList = () => {
                 </div>
               </div>
             </div>
-
+            {/* Pending */}
             <div className="bg-white p-6 rounded-lg shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
@@ -159,7 +163,7 @@ const ServiceRequestsList = () => {
                 </div>
               </div>
             </div>
-
+            {/* Approved */}
             <div className="bg-white p-6 rounded-lg shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
@@ -171,7 +175,7 @@ const ServiceRequestsList = () => {
                 </div>
               </div>
             </div>
-
+            {/* Rejected */}
             <div className="bg-white p-6 rounded-lg shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
@@ -185,9 +189,10 @@ const ServiceRequestsList = () => {
             </div>
           </div>
 
-   
+          {/* Filters */}
           <div className="bg-white p-6 rounded-lg shadow-sm mb-8">
             <div className="flex flex-col lg:flex-row gap-4">
+              {/* Search */}
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
                 <input
@@ -198,7 +203,7 @@ const ServiceRequestsList = () => {
                   className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
-
+              {/* Status Filter */}
               <div className="relative">
                 <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
                 <select
@@ -212,7 +217,7 @@ const ServiceRequestsList = () => {
                   <option value="rejected">Rejected</option>
                 </select>
               </div>
-
+              {/* Category Filter */}
               <div className="relative">
                 <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
                 <select
@@ -221,7 +226,7 @@ const ServiceRequestsList = () => {
                   className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent min-w-[150px]"
                 >
                   <option value="">All Categories</option>
-                  {categories.map(category => (
+                  {categories.map((category) => (
                     <option key={category.id} value={category.id}>
                       {category.name}
                     </option>
@@ -231,7 +236,7 @@ const ServiceRequestsList = () => {
             </div>
           </div>
 
-
+          {/* Error Message */}
           {error && (
             <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6 flex items-center gap-2">
               <AlertCircle size={20} />
@@ -239,7 +244,7 @@ const ServiceRequestsList = () => {
             </div>
           )}
 
-    
+          {/* Table */}
           {loading ? (
             <div className="flex justify-center items-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
@@ -282,7 +287,7 @@ const ServiceRequestsList = () => {
                         Date
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Actions
+                        Admin Commend
                       </th>
                     </tr>
                   </thead>
@@ -300,9 +305,7 @@ const ServiceRequestsList = () => {
                             </div>
                             <div className="ml-4">
                               <div className="text-sm font-medium text-gray-900">{request.name}</div>
-                              <div className="text-sm text-gray-500 truncate max-w-xs">
-                                {request.description}
-                              </div>
+                              <div className="text-sm text-gray-500 truncate max-w-xs">{request.description}</div>
                             </div>
                           </div>
                         </td>
@@ -315,9 +318,7 @@ const ServiceRequestsList = () => {
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                           {request.duration_minutes} min
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          {getStatusBadge(request.status)}
-                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">{getStatusBadge(request.status)}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                           {new Date(request.created_at).toLocaleDateString()}
                         </td>
@@ -343,12 +344,13 @@ const ServiceRequestsList = () => {
                               </>
                             )}
                             {request.admin_notes && (
-                              <div className="relative group">
-                                <AlertCircle size={16} className="text-gray-400" />
-                                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity z-10 whitespace-nowrap">
-                                  {request.admin_notes}
-                                </div>
-                              </div>
+                              <button
+                                onClick={() => setActiveAdminNote(request)}
+                                className="text-gray-400 hover:text-gray-600 p-1 rounded hover:bg-gray-100"
+                                title="View Admin Note"
+                              >
+                                <AlertCircle size={16} />
+                              </button>
                             )}
                           </div>
                         </td>
@@ -360,7 +362,7 @@ const ServiceRequestsList = () => {
             </div>
           )}
 
- 
+          {/* Delete Modal */}
           {deleteConfirm && (
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
               <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
@@ -385,10 +387,29 @@ const ServiceRequestsList = () => {
               </div>
             </div>
           )}
+
+          {/* Admin Notes Modal */}
+          {activeAdminNote && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+              <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Admin Comment</h3>
+                <p className="text-gray-700 mb-6">{activeAdminNote.admin_notes}</p>
+                <div className="text-right">
+                  <button
+                    onClick={() => setActiveAdminNote(null)}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
   );
+
 };
 
 export default ServiceRequestsList;

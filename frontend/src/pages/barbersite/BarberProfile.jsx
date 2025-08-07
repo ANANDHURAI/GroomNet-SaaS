@@ -113,7 +113,7 @@ function BarberProfile() {
 
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-      <div className="w-64 bg-[#0c1b2c] text-white shadow-2xl">
+      <div className="w-72">
         <BarberSidebar />
       </div>
       <GlobalBookingNotifier

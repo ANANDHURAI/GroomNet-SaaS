@@ -5,7 +5,6 @@ import CustomerLayout from '../../components/customercompo/CustomerLayout';
 import Message from '../../components/customercompo/booking/Message';
 import BookingInfo from '../../components/customercompo/booking/BookingInfo';
 import TravelStatus from '../../components/customercompo/booking/TravelStatus';
-import ActionButtons from '../../components/customercompo/booking/ActionButtons';
 import RatingModal from '../../components/customercompo/booking/RatingModal';
 import ComplaintModal from '../../components/customercompo/booking/ComplaintModal';
 import { useNotifications } from '../../components/customHooks/useNotifications';
@@ -16,17 +15,16 @@ function BookingDetailsPage() {
   const navigate = useNavigate();
 
   const { bookingUnreadCounts  , totalUnreadCount } = useNotifications();
-  
   const [state, setState] = useState({
     data: null,
     travelStatus: null,
-    timeLeft: '',
     notification: '',
     showRatingModal: false,
     showComplaintModal: false,
     hasRated: false,
     hasComplaint: false
   });
+
 
   const updateState = (updates) => {
     setState(prev => ({ ...prev, ...updates }));
@@ -40,8 +38,6 @@ function BookingDetailsPage() {
       const bookingData = res.data;
       
       updateState({ data: bookingData });
-      calculateTimeLeft(bookingData.date, bookingData.slottime);
-
       const bookingId = bookingData.id || bookingData.orderid || id;
       if (bookingId) {
         await Promise.all([
@@ -86,26 +82,6 @@ function BookingDetailsPage() {
     }
   };
 
-  const calculateTimeLeft = (date, time) => {
-    if (time === "N/A") {
-      updateState({ timeLeft: "No scheduled time this is instant booking)" });
-      return;
-    }
-    
-    const serviceTime = new Date(`${date}T${time}`);
-    const now = new Date();
-    const diff = serviceTime - now;
-    
-    if (diff <= 0) {
-      updateState({ timeLeft: "Service is active now" });
-      return;
-    }
-
-    const mins = Math.floor(diff / 60000);
-    const hrs = Math.floor(mins / 60);
-    const rem = mins % 60;
-    updateState({ timeLeft: `${hrs}h ${rem}m remaining` });
-  };
 
   const handleChatClick = () => {
     clearBookingUnreadCount(id);
@@ -141,7 +117,7 @@ function BookingDetailsPage() {
     fetchBookingDetails();
   }, [id]);
 
-  const { data, travelStatus, timeLeft, notification, showRatingModal, showComplaintModal, hasRated, hasComplaint } = state;
+  const { data, travelStatus, notification, showRatingModal, showComplaintModal, hasRated, hasComplaint } = state;
 
   return (
     <CustomerLayout>
@@ -150,14 +126,8 @@ function BookingDetailsPage() {
 
       {data ? (
         <>
-          <BookingInfo data={data} timeLeft={timeLeft} />
-
-          {data.booking_status === 'CONFIRMED' && travelStatus && (
-            <TravelStatus travelStatus={travelStatus} />
-          )}
-
-          <ActionButtons
-            bookingStatus={data.booking_status}
+          <BookingInfo 
+            data={data} 
             onChatClick={handleChatClick}
             bookingId={id}
             travelStatus={travelStatus?.travel_status}
@@ -166,10 +136,13 @@ function BookingDetailsPage() {
             hasRated={hasRated}
             onComplaintClick={() => updateState({ showComplaintModal: true })}
             hasComplaint={hasComplaint}
-            unreadCount={bookingUnreadCounts[id] || 0} 
+            unreadCount={bookingUnreadCounts[id] || 0}
+            apiClient={apiClient} 
           />
 
-          
+          {data.booking_status === 'CONFIRMED' && travelStatus && (
+            <TravelStatus travelStatus={travelStatus} />
+          )}
         </>
       ) : (
         <div className="text-gray-600">Loading booking details...</div>

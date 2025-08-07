@@ -12,6 +12,8 @@ from customersite.models import Booking
 from .serializers import (
 BarberActionSerializer,
 )
+from django.conf import settings
+from urllib.parse import urljoin
 import logging
 from decimal import Decimal
 logger = logging.getLogger("django")
@@ -86,7 +88,7 @@ class MakingFindingBarberRequest(APIView, BookingMixin):
                     status=status.HTTP_404_NOT_FOUND
                 )
 
-            self._notify_barbers_new_booking(booking, available_barbers)
+            self._notify_barbers_new_booking(request, booking, available_barbers)
 
             return Response(
                 {
@@ -102,11 +104,17 @@ class MakingFindingBarberRequest(APIView, BookingMixin):
                 status=status.HTTP_404_NOT_FOUND
             )
 
-    def _notify_barbers_new_booking(self, booking, barbers):
+    def _notify_barbers_new_booking(self, request, booking, barbers):
         channel_layer = get_channel_layer()
-        
+
         for barber in barbers:
             group_name = f"barber_{barber.id}"
+            image_url = (
+                request.build_absolute_uri(barber.profileimage.url)
+                if barber.profileimage
+                else None
+            )
+
             async_to_sync(channel_layer.group_send)(
                 group_name,
                 {
@@ -116,10 +124,12 @@ class MakingFindingBarberRequest(APIView, BookingMixin):
                     "customer_name": booking.customer.name,
                     "customer_id": booking.customer.id,
                     "address": str(booking.address),
-                    "total_amount": str(booking.total_amount)
+                    "total_amount": str(booking.total_amount),
+                    "barber_image": image_url,
                 }
             )
             logger.info(f"Sent booking {booking.id} to barber {barber.id}")
+
 
 
 class DoggleStatusView(APIView, BookingMixin):
@@ -330,15 +340,16 @@ class HandleBarberActions(APIView, BookingMixin):
             'status': 'success'
         }, status=200)
 
+
+
     def _notify_customer_booking_accepted(self, booking, barber):
-      
         channel_layer = get_channel_layer()
-        
         profile_image_url = None
         if hasattr(barber, 'profileimage') and barber.profileimage:
             try:
-                profile_image_url = barber.profileimage.url
-            except ValueError:
+                relative_url = urljoin(settings.MEDIA_URL, barber.profileimage.name)
+                profile_image_url = self.request.build_absolute_uri(relative_url)
+            except Exception:
                 profile_image_url = None
 
         async_to_sync(channel_layer.group_send)(
@@ -354,6 +365,8 @@ class HandleBarberActions(APIView, BookingMixin):
                 }
             }
         )
+
+
 
     def _notify_other_barbers_remove_booking(self, booking, accepting_barber):
       

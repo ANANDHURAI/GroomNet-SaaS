@@ -16,7 +16,7 @@ export const CategoryForm = ({
             const validTypes = ['image/jpeg', 'image/png'];
             if (!validTypes.includes(file.type)) {
                 setImageError('Only JPG and PNG images are allowed.');
-                onFormChange({ ...formData, image: null }); // clear previous image if any
+                onFormChange({ ...formData, image: null });
             } else {
                 setImageError(null);
                 onFormChange({ ...formData, image: file });

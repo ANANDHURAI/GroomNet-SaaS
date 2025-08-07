@@ -65,25 +65,24 @@ function BookServices() {
   }
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex bg-gray-50 min-h-screen">
       <BarberSidebar />
-      <div className="flex-1 ml-64 p-8">
+      
+      <div className="flex-1 ml-72 p-8">
         <GlobalBookingNotifier
-        currentBooking={currentBooking}
-        notification={notification}
-        setNotification={setNotification}
-        navigate={navigate}
-        location={location}
-        isOnWorkingAreaPage={isOnWorkingAreaPage}
-      />
+          currentBooking={currentBooking}
+          notification={notification}
+          setNotification={setNotification}
+          navigate={navigate}
+          location={location}
+          isOnWorkingAreaPage={isOnWorkingAreaPage}
+        />
+
         <div className="max-w-7xl mx-auto">
-          <div className="flex justify-between items-center mb-8">
-            <div className="flex items-center gap-3">
-              
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900 mb-1">Select Service Category</h1>
-                <p className="text-gray-600">Choose a category to view available services</p>
-              </div>
+          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 gap-4">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-1">Select Service Category</h1>
+              <p className="text-gray-600">Choose a category to view available services</p>
             </div>
             <ServiceCount />
           </div>
@@ -97,7 +96,7 @@ function BookServices() {
 
           {categories.length > 0 ? (
             <>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
                 {categories.map((category) => (
                   <CategoryCard
                     key={category.id}
@@ -135,6 +134,7 @@ function BookServices() {
       </div>
     </div>
   );
+
 }
 
 export default BookServices;

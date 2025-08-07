@@ -43,21 +43,13 @@ function CompletedAppointments() {
   }, [filterType, appointments]);
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
-      <div className="w-64 hidden md:block bg-white border-r border-gray-200">
+    <div className="min-h-screen flex flex-col md:flex-row bg-gray-100">
+      <div className="w-72">
         <BarberSidebar />
       </div>
-      <GlobalBookingNotifier
-        currentBooking={currentBooking}
-        notification={notification}
-        setNotification={setNotification}
-        navigate={navigate}
-        location={location}
-        isOnWorkingAreaPage={isOnWorkingAreaPage}
-      />
 
-      <div className="flex-1 p-4 md:p-6 overflow-y-auto w-full">
-        <div className="flex items-center justify-between mb-6">
+      <main className="flex-1 p-4 md:p-6 overflow-y-auto">
+        <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
           <h1 className="text-2xl font-bold text-gray-800">Completed Appointments</h1>
           <div className="flex items-center gap-2">
             <Filter className="w-4 h-4 text-gray-600" />
@@ -76,7 +68,7 @@ function CompletedAppointments() {
         {filteredAppointments.length === 0 ? (
           <p className="text-gray-500">No completed appointments found.</p>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {filteredAppointments.map((appt) => (
               <div
                 key={appt.id}
@@ -129,7 +121,7 @@ function CompletedAppointments() {
             ))}
           </div>
         )}
-      </div>
+      </main>
     </div>
   );
 }

@@ -45,7 +45,6 @@ const ServiceCard = ({ service, showAddButton = false, showRemoveButton = false,
         ) : (
           <div className="flex items-center justify-center h-full text-white">
             <div className="text-center">
-              <div className="text-4xl mb-2">💇</div>
               <span className="text-sm font-medium">{service.name}</span>
             </div>
           </div>
@@ -80,7 +79,7 @@ const ServiceCard = ({ service, showAddButton = false, showRemoveButton = false,
           <button
             onClick={handleRemoveService}
             disabled={isRemoving}
-            className="w-full bg-red-600 hover:bg-red-700 disabled:bg-gray-400 text-white py-2 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center"
+            className="w-full bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 disabled:bg-gray-400 text-white py-2 px-4 rounded-lg transition-all duration-200 flex items-center justify-center shadow-md hover:shadow-lg"
           >
             {isRemoving ? (
               <>
@@ -88,7 +87,22 @@ const ServiceCard = ({ service, showAddButton = false, showRemoveButton = false,
                 Removing...
               </>
             ) : (
-              'Remove Service'
+              <>
+                <svg
+                  className="w-4 h-4 mr-2"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+                Remove
+              </>
             )}
           </button>
         )}

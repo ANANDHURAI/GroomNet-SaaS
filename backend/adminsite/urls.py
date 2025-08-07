@@ -3,7 +3,7 @@ from rest_framework.routers import DefaultRouter
 from .views import (
     UsersListView, UserDetailView,
     PendingBarbersRequestsView, AllBarbersRequestsView,
-    BarberApprovalActionView, BarberDetailsView, BarbersListView,
+    BarberApprovalActionView, BarberDetailView, BarbersListView,
     BlockingView,
     CategoryViewSet, 
     ServiceViewSet,
@@ -17,7 +17,8 @@ from .views import (
     reject_service_request,
     approve_service_request,
     AdminServiceRequestDetailView,
-    AdminServiceRequestListView
+    AdminServiceRequestListView,
+    VerificationBarberDetailsView
     
 )
 
@@ -34,7 +35,9 @@ urlpatterns = [
     path('pending-requests/', PendingBarbersRequestsView.as_view(), name='pending-barber-requests'),
     path('all-requests/', AllBarbersRequestsView.as_view(), name='all-barber-requests'),
     path('approve-barber/', BarberApprovalActionView.as_view(), name='approve-barber'),
-    path('barber-details/<int:barber_id>/', BarberDetailsView.as_view(), name='barber-details'),
+    path('barbers-details/<int:barber_id>/', BarberDetailView.as_view(), name='barber-details'),
+    path('verification-barber-details/<int:barber_id>/', VerificationBarberDetailsView.as_view(), name='barber-details'),
+    
     path('users-block/<int:id>/', BlockingView.as_view(), name='users-block'),
     path('admin-wallet/', AdminWalletView.as_view(), name='admin-wallet'),
     path('admin-wallet/transactions/', AdminWalletTransactionHistoryView.as_view(), name='admin-wallet-transactions'),

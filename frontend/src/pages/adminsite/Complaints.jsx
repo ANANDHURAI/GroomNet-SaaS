@@ -62,13 +62,17 @@ function Complaints() {
   };
 
   return (
-    <div className="flex">
+    <div className="flex bg-gray-100 min-h-screen">
+      {/* Sidebar */}
       <AdminSidebar />
-      <div className="p-6 w-full bg-gray-50 min-h-screen">
+
+      {/* Main content area */}
+      <div className="ml-72 w-full p-6 bg-gray-50 min-h-screen">
         <h2 className="text-3xl font-bold text-indigo-700 flex items-center gap-2 mb-6">
           <AlertCircle className="text-indigo-700" /> Complaints Management
         </h2>
 
+        {/* Search + Filter */}
         <div className="flex flex-col sm:flex-row gap-4 mb-6">
           <div className="relative w-full sm:w-1/2">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
@@ -97,6 +101,7 @@ function Complaints() {
           </div>
         </div>
 
+        {/* Complaints Table */}
         <div className="overflow-x-auto">
           <table className="w-full border-collapse bg-white rounded-lg shadow-sm overflow-hidden">
             <thead className="bg-indigo-600 text-white">
@@ -149,6 +154,7 @@ function Complaints() {
       </div>
     </div>
   );
+
 }
 
 export default Complaints;

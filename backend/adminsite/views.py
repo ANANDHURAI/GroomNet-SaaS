@@ -198,7 +198,7 @@ class BarberApprovalActionView(APIView):
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-class BarberDetailsView(APIView):
+class VerificationBarberDetailsView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get_full_url(self, request, file_field):
@@ -311,9 +311,11 @@ class BarberDetailView(RetrieveAPIView):
     serializer_class = UsersListSerializer
     permission_classes = [IsAuthenticated]
     lookup_field = 'id'
+    lookup_url_kwarg = 'barber_id'
 
     def get_queryset(self):
-        return User.objects.filter(user_type='barber')
+        return User.objects.filter(user_type='barber',is_verified=True)
+
 
 class BlockingView(APIView):
     permission_classes = [IsAuthenticated]

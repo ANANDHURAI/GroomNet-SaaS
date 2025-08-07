@@ -6,9 +6,8 @@ import apiClient from '../../slices/api/apiIntercepters';
 function TableList({ listname, data, setData }) {
     const navigate = useNavigate();
     
-    // Search and filter states
     const [searchTerm, setSearchTerm] = useState('');
-    const [statusFilter, setStatusFilter] = useState('all'); // all, active, inactive, blocked
+    const [statusFilter, setStatusFilter] = useState('all');
     const [filteredData, setFilteredData] = useState([]);
     const [loading, setLoading] = useState(false);
 
@@ -47,7 +46,7 @@ function TableList({ listname, data, setData }) {
     }, [data, searchTerm, statusFilter]);
 
     const handleView = (id) => {
-        const userType = listname.toLowerCase().includes('barber') ? 'barber' : 'customer';
+        const userType = listname.toLowerCase().includes('barbers') ? 'barbers' : 'customer';
         navigate(`/${userType}-details/${id}`);
     };
 

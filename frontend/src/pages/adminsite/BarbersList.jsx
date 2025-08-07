@@ -21,7 +21,9 @@ function BarbersList() {
 
     return (
         <div className="flex min-h-screen bg-gray-50">
-            <AdminSidebar />
+            <div className="w-72">
+                <AdminSidebar />
+            </div>
             {loading ? (
                 <div className="flex-1 flex items-center justify-center bg-gray-50">
                     <div className="flex flex-col items-center">

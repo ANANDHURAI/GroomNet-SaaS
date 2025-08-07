@@ -335,13 +335,14 @@ function BarberChatPage() {
   }
 
   return (
-    <BarberLayout>
-      <div className="flex flex-1 h-screen overflow-hidden">
-        <BarberSidebar />
+    <div className="flex h-screen">
+        <div className="w-72">
+          <BarberSidebar />
+        </div>
 
         <div className="flex-1 flex flex-col h-full">
           <div className="flex flex-col flex-1 bg-white rounded-lg shadow-lg m-4 overflow-hidden">
-        
+            {/* Header */}
             <div className="bg-gradient-to-r from-green-600 to-green-700 text-white p-4">
               <button
                 onClick={() => navigate('/barber/appointments')}
@@ -380,6 +381,7 @@ function BarberChatPage() {
               )}
             </div>
 
+            {/* Messages */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
               {messages.length === 0 ? (
                 <div className="text-center text-gray-500 py-8">
@@ -388,12 +390,11 @@ function BarberChatPage() {
               ) : (
                 messages.map(renderMessage)
               )}
-
               {renderTypingIndicator()}
               <div ref={messagesEndRef} />
             </div>
 
-            {/* Input */}
+            {/* Input Box */}
             <form onSubmit={handleSendMessage} className="p-4 border-t bg-white">
               <div className="flex space-x-2">
                 <input
@@ -416,9 +417,10 @@ function BarberChatPage() {
             </form>
           </div>
         </div>
-      </div>
-    </BarberLayout>
+    </div>
+
   );
+
 }
 
 export default BarberChatPage;

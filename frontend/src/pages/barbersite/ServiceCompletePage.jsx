@@ -95,10 +95,12 @@ function ServiceCompletePage() {
   }
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
-    <BarberSidebar />
-    <div className="flex-1 ml-0 md:ml-64 px-4 py-6 md:px-6">
-      <div className="max-w-6xl mx-auto space-y-6">
+    <div className="flex min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+      <div className="w-72 fixed left-0 top-0 h-full bg-white shadow-md z-10"> 
+        <BarberSidebar />
+      </div>
+      <div className="flex-1 ml-72 p-6"> 
+        <div className="max-w-6xl mx-auto space-y-6">
           <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-6 text-white shadow-lg">
             <div className="flex items-center gap-3 mb-2">
               <BadgeCheck size={32} />
@@ -108,9 +110,7 @@ function ServiceCompletePage() {
           </div>
 
           <div className="grid lg:grid-cols-3 gap-6">
-            {/* Left Section */}
             <div className="lg:col-span-2 flex flex-col gap-6">
-              {/* Booking Details */}
               <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                 <div className="bg-gray-50 px-6 py-4 border-b">
                   <h2 className="font-semibold text-gray-800 flex items-center gap-2">
@@ -169,7 +169,6 @@ function ServiceCompletePage() {
                 </div>
               </div>
 
-              {/* COD flow */}
               {data.payment_method === "COD" ? (
                 <div className="space-y-4">
                   {!isCollected && !isCompleted && (
@@ -195,7 +194,7 @@ function ServiceCompletePage() {
                       <p className="text-blue-700 mb-4">Payment collected successfully. Complete the service now.</p>
                       <button onClick={handleMarkCompleted} disabled={loading}
                         className="w-full bg-gradient-to-r from-blue-500 to-indigo-500 text-white py-3 rounded-lg font-medium hover:from-blue-600 hover:to-indigo-600 transition-all duration-200 disabled:opacity-50">
-                        {loading ? "Processing..." : "🎉 Complete Service"}
+                        {loading ? "Processing..." : "Complete Service"}
                       </button>
                     </div>
                   )}
@@ -210,31 +209,31 @@ function ServiceCompletePage() {
                     <p className="text-blue-700 mb-4">Payment already processed. Mark service as completed.</p>
                     <button onClick={handleMarkCompleted} disabled={loading}
                       className="w-full bg-gradient-to-r from-blue-500 to-indigo-500 text-white py-3 rounded-lg font-medium hover:from-blue-600 hover:to-indigo-600 transition-all duration-200 disabled:opacity-50">
-                      {loading ? "Processing..." : "🎉 Complete Service"}
+                      {loading ? "Processing..." : "Complete Service"}
                     </button>
                   </div>
                 )
               )}
 
-              {/* Completed Message */}
               {isCompleted && (
-                <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-6">
-                  <div className="flex items-center gap-3 mb-4">
-                    <CheckCircle className="text-green-600" size={24} />
-                    <h3 className="text-lg font-semibold text-green-800">Service Completed! 🎉</h3>
+                <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-6 relative overflow-hidden animate-crack">
+                  <div className="relative z-10">
+                    <div className="flex items-center gap-3 mb-4">
+                      <CheckCircle className="text-green-600" size={24} />
+                      <h3 className="text-lg font-semibold text-green-800">Service Completed!</h3>
+                    </div>
+                    <p className="text-green-700 mb-4">Great job! The service has been completed successfully.</p>
+                    <button onClick={() => navigate("/barber-earnings")}
+                      className="w-full bg-gradient-to-r from-green-500 to-emerald-500 text-white py-3 rounded-lg font-medium hover:from-green-600 hover:to-emerald-600 transition-all duration-200 flex items-center justify-center gap-2">
+                      <WalletCards size={20} />
+                      View Earnings
+                      <ArrowRight size={16} />
+                    </button>
                   </div>
-                  <p className="text-green-700 mb-4">Great job! The service has been completed successfully.</p>
-                  <button onClick={() => navigate("/barber-earnings")}
-                    className="w-full bg-gradient-to-r from-green-500 to-emerald-500 text-white py-3 rounded-lg font-medium hover:from-green-600 hover:to-emerald-600 transition-all duration-200 flex items-center justify-center gap-2">
-                    <WalletCards size={20} />
-                    View Earnings
-                    <ArrowRight size={16} />
-                  </button>
                 </div>
               )}
             </div>
 
-            {/* Right Section */}
             <div className="space-y-6">
               <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
                 <h3 className="font-semibold text-gray-800 mb-4">Payment Info</h3>
