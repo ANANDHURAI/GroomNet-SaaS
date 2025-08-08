@@ -37,17 +37,17 @@ function ForgetPassword() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-900 via-blue-800 to-teal-900 flex items-center justify-center p-4">
-            <div className="bg-white/10 backdrop-blur-lg rounded-2xl shadow-2xl p-8 w-full max-w-md border border-blue-300/20">
+        <div className="min-h-screen flex items-center justify-center p-4">
+            <div className="bg-white/40 backdrop-blur-lg rounded-2xl shadow-2xl p-8 w-full max-w-md border border-blue-300/20 text-gray-900">
                 <div className="text-center mb-8">
-                    <h2 className="text-3xl font-bold text-white mb-2">Forgot Password</h2>
-                    <p className="text-blue-200">Enter your email to receive an OTP</p>
+                    <h2 className="text-3xl font-bold text-gray-800 mb-2">Forgot Password</h2>
+                    <p className="text-blue-900">We'll send you an OTP to reset your password</p>
                 </div>
 
                 {success ? (
                     <div className="text-center space-y-4">
-                        <div className="p-4 bg-green-500/20 border border-green-400/30 rounded-lg">
-                            <p className="text-green-200 text-sm">
+                        <div className="p-4 bg-green-100 border border-green-300 rounded-lg">
+                            <p className="text-green-700 text-sm">
                                 OTP sent successfully! Redirecting to verification page...
                             </p>
                         </div>
@@ -60,7 +60,7 @@ function ForgetPassword() {
                                 onChange={(e) => setEmail(e.target.value)}
                                 placeholder="Enter your email"
                                 type="email"
-                                className="w-full px-4 py-3 bg-white/20 backdrop-blur border border-blue-300/30 rounded-lg text-white placeholder-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-200"
+                                className="w-full px-4 py-3 bg-white/70 backdrop-blur border border-blue-300/30 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-200"
                             />
                         </div>
 
@@ -83,17 +83,17 @@ function ForgetPassword() {
                 )}
 
                 {error && (
-                    <div className="mt-4 p-3 bg-red-500/20 border border-red-400/30 rounded-lg">
-                        <p className="text-red-200 text-sm text-center">{error}</p>
+                    <div className="mt-4 p-3 bg-red-100 border border-red-300 rounded-lg">
+                        <p className="text-red-700 text-sm text-center">{error}</p>
                     </div>
                 )}
 
                 <div className="mt-6 text-center">
-                    <p className="text-blue-200 text-sm">
+                    <p className="text-blue-800 text-sm">
                         Remember your password?{' '}
                         <button
                             onClick={() => navigate('/login')}
-                            className="text-blue-300 hover:text-white font-semibold transition-colors duration-200"
+                            className="text-blue-700 hover:text-blue-900 font-semibold transition-colors duration-200"
                         >
                             Back to Login
                         </button>

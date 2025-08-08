@@ -1,120 +1,234 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Mail, Shield, Clock, RefreshCw, CheckCircle, AlertCircle } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
-import Input from '../../components/basics/Input';
 import { useNavigate } from 'react-router-dom';
 import apiClient from '../../slices/api/apiIntercepters';
 import { login } from '../../slices/auth/LoginSlice';
 import { clearRegisterData } from '../../slices/auth/RegisterSlice';
 
 function OtpPage() {
-  const [otp, setOtp] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const registerData = useSelector(state => state.register);
 
-  const handleOtp = async (e) => {
-    e.preventDefault();
-    
-    if (!otp || otp.length !== 4) {
-      setError('Please enter a valid 4-digit OTP');
-      return;
-    }
+  const [otp, setOtp] = useState(['', '', '', '']);
+  const [loading, setLoading] = useState(false);
+  const [resendLoading, setResendLoading] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [successMessage, setSuccessMessage] = useState('');
+  const [timer, setTimer] = useState(60);
+  const [canResend, setCanResend] = useState(false);
 
-    const email = sessionStorage.getItem('pending_email') || registerData.email;
+  const email = sessionStorage.getItem('pending_email') || registerData.email;
 
+  useEffect(() => {
     if (!email) {
-      setError('Email not found. Please register again.');
       navigate('/register');
       return;
     }
 
+    const countdown = setInterval(() => {
+      setTimer(prev => {
+        if (prev <= 1) {
+          clearInterval(countdown);
+          setCanResend(true);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(countdown);
+  }, [email]);
+
+  const handleOtpChange = (index, value) => {
+    if (!/^\d*$/.test(value)) return;
+
+    const newOtp = [...otp];
+    newOtp[index] = value;
+    setOtp(newOtp);
+
+    if (value && index < 3) {
+      const nextInput = document.getElementById(`otp-${index + 1}`);
+      nextInput?.focus();
+    }
+
+    if (errors.otp) {
+      setErrors(prev => ({ ...prev, otp: '' }));
+    }
+  };
+
+  const handleKeyDown = (index, e) => {
+    if (e.key === 'Backspace' && !otp[index] && index > 0) {
+      const prevInput = document.getElementById(`otp-${index - 1}`);
+      prevInput?.focus();
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const otpString = otp.join('');
+
+    if (otpString.length !== 4) {
+      setErrors({ otp: 'Please enter all 4 digits' });
+      return;
+    }
+
     setLoading(true);
-    setError('');
+    setErrors({});
+    setSuccessMessage('');
 
     try {
-      const response = await apiClient.post('/auth/otp-verification/', { 
-        email, 
-        otp: parseInt(otp) 
+      const response = await apiClient.post('/auth/otp-verification/', {
+        email,
+        otp: parseInt(otpString)
       });
-      
+
       if (response.data.access && response.data.refresh) {
         sessionStorage.setItem('access_token', response.data.access);
         sessionStorage.setItem('refresh_token', response.data.refresh);
         sessionStorage.removeItem('pending_email');
-        
-        dispatch(login({ 
-          email, 
-          isLogin: true, 
-          user: response.data.user 
+
+        dispatch(login({
+          email,
+          isLogin: true,
+          user: response.data.user
         }));
+
         dispatch(clearRegisterData());
-        
-        navigate('/login');
+
+        setSuccessMessage('Email verified successfully!');
+        setTimeout(() => navigate('/login'), 1000);
       }
     } catch (error) {
-      console.error("OTP verification error", error);
-      setError(error.response?.data?.error || 'Invalid OTP. Please try again.');
+      const message = error.response?.data?.error || 'Invalid OTP. Please try again.';
+      setErrors({ otp: message });
     } finally {
       setLoading(false);
     }
   };
 
-  return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-          Verify Your Email
-        </h2>
-        <p className="mt-2 text-center text-sm text-gray-600">
-          Enter the 4-digit OTP sent to your email address
-        </p>
-      </div>
+  const handleResendOTP = async () => {
+    setResendLoading(true);
+    setErrors({});
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-          {error && (
-            <div className="mb-4 bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md text-sm">
-              {error}
+    try {
+      await apiClient.post('/auth/resend-otp/', { email });
+
+      setSuccessMessage('New OTP sent to your email!');
+      setTimer(60);
+      setCanResend(false);
+      setOtp(['', '', '', '']);
+    } catch (error) {
+      const message = error.response?.data?.error || 'Failed to resend OTP. Please try again.';
+      setErrors({ general: message });
+    } finally {
+      setResendLoading(false);
+    }
+  };
+
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-indigo-100 py-12 px-4">
+      <div className="max-w-md mx-auto">
+        <div className="bg-white rounded-2xl shadow-xl p-8">
+          <div className="text-center mb-8">
+            <div className="w-16 h-16 bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Shield className="w-8 h-8 text-white" />
+            </div>
+            <h2 className="text-3xl font-bold text-gray-800 mb-2">Verify Your Email</h2>
+            <div className="flex items-center justify-center text-gray-600 mb-2">
+              <Mail className="w-4 h-4 mr-2" />
+              <p className="text-sm">We've sent a code to {email}</p>
+            </div>
+            <p className="text-gray-500 text-sm">Enter the 4-digit code to continue</p>
+          </div>
+
+          {successMessage && (
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6 flex items-center">
+              <CheckCircle className="w-5 h-5 text-green-500 mr-2" />
+              <p className="text-green-600 text-sm">{successMessage}</p>
             </div>
           )}
-          
-          <form onSubmit={handleOtp} className="space-y-6">
-            <Input
-              value={otp}
-              onChange={e => {
-                const value = e.target.value.replace(/\D/g, '');
-                setOtp(value);
-              }}
-              placeholder="Enter 4-digit OTP"
-              type="text"
-              maxLength="4"
-              className="appearance-none"
-            />
 
-            
-            <button 
+          {errors.general && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 flex items-center">
+              <AlertCircle className="w-5 h-5 text-red-500 mr-2" />
+              <p className="text-red-600 text-sm">{errors.general}</p>
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+              <div className="flex justify-center space-x-3 mb-4">
+                {otp.map((digit, index) => (
+                  <input
+                    key={index}
+                    id={`otp-${index}`}
+                    type="text"
+                    maxLength="1"
+                    value={digit}
+                    onChange={(e) => handleOtpChange(index, e.target.value)}
+                    onKeyDown={(e) => handleKeyDown(index, e)}
+                    className={`w-12 h-12 text-center text-xl font-bold border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+                      errors.otp
+                        ? 'border-red-300 focus:border-red-500'
+                        : 'border-gray-300 focus:border-indigo-500'
+                    } transition-colors`}
+                  />
+                ))}
+              </div>
+              {errors.otp && <p className="text-red-500 text-sm text-center">{errors.otp}</p>}
+            </div>
+
+            <button
               type="submit"
               disabled={loading}
-              className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${
-                loading
-                  ? 'bg-gray-400 cursor-not-allowed'
-                  : 'bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'
-              }`}
+              className="w-full bg-gradient-to-r from-indigo-500 to-indigo-600 text-white py-3 px-4 rounded-lg font-medium hover:from-indigo-600 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
             >
-              {loading ? 'Verifying...' : 'Verify OTP'}
+              {loading ? (
+                <div className="flex items-center justify-center">
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                  Verifying...
+                </div>
+              ) : (
+                'Verify Email'
+              )}
             </button>
           </form>
-          
+
           <div className="mt-6 text-center">
+            <div className="flex items-center justify-center text-gray-600 mb-3">
+              <Clock className="w-4 h-4 mr-2" />
+              <span className="text-sm">
+                {canResend ? 'You can resend OTP now' : `Resend OTP in ${formatTime(timer)}`}
+              </span>
+            </div>
+
             <button
-              onClick={() => navigate('/register')}
-              className="text-sm text-gray-500 hover:text-gray-700"
+              onClick={handleResendOTP}
+              disabled={!canResend || resendLoading}
+              className="inline-flex items-center text-indigo-600 hover:text-indigo-800 font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Back to Registration
+              <RefreshCw className={`w-4 h-4 mr-1 ${resendLoading ? 'animate-spin' : ''}`} />
+              {resendLoading ? 'Sending...' : 'Resend OTP'}
             </button>
           </div>
+
+          <p className="text-center text-sm text-gray-600 mt-6">
+            Wrong email?{' '}
+            <button
+              onClick={() => navigate('/register')}
+              className="text-indigo-600 hover:text-indigo-800 font-medium"
+            >
+              Go Back
+            </button>
+          </p>
         </div>
       </div>
     </div>

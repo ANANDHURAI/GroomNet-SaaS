@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import apiClient from '../../slices/api/apiIntercepters';
 
@@ -14,7 +14,7 @@ function ResetPassword() {
     const email = location.state?.email;
     const otp = location.state?.otp;
 
-    React.useEffect(() => {
+    useEffect(() => {
         if (!email || !otp) {
             navigate('/forget-password');
         }
@@ -38,7 +38,7 @@ function ResetPassword() {
         }
 
         try {
-            const response = await apiClient.post('/auth/reset-password/', {
+            await apiClient.post('/auth/reset-password/', {
                 email: email,
                 otp: otp,
                 new_password: newPassword,
@@ -60,51 +60,43 @@ function ResetPassword() {
         }
     };
 
-    if (!email || !otp) {
-        return null; 
-    }
+    if (!email || !otp) return null;
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-900 via-blue-800 to-teal-900 flex items-center justify-center p-4">
-            <div className="bg-white/10 backdrop-blur-lg rounded-2xl shadow-2xl p-8 w-full max-w-md border border-blue-300/20">
+        <div className="min-h-screen flex items-center justify-center p-4">
+            <div className="bg-white/40 backdrop-blur-lg rounded-2xl shadow-2xl p-8 w-full max-w-md border border-blue-300/20 text-gray-900">
                 <div className="text-center mb-8">
-                    <h2 className="text-3xl font-bold text-white mb-2">Reset Password</h2>
-                    <p className="text-blue-200">Enter your new password</p>
+                    <h2 className="text-3xl font-bold text-gray-800 mb-2">Reset Your Password</h2>
+                    <p className="text-blue-900">Enter and confirm your new password</p>
                 </div>
 
                 {success ? (
-                    <div className="text-center space-y-4">
-                        <div className="p-4 bg-green-500/20 border border-green-400/30 rounded-lg">
-                            <p className="text-green-200 text-sm">
-                                Password reset successfully! Redirecting to login...
-                            </p>
-                        </div>
+                    <div className="text-center p-4 bg-green-100 border border-green-300 rounded-lg mb-4">
+                        <p className="text-green-800 text-sm">Password reset successful! Redirecting...</p>
                     </div>
                 ) : (
                     <form onSubmit={handleSubmit} className="space-y-6">
-                        <div className="space-y-4">
-                            <input
-                                value={newPassword}
-                                onChange={(e) => setNewPassword(e.target.value)}
-                                placeholder="Enter new password"
-                                type="password"
-                                minLength="6"
-                                className="w-full px-4 py-3 bg-white/20 backdrop-blur border border-blue-300/30 rounded-lg text-white placeholder-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-200"
-                            />
-                            <input
-                                value={confirmPassword}
-                                onChange={(e) => setConfirmPassword(e.target.value)}
-                                placeholder="Confirm new password"
-                                type="password"
-                                minLength="6"
-                                className="w-full px-4 py-3 bg-white/20 backdrop-blur border border-blue-300/30 rounded-lg text-white placeholder-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-200"
-                            />
-                        </div>
+                        <input
+                            value={newPassword}
+                            onChange={(e) => setNewPassword(e.target.value)}
+                            placeholder="New Password"
+                            type="password"
+                            className="w-full px-4 py-3 bg-white/70 backdrop-blur border border-blue-300/30 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all duration-200"
+                            minLength={6}
+                        />
+                        <input
+                            value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
+                            placeholder="Confirm Password"
+                            type="password"
+                            className="w-full px-4 py-3 bg-white/70 backdrop-blur border border-blue-300/30 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all duration-200"
+                            minLength={6}
+                        />
 
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-teal-600 hover:from-blue-700 hover:to-teal-700 disabled:from-blue-400 disabled:to-teal-400 text-white font-semibold rounded-lg shadow-lg transform transition-all duration-200 hover:scale-105 disabled:scale-100 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-transparent"
+                            className="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-teal-600 hover:from-blue-700 hover:to-teal-700 disabled:from-blue-400 disabled:to-teal-400 text-white font-semibold rounded-lg shadow-lg transform transition-all duration-200 hover:scale-105 disabled:scale-100 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
                             {loading ? (
                                 <span className="flex items-center justify-center">
@@ -120,16 +112,16 @@ function ResetPassword() {
                 )}
 
                 {error && (
-                    <div className="mt-4 p-3 bg-red-500/20 border border-red-400/30 rounded-lg">
-                        <p className="text-red-200 text-sm text-center">{error}</p>
+                    <div className="mt-4 p-3 bg-red-100 border border-red-300 rounded-lg">
+                        <p className="text-red-700 text-sm text-center">{error}</p>
                     </div>
                 )}
 
                 <div className="mt-6 text-center">
-                    <p className="text-blue-200 text-sm">
+                    <p className="text-blue-800 text-sm">
                         <button
                             onClick={() => navigate('/login')}
-                            className="text-blue-300 hover:text-white font-semibold transition-colors duration-200"
+                            className="text-blue-700 hover:text-blue-900 font-semibold transition-colors duration-200"
                         >
                             Back to Login
                         </button>

@@ -1,129 +1,185 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { Mail, Shield, Clock, RefreshCw, CheckCircle, AlertCircle } from 'lucide-react';
 import apiClient from '../../slices/api/apiIntercepters';
 
 function ForgetOtp() {
-    const [otp, setOtp] = useState('');
-    const [error, setError] = useState('');
+    const [otp, setOtp] = useState(['', '', '', '']);
     const [loading, setLoading] = useState(false);
     const [resendLoading, setResendLoading] = useState(false);
+    const [error, setError] = useState('');
+    const [successMessage, setSuccessMessage] = useState('');
+    const [timer, setTimer] = useState(60);
+    const [canResend, setCanResend] = useState(false);
 
     const navigate = useNavigate();
     const location = useLocation();
     const email = location.state?.email;
 
-    React.useEffect(() => {
-        if (!email) {
-            navigate('/forget-password');
+    useEffect(() => {
+        if (!email) navigate('/forget-password');
+        const countdown = setInterval(() => {
+            setTimer(prev => {
+                if (prev <= 1) {
+                    clearInterval(countdown);
+                    setCanResend(true);
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+
+        return () => clearInterval(countdown);
+    }, [email]);
+
+    const handleOtpChange = (index, value) => {
+        if (!/^\d*$/.test(value)) return;
+        const updatedOtp = [...otp];
+        updatedOtp[index] = value;
+        setOtp(updatedOtp);
+        if (value && index < 3) document.getElementById(`otp-${index + 1}`)?.focus();
+        setError('');
+    };
+
+    const handleKeyDown = (index, e) => {
+        if (e.key === 'Backspace' && !otp[index] && index > 0) {
+            document.getElementById(`otp-${index - 1}`)?.focus();
         }
-    }, [email, navigate]);
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setLoading(true);
-        setError('');
+        const otpString = otp.join('');
+        if (otpString.length !== 4) {
+            setError('Please enter all 4 digits');
+            return;
+        }
 
+        setLoading(true);
         try {
-            const response = await apiClient.post('/auth/verify-otp/', {
-                email: email,
-                otp: otp
-            });
-            
-            navigate('/reset-password', { state: { email, otp } });
-        } catch (error) {
-            console.error('OTP verification error:', error);
-            const errorMessage = error.response?.data?.error ||
-                error.response?.data?.message ||
-                'Invalid OTP. Please try again.';
-            setError(errorMessage);
+            await apiClient.post('/auth/verify-otp/', { email, otp: otpString });
+            navigate('/reset-password', { state: { email, otp: otpString } });
+        } catch (err) {
+            const message = err.response?.data?.error || err.response?.data?.message || 'Invalid OTP. Please try again.';
+            setError(message);
         } finally {
             setLoading(false);
         }
     };
 
-    const handleResendOtp = async () => {
+    const handleResendOTP = async () => {
         setResendLoading(true);
-        setError('');
-
         try {
-            await apiClient.post('/auth/forgot-password/', {
-                email: email,
-            });
-            setError(''); 
-            
-        } catch (error) {
-            console.error('Resend OTP error:', error);
-            const errorMessage = error.response?.data?.error ||
-                error.response?.data?.message ||
-                'Failed to resend OTP. Please try again.';
-            setError(errorMessage);
+            await apiClient.post('/auth/forgot-password/', { email });
+            setSuccessMessage('OTP resent successfully!');
+            setTimer(60);
+            setCanResend(false);
+            setOtp(['', '', '', '']);
+        } catch (err) {
+            const message = err.response?.data?.error || 'Failed to resend OTP. Please try again.';
+            setError(message);
         } finally {
             setResendLoading(false);
         }
     };
 
-    if (!email) {
-        return null; 
-    }
+    const formatTime = (sec) => {
+        const min = Math.floor(sec / 60);
+        const rem = sec % 60;
+        return `${min}:${rem.toString().padStart(2, '0')}`;
+    };
+
+    if (!email) return null;
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-900 via-blue-800 to-teal-900 flex items-center justify-center p-4">
-            <div className="bg-white/10 backdrop-blur-lg rounded-2xl shadow-2xl p-8 w-full max-w-md border border-blue-300/20">
-                <div className="text-center mb-8">
-                    <h2 className="text-3xl font-bold text-white mb-2">Verify OTP</h2>
-                    <p className="text-blue-200">Enter the 4-digit OTP sent to</p>
-                    <p className="text-blue-300 font-semibold">{email}</p>
-                </div>
-
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    <div>
-                        <input
-                            value={otp}
-                            onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 4))}
-                            placeholder="Enter 4-digit OTP"
-                            type="text"
-                            maxLength="4"
-                            className="w-full px-4 py-3 bg-white/20 backdrop-blur border border-blue-300/30 rounded-lg text-white placeholder-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-200 text-center text-2xl tracking-widest"
-                        />
+        <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-indigo-100 py-12 px-4">
+            <div className="max-w-md mx-auto">
+                <div className="bg-white rounded-2xl shadow-xl p-8">
+                    <div className="text-center mb-8">
+                        <div className="w-16 h-16 bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <Shield className="w-8 h-8 text-white" />
+                        </div>
+                        <h2 className="text-3xl font-bold text-gray-800 mb-2">Forgot Password</h2>
+                        <div className="flex items-center justify-center text-gray-600 mb-2">
+                            <Mail className="w-4 h-4 mr-2" />
+                            <p className="text-sm">OTP sent to {email}</p>
+                        </div>
+                        <p className="text-gray-500 text-sm">Enter the 4-digit code to continue</p>
                     </div>
 
-                    <button
-                        type="submit"
-                        disabled={loading || otp.length !== 4}
-                        className="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-teal-600 hover:from-blue-700 hover:to-teal-700 disabled:from-blue-400 disabled:to-teal-400 text-white font-semibold rounded-lg shadow-lg transform transition-all duration-200 hover:scale-105 disabled:scale-100 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-transparent"
-                    >
-                        {loading ? (
-                            <span className="flex items-center justify-center">
-                                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                </svg>
-                                Verifying...
+                    {successMessage && (
+                        <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6 flex items-center">
+                            <CheckCircle className="w-5 h-5 text-green-500 mr-2" />
+                            <p className="text-green-600 text-sm">{successMessage}</p>
+                        </div>
+                    )}
+
+                    {error && (
+                        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 flex items-center">
+                            <AlertCircle className="w-5 h-5 text-red-500 mr-2" />
+                            <p className="text-red-600 text-sm">{error}</p>
+                        </div>
+                    )}
+
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                        <div className="flex justify-center space-x-3 mb-4">
+                            {otp.map((digit, index) => (
+                                <input
+                                    key={index}
+                                    id={`otp-${index}`}
+                                    type="text"
+                                    maxLength="1"
+                                    value={digit}
+                                    onChange={(e) => handleOtpChange(index, e.target.value)}
+                                    onKeyDown={(e) => handleKeyDown(index, e)}
+                                    className={`w-12 h-12 text-center text-xl font-bold border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+                                        error ? 'border-red-300' : 'border-gray-300'
+                                    }`}
+                                />
+                            ))}
+                        </div>
+
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="w-full bg-gradient-to-r from-indigo-500 to-indigo-600 text-white py-3 px-4 rounded-lg font-medium hover:from-indigo-600 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                        >
+                            {loading ? (
+                                <div className="flex items-center justify-center">
+                                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                                    Verifying...
+                                </div>
+                            ) : (
+                                'Verify OTP'
+                            )}
+                        </button>
+                    </form>
+
+                    <div className="mt-6 text-center">
+                        <div className="flex items-center justify-center text-gray-600 mb-3">
+                            <Clock className="w-4 h-4 mr-2" />
+                            <span className="text-sm">
+                                {canResend ? 'You can resend OTP now' : `Resend OTP in ${formatTime(timer)}`}
                             </span>
-                        ) : 'Verify OTP'}
-                    </button>
-                </form>
+                        </div>
 
-                {error && (
-                    <div className="mt-4 p-3 bg-red-500/20 border border-red-400/30 rounded-lg">
-                        <p className="text-red-200 text-sm text-center">{error}</p>
+                        <button
+                            onClick={handleResendOTP}
+                            disabled={!canResend || resendLoading}
+                            className="inline-flex items-center text-indigo-600 hover:text-indigo-800 font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            <RefreshCw className={`w-4 h-4 mr-1 ${resendLoading ? 'animate-spin' : ''}`} />
+                            {resendLoading ? 'Sending...' : 'Resend OTP'}
+                        </button>
                     </div>
-                )}
 
-                <div className="mt-6 text-center space-y-2">
-                    <button
-                        onClick={handleResendOtp}
-                        disabled={resendLoading}
-                        className="text-blue-300 hover:text-white font-semibold transition-colors duration-200 disabled:opacity-50"
-                    >
-                        {resendLoading ? 'Resending...' : 'Resend OTP'}
-                    </button>
-                    <p className="text-blue-200 text-sm">
+                    <p className="text-center text-sm text-gray-600 mt-6">
+                        Wrong email?{' '}
                         <button
                             onClick={() => navigate('/forget-password')}
-                            className="text-blue-300 hover:text-white font-semibold transition-colors duration-200"
+                            className="text-indigo-600 hover:text-indigo-800 font-medium"
                         >
-                            Back to Email
+                            Go Back
                         </button>
                     </p>
                 </div>

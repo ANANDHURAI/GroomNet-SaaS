@@ -20619,3 +20619,40 @@ User disconnected from group: barber_3
 Anandkumar joined group: barber_3
 Bad Request: /adminsite/categories/
 Bad Request: /adminsite/categories/
+Anandkumar joined group: barber_3
+User disconnected from group: barber_3
+Anandkumar joined group: barber_3
+User disconnected from group: barber_3
+Anandkumar joined group: barber_3
+Bad Request: /adminsite/categories/
+Bad Request: /adminsite/services/
+User disconnected from group: barber_3
+Anandkumar joined group: barber_3
+User disconnected from group: barber_3
+Anandkumar joined group: barber_3
+User disconnected from group: barber_3
+Anandkumar joined group: barber_3
+User disconnected from group: barber_3
+Anandkumar joined group: barber_3
+User disconnected from group: barber_3
+Anandkumar joined group: barber_3
+User disconnected from group: barber_3
+Anandkumar joined group: barber_3
+Unauthorized: /auth/logout/
+Unauthorized: /auth/token/refresh/
+Bad Request: /auth/otp-verification/
+Bad Request: /auth/reset-password/
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Unauthorized: /adminsite/customers-list/
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Unauthorized: /adminsite/customers-list/
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
+Authentication error: Signature has expired
+WebSocket rejected: Invalid or expired token
