@@ -70,6 +70,7 @@ import GlobalBookingNotifier from './components/notification/GlobalBookingNotifi
 import { BookingProvider } from './contexts/BookingContext';
 import ServiceRequestsList from './pages/barbersite/ServiceRequestsList';
 import AdminServiceRequestsManagement from './pages/adminsite/AdminServiceRequestsManagement';
+import About from './pages/commonpages/About';
 
 
 function App() {
@@ -341,9 +342,9 @@ function App() {
                 <Route path="/customer-profile" element={<CustomerProfile />} />
                 <Route path="/barber/service-requests" element={<ServiceRequestsList />} />
                 <Route path="/admin/service-requests" element={<AdminServiceRequestsManagement />} />
+                <Route path="/about" element={<About />} />
 
-                
-
+          
               </Routes>
             </ServiceProvider>
           </BookingProvider>

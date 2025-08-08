@@ -20656,3 +20656,4 @@ Authentication error: Signature has expired
 WebSocket rejected: Invalid or expired token
 Authentication error: Signature has expired
 WebSocket rejected: Invalid or expired token
+Bad Request: /auth/customer-barber-login/

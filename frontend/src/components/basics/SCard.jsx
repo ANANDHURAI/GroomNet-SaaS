@@ -1,5 +1,15 @@
 import React, { useState } from 'react';
 
+const getServiceIcon = (serviceName) => {
+  const name = serviceName?.toLowerCase() || '';
+  if (name.includes('hair') || name.includes('cut')) return '✂️';
+  if (name.includes('beard') || name.includes('shave')) return '🪒';
+  if (name.includes('facial') || name.includes('face')) return '🧴';
+  if (name.includes('massage')) return '💆';
+  if (name.includes('nail') || name.includes('manicure')) return '💅';
+  return '✨';
+};
+
 const SCard = ({ service }) => {
   const [imageError, setImageError] = useState(false);
   const [imageLoading, setImageLoading] = useState(true);
@@ -25,52 +35,83 @@ const SCard = ({ service }) => {
   const imageUrl = getImageUrl(service.image);
 
   return (
-    <div className="flex-shrink-0 w-80 bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
-      <div className="h-48 bg-gradient-to-br from-green-500 to-teal-600 relative">
-        {imageUrl && !imageError ? (
-          <>
-            {imageLoading && (
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+    <div className="group flex-shrink-0 w-80">
+      <div className="relative bg-white/70 backdrop-blur-xl rounded-3xl shadow-xl border border-white/20 overflow-hidden transition-all duration-500 transform hover:scale-105 hover:-translate-y-2 hover:shadow-2xl hover:shadow-purple-500/20">
+        {/* Image Section */}
+        <div className="relative h-56 overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-purple-500 via-pink-500 to-blue-500"></div>
+          
+          {imageUrl && !imageError ? (
+            <>
+              {imageLoading && (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-8 h-8 border-3 border-white border-t-transparent rounded-full animate-spin"></div>
+                </div>
+              )}
+              <img 
+                src={imageUrl || "/placeholder.svg"}
+                alt={service.name}
+                className="relative z-10 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                onError={handleImageError}
+                onLoad={handleImageLoad}
+                style={{ display: imageLoading ? 'none' : 'block' }}
+              />
+            </>
+          ) : (
+            <div className="relative z-10 flex flex-col items-center justify-center h-full text-white">
+              <div className="text-6xl mb-4 transform transition-transform duration-500 group-hover:scale-110">
+                {getServiceIcon(service.name)}
               </div>
-            )}
-            <img 
-              src={imageUrl} 
-              alt={service.name}
-              className="w-full h-full object-cover"
-              onError={handleImageError}
-              onLoad={handleImageLoad}
-              style={{ display: imageLoading ? 'none' : 'block' }}
-            />
-          </>
-        ) : (
-          <div className="flex flex-col items-center justify-center h-full text-white">
-            <div className="text-5xl mb-3">
-              {getServiceIcon(service.name)}
+              <span className="text-lg font-bold text-center px-4">{service.name}</span>
             </div>
-            <span className="text-sm font-medium text-center px-2">{service.name}</span>
+          )}
+          
+          {/* Price Badge */}
+          <div className="absolute top-4 right-4 z-20">
+            <div className="bg-black/80 backdrop-blur-sm text-white px-4 py-2 rounded-2xl font-bold text-lg shadow-lg">
+              ₹{service.price}
+            </div>
           </div>
-        )}
-        <div className="absolute top-2 right-2 bg-black bg-opacity-70 text-white px-3 py-1 rounded-full text-sm font-semibold">
-          ₹{service.price}
+          
+          {/* Gradient Overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent"></div>
         </div>
-      </div>
-      <div className="p-4">
-        <h3 className="text-lg font-semibold text-gray-800 mb-2">{service.name}</h3>
-        <p className="text-gray-600 text-sm mb-3 line-clamp-2">{service.description}</p>
-        <div className="flex justify-between items-center text-sm text-gray-500">
-          <span className="flex items-center">
-            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            {service.duration_minutes} mins
-          </span>
-          <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium">
-            {service.category?.name || 'General'}
-          </span>
+
+        {/* Content Section */}
+        <div className="p-6">
+          <div className="flex items-start justify-between mb-3">
+            <h3 className="text-xl font-bold text-gray-800 group-hover:text-purple-600 transition-colors duration-300">
+              {service.name}
+            </h3>
+            <div className="flex-shrink-0 ml-2">
+              <div className="w-3 h-3 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full animate-pulse"></div>
+            </div>
+          </div>
+          
+          <p className="text-gray-600 text-sm leading-relaxed mb-4 line-clamp-2">
+            {service.description}
+          </p>
+          
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center text-sm text-gray-500">
+                <div className="w-8 h-8 bg-gradient-to-br from-blue-100 to-purple-100 rounded-xl flex items-center justify-center mr-2">
+                  <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <span className="font-medium">{service.duration_minutes} mins</span>
+              </div>
+            </div>
+            
+            <div className="bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700 px-3 py-1 rounded-xl text-xs font-bold">
+              {service.category?.name || 'General'}
+            </div>
+          </div>
         </div>
       </div>
     </div>
   );
 };
+
 export default SCard;
