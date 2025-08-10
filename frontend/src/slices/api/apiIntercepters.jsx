@@ -7,6 +7,9 @@ const apiClient = axios.create({
   },
 });
 
+console.log('VITE_API_BASE_URL:', import.meta.env.VITE_API_BASE_URL);
+console.log('All env vars:', import.meta.env);
+
 let isRefreshing = false;
 let refreshSubscribers = [];
 

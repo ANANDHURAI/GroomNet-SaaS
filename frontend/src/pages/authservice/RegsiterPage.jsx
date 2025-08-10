@@ -79,6 +79,7 @@ function RegisterPage() {
     }
   };
 
+
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
       <div className="bg-white/40 backdrop-blur-lg rounded-2xl shadow-2xl p-8 w-full max-w-md border border-blue-300/20 text-gray-900">
