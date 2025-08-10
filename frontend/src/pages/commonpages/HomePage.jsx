@@ -4,7 +4,7 @@ import apiClient from '../../slices/api/apiIntercepters';
 import Navbar from '../../components/basics/Navbar';
 import Carousel from '../../components/basics/Carousel';
 import CCard from '../../components/basics/CCard';
-import SCard from '../../components/basics/Scard';
+import SCard from '../../components/basics/SCard';
 import LoadingSpinner from '../../components/admincompo/LoadingSpinner';
 import { ErrorMessage } from '../../components/admincompo/categoryCom/ErrorMessage';
 import ShowType from '../../components/customercompo/ShowType';
