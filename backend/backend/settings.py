@@ -117,10 +117,6 @@ USE_I18N = True
 USE_TZ = True
 
 
-
-STATIC_URL = 'static/'
-
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
@@ -217,8 +213,15 @@ LOGGING = {
     },
 }
 
+STATIC_URL = '/static/' 
+STATICFILES_DIRS = [
+    BASE_DIR / 'static',  
+]
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
 
 
 STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
