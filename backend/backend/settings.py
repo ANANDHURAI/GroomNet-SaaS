@@ -151,6 +151,13 @@ CORS_ALLOWED_HEADERS = [
     'x-requested-with',
 ]
 
+CSRF_TRUSTED_ORIGINS = [
+    "https://groomnet.shop",
+    "https://www.groomnet.shop",
+    "https://api.groomnet.shop",
+]
+
+
 CORS_ALLOW_METHODS = [
     'DELETE',
     'GET',
@@ -260,5 +267,5 @@ GOOGLE_OAUTH2_CLIENT_ID = os.getenv("GOOGLE_OAUTH2_CLIENT_ID")
 GOOGLE_OAUTH2_CLIENT_SECRET = os.getenv("GOOGLE_OAUTH2_CLIENT_SECRET")
 
 
-BASE_APP_URL = os.getenv('BASE_APP_URL', 'http://localhost:5173')
-BASE_API_URL = os.getenv('BASE_API_URL', 'http://localhost:8000')
+BASE_APP_URL = os.getenv('BASE_APP_URL', 'https://groomnet.shop')
+BASE_API_URL = os.getenv('BASE_API_URL', 'https://api.groomnet.shop')
