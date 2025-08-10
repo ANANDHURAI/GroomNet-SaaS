@@ -28,7 +28,7 @@ const SCard = ({ service }) => {
     if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
       return imagePath;
     }
-    const baseUrl = 'http://localhost:8000';
+    const baseUrl = import.meta.env.VITE_API_BASE_URL;
     return `${baseUrl}${imagePath.startsWith('/') ? imagePath : `/${imagePath}`}`;
   };
 

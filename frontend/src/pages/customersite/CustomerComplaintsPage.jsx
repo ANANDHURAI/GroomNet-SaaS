@@ -168,9 +168,9 @@ function CustomerComplaintsPage() {
           <div>
             <h4 className="font-medium text-gray-900 mb-2">Attached Image</h4>
             {complaint.image ? (
-              <img 
-                src={`http://localhost:8000${complaint.image}`} 
-                alt="Complaint attachment" 
+              <img
+                src={`${import.meta.env.VITE_API_BASE_URL}${complaint.image}`}
+                alt="Complaint attachment"
                 className="max-w-full h-64 object-contain rounded-lg border border-gray-200"
               />
             ) : (

@@ -12,8 +12,13 @@ SECRET_KEY = "django-insecure-a6tjyxxc^46bt%zb)yo7%@qzug@_jct$_98y9=gozf8x@&8t=l
 
 DEBUG = os.getenv("DEBUG", "False") == "True"
 
-ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "").split(",")
-
+ALLOWED_HOSTS = [
+    "groomnet.shop",
+    "www.groomnet.shop",
+    "api.groomnet.shop",
+    "localhost",
+    "127.0.0.1",
+]
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -121,12 +126,17 @@ USE_TZ = True
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
-CORS_ALLOWED_ORIGINS = [ 
-    'http://localhost:5173',
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
     "http://127.0.0.1:5173",
     "http://localhost:8000",
     "https://accounts.google.com",
     "https://oauth2.googleapis.com",
+
+    # Production domains
+    "https://groomnet.shop",       
+    "https://www.groomnet.shop",   
+    "https://api.groomnet.shop",  
 ]
 
 CORS_ALLOWED_HEADERS = [

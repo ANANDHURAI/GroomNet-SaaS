@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const apiClient = axios.create({
-  baseURL: "http://localhost:8000/",
+  baseURL: import.meta.env.VITE_API_BASE_URL,
   headers: {
     "Content-Type": "application/json",
   },
@@ -90,9 +90,10 @@ apiClient.interceptors.response.use(
         const refreshToken = sessionStorage.getItem("refresh_token");
         if (!refreshToken) throw new Error("No refresh token available");
 
-        const response = await axios.post("http://localhost:8000/auth/token/refresh/", {
-          refresh: refreshToken,
-        });
+        const response = await axios.post(
+          `${import.meta.env.VITE_API_BASE_URL}/auth/token/refresh/`,
+          { refresh: refreshToken }
+        );
 
         const newAccessToken = response.data.access;
         sessionStorage.setItem("access_token", newAccessToken);

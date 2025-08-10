@@ -6,7 +6,7 @@ const CategoryCard = ({ category, onSelect, isSelected = false }) => {
   const getImageUrl = (imagePath) => {
     if (!imagePath) return null;
     if (imagePath.startsWith('http')) return imagePath;
-    return `http://localhost:8000${imagePath.startsWith('/') ? imagePath : `/${imagePath}`}`;
+    return `${import.meta.env.VITE_API_BASE_URL}${imagePath.startsWith('/') ? imagePath : `/${imagePath}`}`;
   };
 
   return (

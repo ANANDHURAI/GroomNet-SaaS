@@ -15,7 +15,7 @@ const GoogleLoginButton = () => {
 
     try {
       const res = await axios.post(
-        'http://localhost:8000/auth/google-login/',
+        `${import.meta.env.VITE_API_BASE_URL}/auth/google-login/`,
         { access_token },
         { headers: { 'Content-Type': 'application/json' } }
       );
