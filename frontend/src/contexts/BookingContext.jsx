@@ -18,11 +18,12 @@ export const BookingProvider = ({ children }) => {
     if (!barberId || !token) return;
 
     const wsScheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
-    const wsHost = window.location.hostname === 'localhost'
-      ? 'localhost:8000'
+    const wsHost = import.meta.env.VITE_API_BASE_URL 
+      ? import.meta.env.VITE_API_BASE_URL.replace(/^https?:\/\//, '')
       : window.location.host;
 
     const wsUrl = `${wsScheme}://${wsHost}/ws/instant-booking/${barberId}/?token=${token}`;
+    
     
     if (wsRef.current) {
       wsRef.current.close();

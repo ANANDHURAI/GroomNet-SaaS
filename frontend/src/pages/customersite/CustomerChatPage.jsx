@@ -62,7 +62,9 @@ function CustomerChatPage() {
   const connectWebSocket = () => {
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const token = sessionStorage.getItem('access_token');
-    const wsUrl = `${protocol}//localhost:8000/ws/chat/${bookingId}/?token=${token}`;
+
+    const baseUrl = import.meta.env.VITE_API_BASE_URL?.replace(/^https?:\/\//, '') || window.location.host;
+    const wsUrl = `${protocol}//${baseUrl}/ws/chat/${bookingId}/?token=${token}`;
 
     if (websocketRef.current) {
       websocketRef.current.close();

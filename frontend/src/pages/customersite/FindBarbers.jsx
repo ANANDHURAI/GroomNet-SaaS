@@ -96,10 +96,11 @@ function FindBarbers() {
         }
 
         const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
-        const wsHost = window.location.hostname === "localhost" ? "localhost:8000" : window.location.host;
+        const wsHost = import.meta.env.VITE_API_BASE_URL 
+        ? import.meta.env.VITE_API_BASE_URL.replace(/^https?:\/\//, '')
+        : window.location.host;
         const wsUrl = `${wsScheme}://${wsHost}/ws/instant-booking/${booking_id}/?token=${token}`;
         console.log("Connecting WebSocket:", wsUrl);
-
         const ws = new WebSocket(wsUrl);
         setSocket(ws);
 
