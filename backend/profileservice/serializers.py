@@ -8,10 +8,11 @@ class UserProfileSerializer(serializers.ModelSerializer):
     phone = serializers.CharField(source='user.phone', read_only=True)
     profileimage = serializers.ImageField(source='user.profileimage', required=False)
     usertype = serializers.CharField(source='user.user_type', read_only=True)
+    text = serializers.CharField()
     
     class Meta:
         model = UserProfile
-        fields = ['name', 'email', 'phone', 'profileimage', 'usertype', 'date_of_birth', 'gender', 'bio']
+        fields = ['name', 'email', 'phone', 'profileimage', 'usertype', 'date_of_birth', 'gender', 'bio','text']
     
     def get_profileimage(self, obj):
         if obj.user.profileimage and hasattr(obj.user.profileimage, 'url'):
