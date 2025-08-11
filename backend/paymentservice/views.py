@@ -12,6 +12,8 @@ from rest_framework.permissions import IsAuthenticated
 logger = logging.getLogger(__name__)
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
+
+
 class CreateStripeCheckoutSession(APIView):
     def post(self, request, *args, **kwargs):
         try:
@@ -43,6 +45,10 @@ class CreateStripeCheckoutSession(APIView):
             if payment.discount > 0:
                 description += f" (Discount Applied: ₹{payment.discount})"
             
+            
+            success_url = f"{settings.BASE_APP_URL}/booking-success?session_id={{CHECKOUT_SESSION_ID}}"
+            cancel_url = f"{settings.BASE_APP_URL}/payment-cancelled"
+            
             checkout_session = stripe.checkout.Session.create(
                 payment_method_types=['card'], 
                 line_items=[{
@@ -57,8 +63,8 @@ class CreateStripeCheckoutSession(APIView):
                     'quantity': 1,
                 }],
                 mode='payment',
-                success_url=f"http://localhost:5173/booking-success?session_id={{CHECKOUT_SESSION_ID}}",
-                cancel_url="http://localhost:5173/payment-cancelled",
+                success_url=success_url,
+                cancel_url=cancel_url,
                 metadata={
                     "booking_id": str(booking.id),
                     "customer_id": str(request.user.id),
@@ -175,8 +181,8 @@ class CreateWalletStripeCheckoutSession(APIView):
                     'quantity': 1,
                 }],
                 mode='payment',
-                success_url=f"http://localhost:5173/customer-wallet?success=true&amount={amount}&session_id={{CHECKOUT_SESSION_ID}}",
-                cancel_url="http://localhost:5173/customer-wallet?cancelled=true",
+                success_url=f"{settings.BASE_APP_URL}/customer-wallet?success=true&amount={amount}&session_id={{CHECKOUT_SESSION_ID}}",
+                cancel_url=f"{settings.BASE_APP_URL}/customer-wallet?cancelled=true",
                 metadata={
                     "customer_id": str(request.user.id),
                     "topup_amount": str(amount),
