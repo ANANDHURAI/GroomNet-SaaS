@@ -58,14 +58,13 @@ export const useNotifications = () => {
     if (!token) return;
 
     const getWebSocketUrl = () => {
-      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
-      if (apiBaseUrl) {
-        const domain = apiBaseUrl.replace(/^https?:\/\//, '');
-        return `wss://${domain}/ws/notifications/?token=${token}`;
-      }
-     
       const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      return `${protocol}//localhost:8000/ws/notifications/?token=${token}`;
+      const token = sessionStorage.getItem('access_token');
+
+      const baseUrl = import.meta.env.VITE_API_BASE_URL?.replace(/^https?:\/\//, '') || window.location.host;
+      const wsUrl = `${protocol}//${baseUrl}/ws/notifications/?token=${token}`;
+
+      return new WebSocket(wsUrl);
     };
 
     const wsUrl = getWebSocketUrl();
