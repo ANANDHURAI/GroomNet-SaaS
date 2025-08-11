@@ -57,17 +57,28 @@ export const useNotifications = () => {
     const token = sessionStorage.getItem('access_token');
     if (!token) return;
 
+    // const getWebSocketUrl = () => {
+    //   const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    //   const token = sessionStorage.getItem('access_token');
+
+    //   const baseUrl = import.meta.env.VITE_API_BASE_URL?.replace(/^https?:\/\//, '') || window.location.host;
+    //   const wsUrl = `${protocol}//${baseUrl}/ws/notifications/?token=${token}`;
+
+    //   return new WebSocket(wsUrl);
+    // };
+
     const getWebSocketUrl = () => {
+      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
+      if (apiBaseUrl) {
+        const domain = apiBaseUrl.replace(/^https?:\/\//, '');
+        return `wss://${domain}/ws/notifications/?token=${token}`;
+      }
       const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      const token = sessionStorage.getItem('access_token');
-
-      const baseUrl = import.meta.env.VITE_API_BASE_URL?.replace(/^https?:\/\//, '') || window.location.host;
-      const wsUrl = `${protocol}//${baseUrl}/ws/notifications/?token=${token}`;
-
-      return new WebSocket(wsUrl);
+      return `${protocol}//localhost:8000/ws/notifications/?token=${token}`;
     };
 
     const wsUrl = getWebSocketUrl();
+
     console.log('Connecting to notification WebSocket:', wsUrl);
     websocketRef.current = new WebSocket(wsUrl);
 
