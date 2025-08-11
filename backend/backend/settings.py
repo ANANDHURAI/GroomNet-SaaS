@@ -35,7 +35,6 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'dj_rest_auth',
     'dj_rest_auth.registration',
- 
     'authservice',
     'adminsite',
     'profileservice',
@@ -239,7 +238,7 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
-
+STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
 
 
 STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
