@@ -16,6 +16,7 @@ ALLOWED_HOSTS = [
     "groomnet.shop",
     "www.groomnet.shop",
     "api.groomnet.shop",
+    "13.51.246.164",
     "localhost",
     "127.0.0.1",
 ]
@@ -238,7 +239,7 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
-STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 
 STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
