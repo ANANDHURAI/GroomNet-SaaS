@@ -64,8 +64,6 @@ import BarberProfile from './pages/barbersite/BarberProfile';
 import AdminProfile from './pages/adminsite/AdminProfile';
 import CustomerProfile from './pages/customersite/CustomerProfile';
 import AddressPage from './pages/customersite/AddressPage';
-
-import GlobalBookingNotifier from './components/notification/GlobalBookingNotifier';
 import { BookingProvider } from './contexts/BookingContext';
 import ServiceRequestsList from './pages/barbersite/ServiceRequestsList';
 import AdminServiceRequestsManagement from './pages/adminsite/AdminServiceRequestsManagement';
@@ -90,213 +88,213 @@ function App() {
                 <Route path="/barber-document-upload" element={<DocumentUpload />} />
                 <Route path="/barber-status" element={<BarberStatus />} />
 
-                <Route 
-                  path="/home" 
+                <Route
+                  path="/home"
                   element={
                     <ProtectedRoute allowedUserTypes={['customer']}>
                       <HomePage />
                     </ProtectedRoute>
-                  } 
+                  }
                 />
-                
 
-                <Route 
-                  path="/customer/categoryes" 
+
+                <Route
+                  path="/customer/categoryes"
                   element={
                     <ProtectedRoute allowedUserTypes={['customer']}>
                       <CategoryList />
                     </ProtectedRoute>
-                  } 
+                  }
                 />
-                <Route 
-                  path="/services" 
+                <Route
+                  path="/services"
                   element={
                     <ProtectedRoute allowedUserTypes={['customer']}>
                       <ServicesList />
                     </ProtectedRoute>
-                  } 
+                  }
                 />
-                <Route 
-                  path="/select-barber" 
+                <Route
+                  path="/select-barber"
                   element={
                     <ProtectedRoute allowedUserTypes={['customer']}>
                       <SelectBarber />
                     </ProtectedRoute>
-                  } 
+                  }
                 />
-                <Route 
-                  path="/select-date" 
+                <Route
+                  path="/select-date"
                   element={
                     <ProtectedRoute allowedUserTypes={['customer']}>
                       <SelectDate />
                     </ProtectedRoute>
-                  } 
+                  }
                 />
-                <Route 
-                  path="/select-time" 
+                <Route
+                  path="/select-time"
                   element={
                     <ProtectedRoute allowedUserTypes={['customer']}>
                       <SelectTime />
                     </ProtectedRoute>
-                  } 
+                  }
                 />
-                <Route 
-                  path="/add-address" 
+                <Route
+                  path="/add-address"
                   element={
                     <ProtectedRoute allowedUserTypes={['customer']}>
                       <AddAddress />
                     </ProtectedRoute>
-                  } 
+                  }
                 />
-                <Route 
-                  path="/confirm-booking" 
+                <Route
+                  path="/confirm-booking"
                   element={
                     <ProtectedRoute allowedUserTypes={['customer']}>
                       <ConfirmBooking />
                     </ProtectedRoute>
-                  } 
+                  }
                 />
 
-                <Route 
-                  path="/payment" 
+                <Route
+                  path="/payment"
                   element={
                     <ProtectedRoute allowedUserTypes={['customer']}>
                       <PaymentPage />
                     </ProtectedRoute>
-                  } 
+                  }
                 />
 
-                <Route 
-                  path="/booking-success" 
+                <Route
+                  path="/booking-success"
                   element={
                     <ProtectedRoute allowedUserTypes={['customer']}>
                       <SuccessPage />
                     </ProtectedRoute>
-                  } 
+                  }
                 />
 
 
-                <Route 
-                  path="/admin-dashboard" 
+                <Route
+                  path="/admin-dashboard"
                   element={
                     <ProtectedRoute allowedUserTypes={['admin']}>
                       <AdminDasboard />
                     </ProtectedRoute>
-                  } 
+                  }
                 />
-                <Route 
-                  path="/customers-list" 
+                <Route
+                  path="/customers-list"
                   element={
                     <ProtectedRoute allowedUserTypes={['admin']}>
                       <CustomersList />
                     </ProtectedRoute>
-                  } 
+                  }
                 />
-                <Route 
-                  path="/customer-details/:id" 
+                <Route
+                  path="/customer-details/:id"
                   element={
                     <ProtectedRoute allowedUserTypes={['admin']}>
                       <UsersDetails />
                     </ProtectedRoute>
-                  } 
+                  }
                 />
-                <Route 
-                  path="/admin-verification" 
+                <Route
+                  path="/admin-verification"
                   element={
                     <ProtectedRoute allowedUserTypes={['admin']}>
                       <VerificationPage />
                     </ProtectedRoute>
-                  } 
+                  }
                 />
-                <Route 
-                  path="/barbers-list" 
+                <Route
+                  path="/barbers-list"
                   element={
                     <ProtectedRoute allowedUserTypes={['admin']}>
                       <BarbersList />
                     </ProtectedRoute>
-                  } 
+                  }
                 />
-                <Route 
-                  path="/barbers-details/:id" 
+                <Route
+                  path="/barbers-details/:id"
                   element={
                     <ProtectedRoute allowedUserTypes={['admin']}>
                       <BarberDetails />
                     </ProtectedRoute>
-                  } 
+                  }
                 />
-                <Route 
-                  path="/category" 
+                <Route
+                  path="/category"
                   element={
                     <ProtectedRoute allowedUserTypes={['admin']}>
                       <Categoryslist />
                     </ProtectedRoute>
-                  } 
+                  }
                 />
-                <Route 
-                  path="/service" 
+                <Route
+                  path="/service"
                   element={
                     <ProtectedRoute allowedUserTypes={['admin']}>
                       <Servicelist />
                     </ProtectedRoute>
-                  } 
+                  }
                 />
 
 
-                <Route 
-                  path="/barber-dash" 
+                <Route
+                  path="/barber-dash"
                   element={
                     <ProtectedRoute allowedUserTypes={['barber']} requireVerification={true}>
                       <BarberDash />
                     </ProtectedRoute>
-                  } 
+                  }
                 />
-                <Route 
-                  path="/barbers-portfolio" 
+                <Route
+                  path="/barbers-portfolio"
                   element={
                     <ProtectedRoute allowedUserTypes={['barber']} requireVerification={true}>
                       <Portfolio />
                     </ProtectedRoute>
-                  } 
+                  }
                 />
-                <Route 
-                  path="/barber/book-services" 
+                <Route
+                  path="/barber/book-services"
                   element={
                     <ProtectedRoute allowedUserTypes={['barber']} requireVerification={true}>
                       <BookServices />
                     </ProtectedRoute>
-                  } 
+                  }
                 />
-                <Route 
-                  path="/barber/select-service/:id" 
+                <Route
+                  path="/barber/select-service/:id"
                   element={
                     <ProtectedRoute allowedUserTypes={['barber']} requireVerification={true}>
                       <SelectService />
                     </ProtectedRoute>
-                  } 
+                  }
                 />
-                <Route 
-                  path="/barber/my-services" 
+                <Route
+                  path="/barber/my-services"
                   element={
                     <ProtectedRoute allowedUserTypes={['barber']} requireVerification={true}>
                       <MyServices />
                     </ProtectedRoute>
-                  } 
+                  }
                 />
-                <Route 
-                  path="/barber-slot-booking" 
+                <Route
+                  path="/barber-slot-booking"
                   element={
                     <ProtectedRoute allowedUserTypes={['barber']} requireVerification={true}>
                       <BarberSlotBooking />
                     </ProtectedRoute>
-                  } 
+                  }
                 />
-                <Route 
-                  path="/barber-appointments" 
+                <Route
+                  path="/barber-appointments"
                   element={
                     <ProtectedRoute allowedUserTypes={['barber']} requireVerification={true}>
                       <Appointments />
                     </ProtectedRoute>
-                  } 
+                  }
                 />
                 <Route path="/payment-cancelled" element={<CancelledPage />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
@@ -314,7 +312,7 @@ function App() {
                 <Route path="/forget-otp" element={<ForgetOtp />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/travel-status/:bookingId" element={<TravelPage />} />
-                
+
                 <Route path="/booking-status/:bookingId" element={<StatusCheaking />} />
 
                 <Route
@@ -326,10 +324,10 @@ function App() {
                   }
                 />
                 <Route path="/customer-wallet" element={<CustomerWallet />} />
-                <Route path="/barber/service-complete/:bookingId" element={<ServiceCompletePage />}/>
+                <Route path="/barber/service-complete/:bookingId" element={<ServiceCompletePage />} />
                 <Route path="/completed-appointments" element={<CompletedAppointments />} />
 
-                <Route path="/barber-earnings" element={<Earnings />}/>
+                <Route path="/barber-earnings" element={<Earnings />} />
                 <Route path="/coupons-management" element={<CouponManagePage />} />
                 <Route path="/barber/ratings/" element={<BarberRatingsPage />} />
                 <Route path="/customer-complaints-at-admin" element={<Complaints />} />
@@ -343,11 +341,11 @@ function App() {
                 <Route path="/admin/service-requests" element={<AdminServiceRequestsManagement />} />
                 <Route path="/about" element={<About />} />
 
-          
+
               </Routes>
             </ServiceProvider>
           </BookingProvider>
-          
+
         </BrowserRouter>
       </Provider>
     </GoogleOAuthProvider>
