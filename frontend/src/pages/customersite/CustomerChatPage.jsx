@@ -13,9 +13,11 @@ function CustomerChatPage() {
   const [sending, setSending] = useState(false);
   const [isOnline, setIsOnline] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
+  const [isChatActive, setIsChatActive] = useState(false);
   const messagesEndRef = useRef(null);
   const websocketRef = useRef(null);
   const typingTimeoutRef = useRef(null);
+
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -27,7 +29,17 @@ function CustomerChatPage() {
 
   useEffect(() => {
     initializeChat();
-    return cleanup;
+
+    const handleVisibilityChange = () => {
+      setIsChatActive(!document.hidden);
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      cleanup();
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, [bookingId]);
 
   const initializeChat = async () => {
@@ -35,7 +47,8 @@ function CustomerChatPage() {
       await Promise.all([
         fetchChatData(),
         connectWebSocket(),
-        markAsRead()
+        markAsRead(),
+        setIsChatActive(true)
       ]);
     } catch (error) {
       console.error('Error initializing chat:', error);
@@ -80,7 +93,7 @@ function CustomerChatPage() {
   const handleWebSocketMessage = (event) => {
     try {
       const data = JSON.parse(event.data);
-      
+
       switch (data.type) {
         case 'message':
           handleNewMessage(data.data);
@@ -98,16 +111,18 @@ function CustomerChatPage() {
           break;
         case 'total_unread_update':
           window.dispatchEvent(new CustomEvent('totalUnreadUpdate', {
-            detail: { 
-              totalCount: data.total_count, 
-              bookingCounts: data.booking_counts 
+            detail: {
+              totalCount: data.total_count,
+              bookingCounts: data.booking_counts
             }
           }));
           break;
         case 'unread_count_update':
-          window.dispatchEvent(new CustomEvent('unreadCountUpdate', {
-            detail: { bookingId: data.booking_id, count: data.unread_count }
-          }));
+          if (data.booking_id !== bookingId || !isChatActive) {
+            window.dispatchEvent(new CustomEvent('unreadCountUpdate', {
+              detail: { bookingId: data.booking_id, count: data.unread_count }
+            }));
+          }
           break;
         default:
           console.log('Unknown message type:', data.type);
@@ -119,13 +134,13 @@ function CustomerChatPage() {
 
   const handleNewMessage = (messageData) => {
     setMessages(prev => {
-      const filteredPrev = prev.filter(msg => 
+      const filteredPrev = prev.filter(msg =>
         !(msg.id && msg.id.toString().startsWith('temp_') && msg.message === messageData.message)
       );
-      
+
       const exists = filteredPrev.some(msg => msg.id === messageData.id);
       if (exists) return filteredPrev;
-      
+
       return [...filteredPrev, messageData];
     });
   };
@@ -142,7 +157,7 @@ function CustomerChatPage() {
 
   const handleWebSocketClose = (event) => {
     console.log('WebSocket disconnected:', event.code);
-    
+
     if (event.code !== 1000) {
       setTimeout(connectWebSocket, 3000);
     }
@@ -161,7 +176,7 @@ function CustomerChatPage() {
 
   const handleInputChange = (value) => {
     setNewMessage(value);
-    
+
     if (websocketRef.current?.readyState === WebSocket.OPEN) {
       try {
         websocketRef.current.send(JSON.stringify({
@@ -183,20 +198,20 @@ function CustomerChatPage() {
     const tempMessage = createTempMessage(messageText);
     setMessages(prev => [...prev, tempMessage]);
     setNewMessage('');
-    
+
     try {
       if (websocketRef.current?.readyState === WebSocket.OPEN) {
-        websocketRef.current.send(JSON.stringify({ 
+        websocketRef.current.send(JSON.stringify({
           type: 'message',
-          message: messageText 
+          message: messageText
         }));
       } else {
- 
+
         const response = await apiClient.post(`/chat-service/chat/${bookingId}/messages/`, {
           message: messageText
         });
-        
-        setMessages(prev => 
+
+        setMessages(prev =>
           prev.map(msg => msg.id === tempMessage.id ? response.data : msg)
         );
       }
@@ -223,6 +238,7 @@ function CustomerChatPage() {
   });
 
   const cleanup = () => {
+    setIsChatActive(false);
     if (websocketRef.current) {
       websocketRef.current.close();
     }
@@ -267,11 +283,10 @@ function CustomerChatPage() {
           </div>
         )}
         <div className={`flex ${isCurrentUser ? 'justify-end' : 'justify-start'}`}>
-          <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg transition-opacity ${
-            isCurrentUser 
-              ? `bg-blue-600 text-white ${isTemporary ? 'opacity-70' : ''}` 
-              : 'bg-white text-gray-800 border'
-          }`}>
+          <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg transition-opacity ${isCurrentUser
+            ? `bg-blue-600 text-white ${isTemporary ? 'opacity-70' : ''}`
+            : 'bg-white text-gray-800 border'
+            }`}>
             {!isCurrentUser && (
               <p className="text-xs text-gray-500 mb-1">{message.sender.name}</p>
             )}
@@ -329,9 +344,8 @@ function CustomerChatPage() {
                 {bookingInfo.service_name} • {bookingInfo.booking_date} at {bookingInfo.booking_time}
               </p>
               <div className="flex items-center text-xs text-blue-100 mt-1">
-                <div className={`w-2 h-2 rounded-full mr-2 transition-colors ${
-                  isOnline ? 'bg-green-400' : 'bg-gray-400'
-                }`} />
+                <div className={`w-2 h-2 rounded-full mr-2 transition-colors ${isOnline ? 'bg-green-400' : 'bg-gray-400'
+                  }`} />
                 {isOnline ? 'Online' : 'Offline'}
               </div>
             </div>
@@ -353,14 +367,14 @@ function CustomerChatPage() {
             <div className="bg-white text-gray-800 border px-4 py-2 rounded-lg max-w-xs">
               <div className="flex space-x-1 items-center">
                 <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
               </div>
               <p className="text-xs text-gray-500 mt-1">{bookingInfo?.other_user.name} is typing...</p>
             </div>
           </div>
         )}
-        
+
         <div ref={messagesEndRef} />
       </div>
 

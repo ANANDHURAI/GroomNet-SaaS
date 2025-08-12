@@ -6,34 +6,34 @@ export const useNotifications = () => {
   const [bookingUnreadCounts, setBookingUnreadCounts] = useState({});
   const websocketRef = useRef(null);
   const isConnectedRef = useRef(false);
-  const [loading, setLoading] = useState(true); 
+  const [loading, setLoading] = useState(true);
 
   const fetchTotalUnreadCount = useCallback(async () => {
-      try {
-        setLoading(true); 
-        const response = await apiClient.get('/chat-service/chat/total-unread/');
-        setTotalUnreadCount(response.data.total_unread_count);
-        setBookingUnreadCounts(response.data.booking_unread_counts || {});
-      } catch (error) {
-        console.error('Error fetching total unread count:', error);
-      } finally {
-        setLoading(false); 
-      }
-    }, []);
+    try {
+      setLoading(true);
+      const response = await apiClient.get('/chat-service/chat/total-unread/');
+      setTotalUnreadCount(response.data.total_unread_count);
+      setBookingUnreadCounts(response.data.booking_unread_counts || {});
+    } catch (error) {
+      console.error('Error fetching total unread count:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   const updateBookingUnreadCount = useCallback((bookingId, count) => {
     setBookingUnreadCounts(prev => {
       const newCounts = { ...prev };
       const oldCount = newCounts[bookingId] || 0;
-      
+
       if (count === 0) {
         delete newCounts[bookingId];
       } else {
         newCounts[bookingId] = count;
       }
-  
+
       setTotalUnreadCount(prevTotal => Math.max(0, prevTotal - oldCount + count));
-      
+
       return newCounts;
     });
   }, []);
@@ -56,16 +56,6 @@ export const useNotifications = () => {
 
     const token = sessionStorage.getItem('access_token');
     if (!token) return;
-
-    // const getWebSocketUrl = () => {
-    //   const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    //   const token = sessionStorage.getItem('access_token');
-
-    //   const baseUrl = import.meta.env.VITE_API_BASE_URL?.replace(/^https?:\/\//, '') || window.location.host;
-    //   const wsUrl = `${protocol}//${baseUrl}/ws/notifications/?token=${token}`;
-
-    //   return new WebSocket(wsUrl);
-    // };
 
     const getWebSocketUrl = () => {
       const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
@@ -90,7 +80,7 @@ export const useNotifications = () => {
     websocketRef.current.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
-        
+
         switch (data.type) {
           case 'total_unread_update':
             setTotalUnreadCount(data.total_count);
@@ -108,7 +98,7 @@ export const useNotifications = () => {
     websocketRef.current.onclose = () => {
       console.log('Global notification WebSocket disconnected');
       isConnectedRef.current = false;
-  
+
       setTimeout(connectGlobalWebSocket, 3000);
     };
 
@@ -139,7 +129,7 @@ export const useNotifications = () => {
     return () => {
       window.removeEventListener('unreadCountUpdate', handleUnreadUpdate);
       window.removeEventListener('totalUnreadUpdate', handleTotalUpdate);
-      
+
       if (websocketRef.current) {
         websocketRef.current.close();
       }
