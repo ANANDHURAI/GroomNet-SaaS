@@ -1,48 +1,44 @@
-GroomNet – Connect Customers with Beauticians
-Hello everyone, my name is Anandhurai.
-This is my second real-world project, built with the purpose of connecting customers to beauticians.
+# GroomNet – Connect Customers with Beauticians  
 
-The platform consists of three separate portals:
+Hello everyone, my name is **Anandhurai**.  
+This is my **second real-world project**, built with the purpose of connecting customers to beauticians.  
 
-Customer
-Beautician
-Admin
+The platform consists of three separate portals:  
+- **Customer**  
+- **Beautician**  
+- **Admin**  
 
-The tech stack used in this project includes: Python, Django, SQL, ORM, React.js, and Django REST Framework (DRF).
-In this system, there are two types of bookings:
+---
 
-Instant Booking – Book services immediately.
+## Tech Stack  
+- **Python**  
+- **Django**  
+- **SQL**  
+- **ORM**  
+- **React.js**  
+- **Django REST Framework (DRF)**  
 
-Scheduled Booking – Book services for a future date and time.
+---
 
-Features
-Two Types of Booking – Instant and scheduled booking options.
+## Booking Types  
+1. **Instant Booking** – Book services immediately.  
+2. **Scheduled Booking** – Book services for a future date and time.  
 
-Google Authentication for easy login and signup.
+---
 
-JWT Tokens for secure authentication.
-
-Real-Time Sockets for every booking.
-
-Live Notifications for all users.
-
-Chat Application between customers and beauticians.
-
-Complaint Management System for resolving issues.
-
-Rating & Review System for services.
-
-Beautician Portfolio showcase.
-
-Coupon System for discounts.
-
-Strict Multi-Step Beautician Registration Process to ensure quality.
-
-Admin Approval required for beauticians to offer services.
-
-Stripe Payment Integration for secure transactions.
-
-Wallet System for all three user types.
-
-Slot-Based Booking for service availability management.
-
+## Features  
+- Two types of booking: Instant and scheduled.  
+- Google Authentication for easy login and signup.  
+- JWT Tokens for secure authentication.  
+- Real-time sockets for every booking.  
+- Live notifications for all users.  
+- Chat application between customers and beauticians.  
+- Complaint management system.  
+- Rating & review system.  
+- Beautician portfolio showcase.  
+- Coupon system for discounts.  
+- Strict multi-step beautician registration process.  
+- Admin approval for beauticians to offer services.  
+- Stripe payment integration.  
+- Wallet system for all three user types.  
+- Slot-based booking.  
