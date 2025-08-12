@@ -1,50 +1,43 @@
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-from .serializers import PortfolioSerializer , BarberServiceSerializer
-from.models import Portfolio   
-from adminsite.models import CategoryModel , ServiceModel
-from django.shortcuts import get_object_or_404
-from adminsite.serializers import CategorySerializer, ServiceSerializer
-from rest_framework import viewsets, status
-from rest_framework.decorators import action
-from .models import BarberService
-from adminsite.models import CategoryModel, ServiceModel , ServiceRequestModel
-from .models import BarberSlot
-
-from .serializers import BarberSlotSerializer
-from django.db import transaction
-from django.db.models import ProtectedError
-import logging
-from customersite.models import Booking , Rating
-logger = logging.getLogger(__name__)
-from rest_framework import status
-from .models import BarberWallet
-from .serializers import BarberWalletSerializer
-from adminsite.serializers import ServiceRequestSerializer
-from django.utils.timezone import localtime
-
-from django.db.models import Count, Avg
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-from django.db.models import Avg, Count
-from customersite.models import Booking, Rating
-from rest_framework import generics, status
-from rest_framework.decorators import api_view, permission_classes
-from datetime import timedelta
-from django.utils.timezone import now
+from adminsite.models import CategoryModel, ServiceModel, ServiceRequestModel
 from django.db.models import Sum
+from django.utils.timezone import now
+from datetime import timedelta
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework import generics, status
+from customersite.models import Booking, Rating
+from django.db.models import Avg, Count
+from django.utils.timezone import localtime
+from adminsite.serializers import ServiceRequestSerializer
+from .serializers import BarberWalletSerializer
+from .models import BarberWallet
+from rest_framework import status
+import logging
+from django.db.models import ProtectedError
+from django.db import transaction
+from .serializers import BarberSlotSerializer
+from .models import BarberSlot
+from .models import BarberService
+from rest_framework.decorators import action
+from rest_framework import viewsets, status
+from adminsite.serializers import CategorySerializer, ServiceSerializer
+from django.shortcuts import get_object_or_404
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from .serializers import PortfolioSerializer, BarberServiceSerializer
+from .models import Portfolio
+
+logger = logging.getLogger(__name__)
 
 
-class BarberDashboard(APIView): 
+class BarberDashboard(APIView):
     permission_classes = [IsAuthenticated]
-    
+
     def get(self, request):
         user = request.user
         if user.user_type != 'barber':
             return Response({"error": "Access denied"}, status=status.HTTP_403_FORBIDDEN)
-        
+
         return Response({
             'message': 'Welcome to Barber Dashboard',
             'user': {
@@ -54,7 +47,7 @@ class BarberDashboard(APIView):
                 'user_type': user.user_type
             }
         }, status=status.HTTP_200_OK)
-    
+
 
 class BarberPortfolioView(APIView):
     permission_classes = [IsAuthenticated]
@@ -69,7 +62,8 @@ class BarberPortfolioView(APIView):
 
     def put(self, request):
         portfolio, _ = Portfolio.objects.get_or_create(user=request.user)
-        serializer = PortfolioSerializer(portfolio, data=request.data, partial=True)
+        serializer = PortfolioSerializer(
+            portfolio, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
@@ -79,44 +73,46 @@ class BarberPortfolioView(APIView):
 class BarberServiceViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     serializer_class = BarberServiceSerializer
-    
+
     def get_queryset(self):
         return BarberService.objects.filter(barber=self.request.user, is_active=True)
-    
+
     @action(detail=False, methods=['get'])
     def categories(self, request):
         categories = CategoryModel.objects.filter(is_blocked=False)
         serializer = CategorySerializer(categories, many=True)
         return Response(serializer.data)
-    
+
     @action(detail=False, methods=['get'])
     def services_by_category(self, request):
         category_id = request.query_params.get('category_id')
         if not category_id:
             return Response({'error': 'category_id is required'}, status=status.HTTP_400_BAD_REQUEST)
-        services = ServiceModel.objects.filter(category_id=category_id, is_blocked=False)
-        
+        services = ServiceModel.objects.filter(
+            category_id=category_id, is_blocked=False)
+
         selected_service_ids = BarberService.objects.filter(
             barber=request.user,
             is_active=True,
             service__category_id=category_id
         ).values_list('service_id', flat=True)
-        
+
         available_services = services.exclude(id__in=selected_service_ids)
-        
+
         serializer = ServiceSerializer(available_services, many=True)
         return Response({
             'services': serializer.data,
             'category': CategorySerializer(get_object_or_404(CategoryModel, id=category_id)).data
         })
-    
+
     @action(detail=False, methods=['post'])
     def add_service(self, request):
         service_id = request.data.get('service_id')
         if not service_id:
             return Response({'error': 'service_id is required'}, status=status.HTTP_400_BAD_REQUEST)
-        
-        service = get_object_or_404(ServiceModel, id=service_id, is_blocked=False)
+
+        service = get_object_or_404(
+            ServiceModel, id=service_id, is_blocked=False)
 
         if BarberService.objects.filter(barber=request.user, service=service, is_active=True).exists():
             return Response({'error': 'Service already added'}, status=status.HTTP_400_BAD_REQUEST)
@@ -126,29 +122,31 @@ class BarberServiceViewSet(viewsets.ModelViewSet):
             service=service,
             defaults={'is_active': True}
         )
-        
+
         if not created:
             barber_service.is_active = True
             barber_service.save()
-        
+
         serializer = BarberServiceSerializer(barber_service)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
-    
+
     @action(detail=True, methods=['delete'])
     def remove_service(self, request, pk=None):
-        barber_service = get_object_or_404(BarberService, id=pk, barber=request.user)
+        barber_service = get_object_or_404(
+            BarberService, id=pk, barber=request.user)
         barber_service.is_active = False
         barber_service.save()
         return Response({'message': 'Service removed successfully'})
-    
+
     @action(detail=False, methods=['get'])
     def my_services(self, request):
         services = self.get_queryset()
         serializer = BarberServiceSerializer(services, many=True)
-        
+
         total_price = sum(float(service.service.price) for service in services)
-        total_duration = sum(service.service.duration_minutes for service in services)
-        
+        total_duration = sum(
+            service.service.duration_minutes for service in services)
+
         return Response({
             'services': serializer.data,
             'total_price': total_price,
@@ -164,12 +162,12 @@ class BarberSlotViewSet(viewsets.ViewSet):
         date_filter = request.query_params.get('date')
 
         slots = BarberSlot.objects.filter(barber=request.user)
-        
+
         if date_filter:
             slots = slots.filter(date=date_filter)
 
         slots = slots.order_by('date', 'start_time')
-        
+
         serializer = BarberSlotSerializer(slots, many=True)
         return Response(serializer.data)
 
@@ -190,14 +188,13 @@ class BarberSlotViewSet(viewsets.ViewSet):
                 'required_fields': ['date', 'start_time', 'end_time']
             }, status=status.HTTP_400_BAD_REQUEST)
 
-
-        if end_time == "24:00:00":
-            end_time = "23:59:59"
+        if end_time == "24:00:00":  # this code for when book 11-12 pm slot
+            end_time = "23:59:59"  # i get the error because it connected to next day
 
         if BarberSlot.objects.filter(
-            barber=request.user, 
-            date=date, 
-            start_time=start_time, 
+            barber=request.user,
+            date=date,
+            start_time=start_time,
             end_time=end_time
         ).exists():
             return Response({
@@ -213,7 +210,7 @@ class BarberSlotViewSet(viewsets.ViewSet):
             )
             serializer = BarberSlotSerializer(slot)
             return Response({
-                'message': f'Slot created successfully for {date}', 
+                'message': f'Slot created successfully for {date}',
                 'slot': serializer.data
             }, status=status.HTTP_201_CREATED)
         except Exception as e:
@@ -226,7 +223,7 @@ class BarberSlotViewSet(viewsets.ViewSet):
     def cancel_slot(self, request, pk=None):
         try:
             slot = get_object_or_404(BarberSlot, id=pk, barber=request.user)
-            
+
             if slot.is_booked:
                 return Response({
                     'error': 'Slot is already booked by a customer. Cannot cancel.'
@@ -236,22 +233,22 @@ class BarberSlotViewSet(viewsets.ViewSet):
                 return Response({
                     'error': 'Cannot delete slot with existing bookings.'
                 }, status=status.HTTP_403_FORBIDDEN)
-            
+
             slot_info = f"{slot.date} at {slot.start_time}-{slot.end_time}"
-            
+
             with transaction.atomic():
                 slot.delete()
-                
+
             return Response({
                 'message': f'Slot cancelled successfully for {slot_info}.'
             }, status=status.HTTP_200_OK)
-            
+
         except ProtectedError as e:
             logger.error(f"Protected error when deleting slot {pk}: {str(e)}")
             return Response({
                 'error': 'Cannot delete slot due to existing related records.'
             }, status=status.HTTP_409_CONFLICT)
-            
+
         except Exception as e:
             logger.error(f"Unexpected error when deleting slot {pk}: {str(e)}")
             return Response({
@@ -262,17 +259,17 @@ class BarberSlotViewSet(viewsets.ViewSet):
     def get_slots_by_date_range(self, request):
         start_date = request.query_params.get('start_date')
         end_date = request.query_params.get('end_date')
-        
+
         if not start_date or not end_date:
             return Response({
                 'error': 'Both start_date and end_date are required'
             }, status=status.HTTP_400_BAD_REQUEST)
-        
+
         slots = BarberSlot.objects.filter(
             barber=request.user,
             date__range=[start_date, end_date]
         ).order_by('date', 'start_time')
-        
+
         serializer = BarberSlotSerializer(slots, many=True)
         return Response(serializer.data)
 
@@ -287,13 +284,14 @@ class BarberAppointments(APIView):
         appointments = Booking.objects.filter(
             booking_type='SCHEDULE_BOOKING',
             barber=request.user,
-            status__in=['PENDING', 'CONFIRMED',] 
+            status__in=['PENDING', 'CONFIRMED',]
         )
 
         data = []
         for booking in appointments:
             time_str = f"{booking.slot.start_time} - {booking.slot.end_time}" if booking.slot else "N/A"
-            date_str = booking.slot.date.strftime('%Y-%m-%d') if booking.slot else "N/A"
+            date_str = booking.slot.date.strftime(
+                '%Y-%m-%d') if booking.slot else "N/A"
 
             data.append({
                 'id': booking.id,
@@ -306,11 +304,11 @@ class BarberAppointments(APIView):
                 'phone': booking.customer.phone,
                 'service': booking.service.name,
                 'bookingType': booking.booking_type,
-                
+
             })
 
         return Response(data)
-    
+
 
 class CompletedAppointments(APIView):
     permission_classes = [IsAuthenticated]
@@ -334,7 +332,7 @@ class CompletedAppointments(APIView):
                 else:
                     date_str = "N/A"
                     time_str = "N/A"
-            else: 
+            else:
                 if booking.slot:
                     date_str = booking.slot.date.strftime('%Y-%m-%d')
                     time_str = f"{booking.slot.start_time} - {booking.slot.end_time}"
@@ -358,9 +356,6 @@ class CompletedAppointments(APIView):
         return Response(data)
 
 
-
-
-
 class BarberWalletView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -376,9 +371,12 @@ class BarberWalletView(APIView):
 
         transactions = wallet.transactions.all()
 
-        day_total = transactions.filter(created_at__date=today).aggregate(total=Sum('amount'))['total'] or 0
-        week_total = transactions.filter(created_at__date__gte=start_of_week).aggregate(total=Sum('amount'))['total'] or 0
-        month_total = transactions.filter(created_at__date__gte=start_of_month).aggregate(total=Sum('amount'))['total'] or 0
+        day_total = transactions.filter(created_at__date=today).aggregate(
+            total=Sum('amount'))['total'] or 0
+        week_total = transactions.filter(created_at__date__gte=start_of_week).aggregate(
+            total=Sum('amount'))['total'] or 0
+        month_total = transactions.filter(created_at__date__gte=start_of_month).aggregate(
+            total=Sum('amount'))['total'] or 0
 
         serializer = BarberWalletSerializer(wallet)
         data = serializer.data
@@ -389,7 +387,6 @@ class BarberWalletView(APIView):
         })
 
         return Response(data)
-
 
 
 class BarberDashboardView(APIView):
@@ -416,7 +413,8 @@ class BarberDashboardView(APIView):
         average_rating = rating_info['avg_rating'] or 0
         total_reviews = rating_info['total_reviews']
 
-        profile_image_url = request.build_absolute_uri(user.profileimage.url) if user.profileimage else None
+        profile_image_url = request.build_absolute_uri(
+            user.profileimage.url) if user.profileimage else None
 
         return Response({
             'total_bookings': total_bookings,
@@ -439,6 +437,7 @@ class ServiceRequestListCreateView(generics.ListCreateAPIView):
     def perform_create(self, serializer):
         serializer.save(barber=self.request.user)
 
+
 class ServiceRequestDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = ServiceRequestSerializer
     permission_classes = [IsAuthenticated]
@@ -450,7 +449,7 @@ class ServiceRequestDetailView(generics.RetrieveUpdateDestroyAPIView):
         instance = self.get_object()
         if instance.status != 'pending':
             return Response(
-                {'error': 'Cannot modify request that has been processed'}, 
+                {'error': 'Cannot modify request that has been processed'},
                 status=status.HTTP_400_BAD_REQUEST
             )
         return super().update(request, *args, **kwargs)
@@ -459,10 +458,11 @@ class ServiceRequestDetailView(generics.RetrieveUpdateDestroyAPIView):
         instance = self.get_object()
         if instance.status != 'pending':
             return Response(
-                {'error': 'Cannot delete request that has been processed'}, 
+                {'error': 'Cannot delete request that has been processed'},
                 status=status.HTTP_400_BAD_REQUEST
             )
         return super().destroy(request, *args, **kwargs)
+
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -478,6 +478,7 @@ def get_barber_categories(request):
     ]
     return Response(category_data)
 
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def service_request_stats(request):
@@ -489,4 +490,3 @@ def service_request_stats(request):
         'rejected': user_requests.filter(status='rejected').count(),
     }
     return Response(stats)
-

@@ -10,6 +10,7 @@ function CouponForm({ initialData, onSubmit, onCancel }) {
   });
 
   const [services, setServices] = useState([]);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     apiClient.get('/adminsite/services/').then((res) => setServices(res.data));
@@ -26,18 +27,26 @@ function CouponForm({ initialData, onSubmit, onCancel }) {
         expiry_date: '',
       });
     }
+    setError('');
   }, [initialData]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    setError(''); // clear error on input change
   };
 
   const handleSubmit = () => {
     if (!formData.code || !formData.service || !formData.discount_percentage || !formData.expiry_date) {
-      alert("All fields are required.");
+      setError("All fields are required.");
       return;
     }
 
+    if (Number(formData.discount_percentage) > 50) {
+      setError("Maximum discount percentage is 50.");
+      return;
+    }
+
+    setError('');
     onSubmit(formData, !!initialData?.id);
   };
 
@@ -45,6 +54,9 @@ function CouponForm({ initialData, onSubmit, onCancel }) {
     <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-40 flex items-center justify-center z-50">
       <div className="bg-white p-6 rounded-md shadow-md w-full max-w-md">
         <h2 className="text-xl font-semibold mb-4">{initialData?.id ? 'Edit' : 'Create'} Coupon</h2>
+
+        {error && <p className="text-red-600 mb-3">{error}</p>}
+
         <input
           type="text"
           name="code"

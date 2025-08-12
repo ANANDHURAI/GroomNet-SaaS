@@ -1,10 +1,38 @@
+from customersite.models import Booking, Rating
+from django.db.models import Q
+from django.utils import timezone
+from rest_framework.decorators import api_view, permission_classes
+from django.db.models import Count, Avg, Sum
+from .serializers import ComplaintSerializer
+from customersite.models import Complaints
+from rest_framework import generics
+from datetime import datetime, timedelta
+from .serializers import (
+    CouponSerializer,
+    AdminWalletSerializer,
+    AdminWalletTransactionSerializer,
+    ServiceRequestDetailSerializer,
+    ServiceSerializer,
+    ServiceRequestSerializer
+)
+from .models import (
+    ServiceModel,
+    CategoryModel,
+    AdminWallet,
+    Coupon,
+    AdminWalletTransaction,
+    ServiceRequestModel
+)
+from customersite.models import PaymentModel
+from rest_framework.generics import ListAPIView
+from rest_framework.viewsets import ModelViewSet
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from authservice.models import User
 from rest_framework.generics import RetrieveAPIView
-from .serializers import UsersListSerializer, BarbersListSerializer ,CategorySerializer, ServiceSerializer,AdminWalletSerializer
+from .serializers import UsersListSerializer, BarbersListSerializer, CategorySerializer, ServiceSerializer, AdminWalletSerializer
 from barber_reg.models import BarberRequest
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
@@ -12,40 +40,6 @@ from django.db import transaction
 import logging
 User = get_user_model()
 logger = logging.getLogger(__name__)
-from rest_framework.viewsets import ModelViewSet
-from rest_framework.generics import ListAPIView
-from customersite.models import PaymentModel
-from .models import (
-    ServiceModel, 
-    CategoryModel , 
-    AdminWallet  ,
-    Coupon,
-    AdminWalletTransaction,
-    ServiceRequestModel
-)
-from .serializers import (
-CouponSerializer , 
-AdminWalletSerializer ,
-AdminWalletTransactionSerializer , 
-ServiceRequestDetailSerializer , 
-ServiceSerializer , 
-ServiceRequestSerializer
-)
-from datetime import datetime, timedelta
-from rest_framework import generics
-from customersite.models import Complaints
-from .serializers import ComplaintSerializer
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-from django.db.models import Count, Avg, Sum
-from customersite.models import Booking , Rating
-from rest_framework.decorators import api_view, permission_classes
-from django.utils import timezone
-from django.db.models import Q
-
-
-
 
 
 class PendingBarbersRequestsView(APIView):
@@ -62,7 +56,7 @@ class PendingBarbersRequestsView(APIView):
                 status='pending',
                 registration_step='documents_uploaded'
             ).select_related('user').order_by('-created_at')
-            
+
             data = []
             for req in pending_requests:
                 data.append({
@@ -77,9 +71,9 @@ class PendingBarbersRequestsView(APIView):
                     'certificate': self.get_full_url(request, req.certificate),
                     'profile_image': self.get_full_url(request, req.profile_image),
                 })
-            
+
             return Response(data, status=status.HTTP_200_OK)
-            
+
         except Exception as e:
             logger.error(f"Error fetching pending requests: {str(e)}")
             return Response({
@@ -98,9 +92,10 @@ class AllBarbersRequestsView(APIView):
     def get(self, request):
         try:
             all_requests = BarberRequest.objects.filter(
-                registration_step__in=['documents_uploaded', 'under_review', 'completed']
+                registration_step__in=[
+                    'documents_uploaded', 'under_review', 'completed']
             ).select_related('user').order_by('-created_at')
-            
+
             data = []
             for req in all_requests:
                 data.append({
@@ -116,15 +111,15 @@ class AllBarbersRequestsView(APIView):
                     'profile_image': self.get_full_url(request, req.profile_image),
                     'admin_comment': req.admin_comment,
                 })
-            
+
             return Response(data, status=status.HTTP_200_OK)
-            
+
         except Exception as e:
             logger.error(f"Error fetching all requests: {str(e)}")
             return Response({
                 'error': 'Failed to fetch requests'
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
+
 
 class BarberApprovalActionView(APIView):
     permission_classes = [IsAuthenticated]
@@ -139,7 +134,7 @@ class BarberApprovalActionView(APIView):
             return Response({
                 'error': 'user_id is required'
             }, status=status.HTTP_400_BAD_REQUEST)
-            
+
         if action not in ['approve', 'reject']:
             return Response({
                 'error': 'action must be either "approve" or "reject"'
@@ -147,9 +142,9 @@ class BarberApprovalActionView(APIView):
 
         try:
             with transaction.atomic():
-                
+
                 user = get_object_or_404(User, id=user_id, user_type='barber')
-                
+
                 try:
                     barber_request = user.barber_request
                 except BarberRequest.DoesNotExist:
@@ -161,23 +156,24 @@ class BarberApprovalActionView(APIView):
                     return Response({
                         'error': f'Request has already been {barber_request.status}'
                     }, status=status.HTTP_400_BAD_REQUEST)
-                
+
                 if action == 'approve':
                     barber_request.status = 'approved'
                     user.is_verified = True
                     user.save()
                     barber_request.registration_step = 'completed'
-                    
+
                 elif action == 'reject':
                     barber_request.status = 'rejected'
                     barber_request.registration_step = 'under_review'
                     user.is_verified = False
                     user.save()
-                
+
                 barber_request.admin_comment = comment
                 barber_request.save()
 
-                logger.info(f"Barber request {action}d: User ID {user.id} by admin {request.user.id}")
+                logger.info(
+                    f"Barber request {action}d: User ID {user.id} by admin {request.user.id}")
 
                 return Response({
                     'message': f'Barber application {action}d successfully',
@@ -185,12 +181,12 @@ class BarberApprovalActionView(APIView):
                     'new_status': barber_request.status,
                     'action': action
                 }, status=status.HTTP_200_OK)
-                
+
         except User.DoesNotExist:
             return Response({
                 'error': 'Barber user not found'
             }, status=status.HTTP_404_NOT_FOUND)
-            
+
         except Exception as e:
             logger.error(f"Error processing barber {action}: {str(e)}")
             return Response({
@@ -209,7 +205,7 @@ class VerificationBarberDetailsView(APIView):
     def get(self, request, barber_id):
         try:
             user = get_object_or_404(User, id=barber_id, user_type='barber')
-            
+
             try:
                 barber_request = user.barber_request
             except BarberRequest.DoesNotExist:
@@ -235,18 +231,18 @@ class VerificationBarberDetailsView(APIView):
             }
 
             return Response(data, status=status.HTTP_200_OK)
-            
+
         except User.DoesNotExist:
             return Response({
                 'error': 'Barber not found'
             }, status=status.HTTP_404_NOT_FOUND)
-            
+
         except Exception as e:
             logger.error(f"Error fetching barber details: {str(e)}")
             return Response({
                 'error': 'Failed to fetch barber details'
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    
+
 
 class UsersListView(ListAPIView):
     serializer_class = UsersListSerializer
@@ -272,14 +268,13 @@ class UsersListView(ListAPIView):
 
         return queryset.distinct()
 
-    
-    
+
 class UserDetailView(RetrieveAPIView):
     queryset = User.objects.all()
     serializer_class = UsersListSerializer
     permission_classes = [IsAuthenticated]
     lookup_field = 'id'
-        
+
 
 class BarbersListView(ListAPIView):
     serializer_class = BarbersListSerializer
@@ -304,7 +299,6 @@ class BarbersListView(ListAPIView):
             queryset = queryset.filter(is_blocked=(is_blocked == 'true'))
 
         return queryset.distinct()
-    
 
 
 class BarberDetailView(RetrieveAPIView):
@@ -314,7 +308,7 @@ class BarberDetailView(RetrieveAPIView):
     lookup_url_kwarg = 'barber_id'
 
     def get_queryset(self):
-        return User.objects.filter(user_type='barber',is_verified=True)
+        return User.objects.filter(user_type='barber', is_verified=True)
 
 
 class BlockingView(APIView):
@@ -323,7 +317,7 @@ class BlockingView(APIView):
     def post(self, request, id):
         try:
             user = User.objects.get(id=id)
-            
+
             user.is_blocked = not user.is_blocked
             user.is_active = not user.is_active
             user.save()
@@ -337,6 +331,7 @@ class CategoryViewSet(ModelViewSet):
     serializer_class = CategorySerializer
     permission_classes = [IsAuthenticated]
 
+
 class ServiceViewSet(ModelViewSet):
     serializer_class = ServiceSerializer
     permission_classes = [IsAuthenticated]
@@ -345,26 +340,25 @@ class ServiceViewSet(ModelViewSet):
         return ServiceModel.objects.filter(category__is_blocked=False).order_by('-id')
 
 
-
 class AdminWalletView(APIView):
     permission_classes = [IsAuthenticated]
-    
+
     def get(self, request):
         try:
             admin_wallet, created = AdminWallet.objects.get_or_create(
                 id=1,
                 defaults={'total_earnings': 0}
             )
-            
+
             if created:
                 logger.info("Created new admin wallet")
-            
+
             serializer = AdminWalletSerializer(admin_wallet)
             return Response(serializer.data, status=status.HTTP_200_OK)
-            
+
         except Exception as e:
             return Response(
-                {"error": "Failed to fetch admin wallet", "details": str(e)}, 
+                {"error": "Failed to fetch admin wallet", "details": str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
@@ -378,53 +372,56 @@ class AdminWalletTransactionHistoryView(APIView):
             transactions = AdminWalletTransaction.objects.all()
             if period != 'all':
                 now = timezone.now()
-                
+
                 if period == 'today':
-                    start_date = now.replace(hour=0, minute=0, second=0, microsecond=0)
+                    start_date = now.replace(
+                        hour=0, minute=0, second=0, microsecond=0)
                     end_date = start_date + timedelta(days=1)
-                    
+
                 elif period == 'week':
                     days_since_monday = now.weekday()
                     start_date = (now - timedelta(days=days_since_monday)).replace(
                         hour=0, minute=0, second=0, microsecond=0
                     )
                     end_date = start_date + timedelta(days=7)
-                    
+
                 elif period == 'month':
-                    start_date = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-                   
+                    start_date = now.replace(
+                        day=1, hour=0, minute=0, second=0, microsecond=0)
+
                     if now.month == 12:
-                        end_date = now.replace(year=now.year + 1, month=1, day=1, 
-                                             hour=0, minute=0, second=0, microsecond=0)
+                        end_date = now.replace(year=now.year + 1, month=1, day=1,
+                                               hour=0, minute=0, second=0, microsecond=0)
                     else:
-                        end_date = now.replace(month=now.month + 1, day=1, 
-                                             hour=0, minute=0, second=0, microsecond=0)
-                
-                else:  
+                        end_date = now.replace(month=now.month + 1, day=1,
+                                               hour=0, minute=0, second=0, microsecond=0)
+
+                else:
                     start_date = None
                     end_date = None
-                
+
                 if start_date and end_date:
                     transactions = transactions.filter(
                         created_at__gte=start_date,
                         created_at__lt=end_date
                     )
-       
+
             transactions = transactions.order_by('-created_at')
-            serializer = AdminWalletTransactionSerializer(transactions, many=True)
+            serializer = AdminWalletTransactionSerializer(
+                transactions, many=True)
             total_income = 0
             total_expense = 0
-            
+
             for txn in transactions:
-                is_expense = ('payout' in txn.note.lower() or 
-                             'refund' in txn.note.lower())
+                is_expense = ('payout' in txn.note.lower() or
+                              'refund' in txn.note.lower())
                 amount = abs(txn.amount)
-                
+
                 if is_expense:
                     total_expense += amount
                 else:
                     total_income += amount
-            
+
             response_data = {
                 'history': serializer.data,
                 'statistics': {
@@ -435,12 +432,13 @@ class AdminWalletTransactionHistoryView(APIView):
                     'period': period
                 }
             }
-            
+
             return Response(response_data, status=status.HTTP_200_OK)
-            
+
         except Exception as e:
             return Response(
-                {"error": "Failed to fetch transaction history", "details": str(e)}, 
+                {"error": "Failed to fetch transaction history",
+                    "details": str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
@@ -449,7 +447,7 @@ class CouponViewSet(ModelViewSet):
     permission_classes = [IsAuthenticated]
     queryset = Coupon.objects.all()
     serializer_class = CouponSerializer
-    
+
 
 class AdminComplaintListView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
@@ -532,8 +530,6 @@ class AdminDashboardView(APIView):
             'top_customers': top_customers,
         }
         return Response(data)
-    
-
 
 
 class AdminServiceRequestListView(generics.ListAPIView):
@@ -544,16 +540,16 @@ class AdminServiceRequestListView(generics.ListAPIView):
     def get_queryset(self):
         if not self.request.user.user_type == 'admin':
             return ServiceRequestModel.objects.none()
-        
+
         queryset = ServiceRequestModel.objects.all()
         status_filter = self.request.query_params.get('status', None)
         category_filter = self.request.query_params.get('category', None)
-        
+
         if status_filter:
             queryset = queryset.filter(status=status_filter)
         if category_filter:
             queryset = queryset.filter(category_id=category_filter)
-            
+
         return queryset
 
 
@@ -574,66 +570,68 @@ def approve_service_request(request, request_id):
 
     if request.user.user_type != 'admin':
         return Response({'error': 'Admin access required'}, status=status.HTTP_403_FORBIDDEN)
-    
+
     service_request = get_object_or_404(ServiceRequestModel, id=request_id)
-    
+
     if service_request.status != 'pending':
         return Response(
-            {'error': 'Only pending requests can be approved'}, 
+            {'error': 'Only pending requests can be approved'},
             status=status.HTTP_400_BAD_REQUEST
         )
-    
+
     try:
         admin_notes = request.data.get('admin_notes', '')
         service = service_request.approve(request.user, admin_notes)
-        
+
         return Response({
             'message': 'Service request approved successfully',
             'service_id': service.id,
             'request_status': service_request.status
         }, status=status.HTTP_200_OK)
-        
+
     except Exception as e:
         return Response(
-            {'error': f'Failed to approve request: {str(e)}'}, 
+            {'error': f'Failed to approve request: {str(e)}'},
             status=status.HTTP_400_BAD_REQUEST
         )
+
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def reject_service_request(request, request_id):
     if request.user.user_type != 'admin':
         return Response({'error': 'Admin access required'}, status=status.HTTP_403_FORBIDDEN)
-    
+
     service_request = get_object_or_404(ServiceRequestModel, id=request_id)
-    
+
     if service_request.status != 'pending':
         return Response(
-            {'error': 'Only pending requests can be rejected'}, 
+            {'error': 'Only pending requests can be rejected'},
             status=status.HTTP_400_BAD_REQUEST
         )
-    
+
     try:
         admin_notes = request.data.get('admin_notes', '')
         service_request.reject(request.user, admin_notes)
-        
+
         return Response({
             'message': 'Service request rejected',
             'request_status': service_request.status
         }, status=status.HTTP_200_OK)
-        
+
     except Exception as e:
         return Response(
-            {'error': f'Failed to reject request: {str(e)}'}, 
+            {'error': f'Failed to reject request: {str(e)}'},
             status=status.HTTP_400_BAD_REQUEST
         )
+
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def admin_service_request_stats(request):
     if request.user.user_type != 'admin':
         return Response({'error': 'Admin access required'}, status=status.HTTP_403_FORBIDDEN)
-    
+
     stats = {
         'total': ServiceRequestModel.objects.count(),
         'pending': ServiceRequestModel.objects.filter(status='pending').count(),

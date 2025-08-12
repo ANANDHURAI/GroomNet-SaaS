@@ -1,3 +1,7 @@
+from barbersite.models import BarberWallet, WalletTransaction
+from adminsite.models import AdminWallet, AdminWalletTransaction
+from django.utils.timezone import now
+from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
@@ -10,7 +14,7 @@ from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 from customersite.models import Booking
 from .serializers import (
-BarberActionSerializer,
+    BarberActionSerializer,
 )
 from django.conf import settings
 from urllib.parse import urljoin
@@ -18,28 +22,25 @@ import logging
 from decimal import Decimal
 logger = logging.getLogger("django")
 User = get_user_model()
-from django.shortcuts import get_object_or_404
-from django.utils.timezone import now
-from adminsite.models import AdminWallet,AdminWalletTransaction
-from barbersite.models import BarberWallet , WalletTransaction
 
-class BookingMixin: 
+
+class BookingMixin:
     @staticmethod
     def has_active_instant_booking(barber):
         return Booking.objects.filter(
             barber=barber,
-            booking_type=["INSTANT_BOOKING","SCHEDULE_BOOKING"],
+            booking_type=["INSTANT_BOOKING", "SCHEDULE_BOOKING"],
             status__in=["PENDING", "CONFIRMED"]
         ).exists()
-    
+
     @staticmethod
     def has_conflicting_scheduled_booking(barber, start_time=None, end_time=None):
         now = timezone.now()
-        
+
         if start_time is None:
             start_time = now
             end_time = now + timedelta(minutes=30)
-        
+
         return Booking.objects.filter(
             barber=barber,
             booking_type="SCHEDULE_BOOKING",
@@ -47,7 +48,7 @@ class BookingMixin:
             service_started_at__gte=start_time,
             service_started_at__lt=end_time
         ).exists()
-    
+
     @staticmethod
     def get_available_barbers_for_booking(booking):
         potential_barbers = User.objects.filter(
@@ -55,17 +56,17 @@ class BookingMixin:
             is_online=True,
             barber_services__service=booking.service
         ).distinct()
-        
+
         available_barbers = []
-        
+
         for barber in potential_barbers:
             if BookingMixin.has_active_instant_booking(barber):
                 continue
             if BookingMixin.has_conflicting_scheduled_booking(barber):
                 continue
-            
+
             available_barbers.append(barber)
-        
+
         return available_barbers
 
 
@@ -77,7 +78,7 @@ class MakingFindingBarberRequest(APIView, BookingMixin):
             booking = Booking.objects.get(
                 id=booking_id,
                 status="PENDING",
-                booking_type="INSTANT_BOOKING"  
+                booking_type="INSTANT_BOOKING"
             )
 
             available_barbers = self.get_available_barbers_for_booking(booking)
@@ -88,7 +89,8 @@ class MakingFindingBarberRequest(APIView, BookingMixin):
                     status=status.HTTP_404_NOT_FOUND
                 )
 
-            self._notify_barbers_new_booking(request, booking, available_barbers)
+            self._notify_barbers_new_booking(
+                request, booking, available_barbers)
 
             return Response(
                 {
@@ -131,7 +133,6 @@ class MakingFindingBarberRequest(APIView, BookingMixin):
             logger.info(f"Sent booking {booking.id} to barber {barber.id}")
 
 
-
 class DoggleStatusView(APIView, BookingMixin):
     permission_classes = [IsAuthenticated]
 
@@ -140,20 +141,21 @@ class DoggleStatusView(APIView, BookingMixin):
             barber = User.objects.get(id=barber_id, user_type='barber')
 
             has_active_instant = self.has_active_instant_booking(barber)
-            has_upcoming_scheduled = self.has_conflicting_scheduled_booking(barber)
+            has_upcoming_scheduled = self.has_conflicting_scheduled_booking(
+                barber)
 
             return Response({
                 'is_online': barber.is_online,
                 'has_active_instant_booking': has_active_instant,
                 'has_upcoming_scheduled_booking': has_upcoming_scheduled
             }, status=200)
-            
+
         except User.DoesNotExist:
             return Response({'message': 'Barber not found'}, status=404)
 
     def post(self, request, barber_id):
         action = request.data.get('action')
-        
+
         try:
             barber = User.objects.get(id=barber_id, user_type='barber')
         except User.DoesNotExist:
@@ -207,7 +209,6 @@ class ActiveBookingView(APIView):
             booking_type="INSTANT_BOOKING"
         ).order_by('-created_at').first()
 
-       
         now = timezone.now()
         upcoming_scheduled = Booking.objects.filter(
             barber=barber,
@@ -215,7 +216,7 @@ class ActiveBookingView(APIView):
             status__in=["PENDING", "CONFIRMED"],
             service_started_at__gte=now,
             service_started_at__lt=now + timedelta(hours=2)
-        ).order_by('service_started_at')[:3] 
+        ).order_by('service_started_at')[:3]
 
         response_data = {
             "active_instant_booking": None,
@@ -268,7 +269,7 @@ class HandleBarberActions(APIView, BookingMixin):
             return self._handle_reject_booking(barber, booking_id)
 
     def _handle_accept_booking(self, barber, booking_id):
-       
+
         if self.has_active_instant_booking(barber):
             return Response({
                 'error': 'You already have an active instant booking.'
@@ -297,7 +298,6 @@ class HandleBarberActions(APIView, BookingMixin):
                     'error': 'You accepted another booking.'
                 }, status=400)
 
-        
             booking.barber = barber
             booking.status = 'CONFIRMED'
             booking.travel_status = 'NOT_STARTED'
@@ -324,7 +324,6 @@ class HandleBarberActions(APIView, BookingMixin):
                 'error': 'Booking not found or already processed.'
             }, status=404)
 
-
         available_barbers = [
             b for b in self.get_available_barbers_for_booking(booking)
             if b.id != barber.id
@@ -340,15 +339,15 @@ class HandleBarberActions(APIView, BookingMixin):
             'status': 'success'
         }, status=200)
 
-
-
     def _notify_customer_booking_accepted(self, booking, barber):
         channel_layer = get_channel_layer()
         profile_image_url = None
         if hasattr(barber, 'profileimage') and barber.profileimage:
             try:
-                relative_url = urljoin(settings.MEDIA_URL, barber.profileimage.name)
-                profile_image_url = self.request.build_absolute_uri(relative_url)
+                relative_url = urljoin(
+                    settings.MEDIA_URL, barber.profileimage.name)
+                profile_image_url = self.request.build_absolute_uri(
+                    relative_url)
             except Exception:
                 profile_image_url = None
 
@@ -366,12 +365,10 @@ class HandleBarberActions(APIView, BookingMixin):
             }
         )
 
-
-
     def _notify_other_barbers_remove_booking(self, booking, accepting_barber):
-      
+
         channel_layer = get_channel_layer()
-        
+
         other_barbers = User.objects.filter(
             user_type='barber',
             is_online=True
@@ -388,9 +385,9 @@ class HandleBarberActions(APIView, BookingMixin):
             )
 
     def _notify_customer_no_barbers_available(self, booking):
-       
+
         channel_layer = get_channel_layer()
-        
+
         async_to_sync(channel_layer.group_send)(
             f"customer_{booking.customer.id}",
             {
@@ -401,9 +398,9 @@ class HandleBarberActions(APIView, BookingMixin):
         )
 
     def _notify_barbers_new_booking(self, booking, barbers):
-      
+
         channel_layer = get_channel_layer()
-        
+
         for barber in barbers:
             async_to_sync(channel_layer.group_send)(
                 f"barber_{barber.id}",
@@ -424,7 +421,8 @@ class CompletedServiceView(APIView):
 
     def get(self, request, booking_id):
         booking = get_object_or_404(
-            Booking.objects.select_related('customer', 'address', 'service', 'payment'),
+            Booking.objects.select_related(
+                'customer', 'address', 'service', 'payment'),
             id=booking_id
         )
         payment = booking.payment
@@ -434,7 +432,7 @@ class CompletedServiceView(APIView):
             'customer_name': booking.customer.name,
             'customer_phone': booking.customer.phone,
             'address': f"{booking.address.building}, {booking.address.street}, "
-                       f"{booking.address.city}, {booking.address.state} - {booking.address.pincode}",
+            f"{booking.address.city}, {booking.address.state} - {booking.address.pincode}",
             'service': booking.service.name,
             'price': str(booking.total_amount),
             'service_amount': str(payment.service_amount),
@@ -488,14 +486,15 @@ class CompletedServiceView(APIView):
                         if not admin_wallet:
                             return Response({"error": "Admin wallet not found"}, status=500)
 
-                        barber_wallet, _ = BarberWallet.objects.get_or_create(barber=booking.barber)
+                        barber_wallet, _ = BarberWallet.objects.get_or_create(
+                            barber=booking.barber)
 
                         final_amount = payment.final_amount
                         platform_fee = payment.platform_fee
 
                         if payment.payment_method == "COD":
                             barber_amount = final_amount - platform_fee
-                            
+
                             barber_wallet.balance += barber_amount
                             barber_wallet.save()
 
@@ -515,7 +514,7 @@ class CompletedServiceView(APIView):
                             )
 
                         else:
-                        
+
                             barber_amount = final_amount - platform_fee
 
                             if admin_wallet.total_earnings >= barber_amount:
@@ -557,6 +556,3 @@ class CompletedServiceView(APIView):
             }, status=200)
 
         return Response({"error": "Invalid action"}, status=400)
-
-
-

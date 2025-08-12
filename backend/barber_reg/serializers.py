@@ -7,13 +7,15 @@ import re
 
 User = get_user_model()
 
+
 class BarberPersonalDetailsSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, min_length=8)
     confirm_password = serializers.CharField(write_only=True)
 
     class Meta:
         model = User
-        fields = ['name', 'email', 'phone', 'gender', 'password', 'confirm_password']
+        fields = ['name', 'email', 'phone',
+                  'gender', 'password', 'confirm_password']
 
     def validate_password(self, value):
         try:
@@ -27,7 +29,7 @@ class BarberPersonalDetailsSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({
                 "confirm_password": "Passwords don't match."
             })
-        
+
         attrs.pop('confirm_password')
         return attrs
 
@@ -56,7 +58,7 @@ class DocumentUploadSerializer(serializers.ModelSerializer):
                     raise serializers.ValidationError({
                         field_name: f"Only PDF and image files are allowed."
                     })
-       
+
         profile_img = data.get('profile_image')
         if profile_img:
             extension = profile_img.name.split('.')[-1].lower()
@@ -69,14 +71,19 @@ class DocumentUploadSerializer(serializers.ModelSerializer):
 
 
 class BarberRegistrationStatusSerializer(serializers.ModelSerializer):
-    registration_step = serializers.CharField(source='barber_request.registration_step', read_only=True)
-    status = serializers.CharField(source='barber_request.status', read_only=True)
-    admin_comment = serializers.CharField(source='barber_request.admin_comment', read_only=True)
-    documents_complete = serializers.BooleanField(source='barber_request.is_documents_complete', read_only=True)
-    
+    registration_step = serializers.CharField(
+        source='barber_request.registration_step', read_only=True)
+    status = serializers.CharField(
+        source='barber_request.status', read_only=True)
+    admin_comment = serializers.CharField(
+        source='barber_request.admin_comment', read_only=True)
+    documents_complete = serializers.BooleanField(
+        source='barber_request.is_documents_complete', read_only=True)
+
     class Meta:
         model = User
-        fields = ['id', 'name', 'email', 'registration_step', 'status', 'admin_comment', 'documents_complete']
+        fields = ['id', 'name', 'email', 'registration_step',
+                  'status', 'admin_comment', 'documents_complete']
 
 
 class OTPVerificationSerializer(serializers.Serializer):

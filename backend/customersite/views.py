@@ -1,46 +1,53 @@
+from .serializer import CustomerTransactionSerializer
+from rest_framework import generics, permissions, serializers
+from rest_framework import generics, permissions, status
+from .models import Rating
+from adminsite.models import Coupon
+from django.utils.timezone import make_aware, is_naive, now
+from datetime import timedelta, datetime
+from barbersite.models import BarberWallet, WalletTransaction
+from django.db import transaction
+from decimal import Decimal
+from django.shortcuts import get_object_or_404
+from datetime import datetime
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework import status ,generics
+from rest_framework import status, generics
 from .serializer import (
-HomeSerializer , 
-CategorySerializer, 
-ServiceSerializer , 
-BarberSerializer , 
-AvailableSlotSerializer,
-AddressSerializer,
-BookingCreateSerializer,
-CustomerWalletSerializer,
-LocationSerializer,
-RatingSerializer,
-ComplaintSerializer
+    HomeSerializer,
+    CategorySerializer,
+    ServiceSerializer,
+    BarberSerializer,
+    AvailableSlotSerializer,
+    AddressSerializer,
+    BookingCreateSerializer,
+    CustomerWalletSerializer,
+    LocationSerializer,
+    RatingSerializer,
+    ComplaintSerializer
 )
-from adminsite.models import CategoryModel , ServiceModel,AdminWallet,AdminWalletTransaction
+from adminsite.models import CategoryModel, ServiceModel, AdminWallet, AdminWalletTransaction
 import logging
 from barbersite.models import BarberSlot, BarberService
 from django.contrib.auth.models import User
 from django.utils import timezone
-from profileservice.models import Address , UserProfile
+from profileservice.models import Address, UserProfile
 from profileservice.serializers import AddressSerializer
 from authservice.models import User
-from.models import Booking ,CustomerWallet ,Complaints , CustomerWalletTransaction
+from .models import Booking, CustomerWallet, Complaints, CustomerWalletTransaction
 logger = logging.getLogger(__name__)
-from django.utils import timezone
-from datetime import datetime
-from django.shortcuts import get_object_or_404
-from decimal import Decimal
-from django.db import transaction
-from rest_framework import generics, permissions,serializers
-from barbersite.models import BarberWallet, WalletTransaction
 
 
 class Home(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        categories = CategoryModel.objects.filter(is_blocked=False).order_by('-id')
-        services = ServiceModel.objects.filter(is_blocked=False , category__is_blocked=False).order_by('-id')
+        categories = CategoryModel.objects.filter(
+            is_blocked=False).order_by('-id')
+        services = ServiceModel.objects.filter(
+            is_blocked=False, category__is_blocked=False).order_by('-id')
 
         data = {
             'greeting_message': f'Hello, welcome {request.user.name}!',
@@ -49,16 +56,19 @@ class Home(APIView):
         }
         serializer = HomeSerializer(data)
         return Response(serializer.data, status=status.HTTP_200_OK)
-    
+
+
 class UserLocationUpdateView(generics.CreateAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = LocationSerializer
 
     def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data, context={'request': request})
+        serializer = self.get_serializer(
+            data=request.data, context={'request': request})
         serializer.is_valid(raise_exception=True)
         result = serializer.save()
         return Response(result, status=status.HTTP_200_OK)
+
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -84,6 +94,7 @@ def check_user_location(request):
     except UserProfile.DoesNotExist:
         return Response({'has_location': False})
 
+
 class CategoryListView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
     queryset = CategoryModel.objects.filter(is_blocked=False)
@@ -93,10 +104,11 @@ class CategoryListView(generics.ListAPIView):
 class ServiceListView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = ServiceSerializer
-    
+
     def get_queryset(self):
         category_id = self.request.query_params.get('category_id')
-        queryset = ServiceModel.objects.filter(is_blocked=False,category__is_blocked=False)
+        queryset = ServiceModel.objects.filter(
+            is_blocked=False, category__is_blocked=False)
         if category_id:
             queryset = queryset.filter(category_id=category_id)
         return queryset
@@ -105,18 +117,18 @@ class ServiceListView(generics.ListAPIView):
 class BarberListView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = BarberSerializer
-    
+
     def get_queryset(self):
         service_id = self.request.query_params.get('service_id')
         if not service_id:
             return User.objects.none()
-        
+
         try:
             barber_ids = BarberService.objects.filter(
                 service_id=service_id,
                 is_active=True
             ).values_list('barber_id', flat=True)
-            
+
             return User.objects.filter(
                 id__in=barber_ids,
                 user_type='barber',
@@ -126,6 +138,7 @@ class BarberListView(generics.ListAPIView):
         except Exception as e:
             print(f"Error in BarberListView: {e}")
             return User.objects.none()
+
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -139,15 +152,9 @@ def available_dates(request):
         is_booked=False,
         date__gte=timezone.now().date()
     ).values_list('date', flat=True).distinct().order_by('date')
-    
+
     return Response({"available_dates": list(dates)})
 
-
-
-
-from datetime import timedelta, datetime
-from django.utils.timezone import make_aware, is_naive, now
-from django.utils import timezone
 
 class AvailableSlotListView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
@@ -164,7 +171,7 @@ class AvailableSlotListView(generics.ListAPIView):
         current_time = timezone.now()
 
         cutoff_time = current_time - timedelta(hours=12)
-        
+
         instant_bookings = Booking.objects.filter(
             barber_id=barber_id,
             status__in=["CONFIRMED", "PENDING"],
@@ -178,16 +185,16 @@ class AvailableSlotListView(generics.ListAPIView):
                 start_dt = booking.service_started_at
             else:
                 start_dt = booking.created_at
-          
+
             if is_naive(start_dt):
                 start_dt = make_aware(start_dt)
 
             duration = timedelta(minutes=booking.service.duration_minutes)
             end_dt = start_dt + duration
-         
+
             booking_date = start_dt.date()
             end_date = end_dt.date()
-            
+
             if booking_date == date_obj or end_date == date_obj:
                 booking_ranges.append((start_dt, end_dt))
 
@@ -205,7 +212,7 @@ class AvailableSlotListView(generics.ListAPIView):
         def slot_conflicts_with_booking(slot, booking_start, booking_end):
             slot_start = datetime.combine(slot.date, slot.start_time)
             slot_end = datetime.combine(slot.date, slot.end_time)
-            
+
             if is_naive(slot_start):
                 slot_start = make_aware(slot_start)
             if is_naive(slot_end):
@@ -214,7 +221,7 @@ class AvailableSlotListView(generics.ListAPIView):
             buffer = timedelta(minutes=15)
             booking_start_buffered = booking_start - buffer
             booking_end_buffered = booking_end + buffer
-          
+
             return slot_start < booking_end_buffered and booking_start_buffered < slot_end
 
         available_slots = []
@@ -224,24 +231,20 @@ class AvailableSlotListView(generics.ListAPIView):
                 if slot_conflicts_with_booking(slot, booking_start, booking_end):
                     has_conflict = True
                     break
-            
+
             if not has_conflict:
                 available_slots.append(slot.id)
 
         return slots.filter(id__in=available_slots).order_by('start_time')
 
 
-
 class AddressListCreateView(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = AddressSerializer
-    
+
     def get_queryset(self):
         return Address.objects.filter(user=self.request.user)
 
-
-from adminsite.models import Coupon
-from django.utils import timezone
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -250,7 +253,7 @@ def booking_summary(request):
     address_id = request.data.get('address_id')
     barber_id = request.data.get('barber_id')
     slot_id = request.data.get('slot_id')
-    coupon_code = request.data.get('coupon_code') 
+    coupon_code = request.data.get('coupon_code')
 
     try:
         service = ServiceModel.objects.get(id=service_id)
@@ -296,9 +299,9 @@ def booking_summary(request):
 
         if coupon_code:
             try:
-        
+
                 coupon = Coupon.objects.get(
-                    code__iexact=coupon_code.strip(), 
+                    code__iexact=coupon_code.strip(),
                     is_active=True,
                     service=service
                 )
@@ -309,7 +312,8 @@ def booking_summary(request):
                     return Response({"error": "You have used this coupon."}, status=400)
 
                 total_before_discount = service_amount + platform_fee
-                discount = float(coupon.get_discount_amount(Decimal(str(total_before_discount))))
+                discount = float(coupon.get_discount_amount(
+                    Decimal(str(total_before_discount))))
                 total_amount = total_before_discount - discount
                 coupon_info = {
                     "code": coupon.code,
@@ -346,7 +350,8 @@ class BookingCreateView(generics.CreateAPIView):
         serializer.save()
 
     def create(self, request, *args, **kwargs):
-        booking_type = request.data.get('booking_type') or request.session.get('booking_type')
+        booking_type = request.data.get(
+            'booking_type') or request.session.get('booking_type')
         if not booking_type:
             return Response(
                 {"detail": "Booking type is missing."},
@@ -376,7 +381,8 @@ class BookingSuccessView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        booking = Booking.objects.filter(customer=request.user).order_by('-created_at').first()
+        booking = Booking.objects.filter(
+            customer=request.user).order_by('-created_at').first()
         if not booking:
             return Response({"detail": "No bookings found"}, status=404)
         payment = getattr(booking, 'payment', None)
@@ -389,18 +395,19 @@ class BookingSuccessView(APIView):
             "end_time": str(booking.slot.end_time),
             "date": str(booking.slot.date),
             "service": booking.service.name,
-            "total_amount": str(booking.total_amount),"payment_method": payment.payment_method if payment else "N/A",
+            "total_amount": str(booking.total_amount), "payment_method": payment.payment_method if payment else "N/A",
             "booking_status": booking.status,
-            "booking_type":booking.booking_type
+            "booking_type": booking.booking_type
         }
         return Response(data)
-    
+
 
 class BookingHistoryView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        bookings = Booking.objects.filter(customer=request.user).order_by('-created_at')
+        bookings = Booking.objects.filter(
+            customer=request.user).order_by('-created_at')
         data = []
 
         for b in bookings:
@@ -428,7 +435,7 @@ class BookingHistoryView(APIView):
             data.append(booking_info)
 
         return Response(data)
-    
+
 
 class BookingDetailView(APIView):
     permission_classes = [IsAuthenticated]
@@ -450,7 +457,7 @@ class BookingDetailView(APIView):
             slottime = "N/A"
             start_time = "N/A"
             end_time = "N/A"
-            date = str(booking.created_at.date()) 
+            date = str(booking.created_at.date())
         data = {
             "orderid": booking.id,
             "name": booking.customer.name,
@@ -466,7 +473,6 @@ class BookingDetailView(APIView):
             "booking_status": booking.status,
         }
         return Response(data)
-
 
 
 @api_view(['PATCH'])
@@ -494,7 +500,7 @@ def get_travel_status(request, booking_id):
         return Response({"travel_status": booking.travel_status})
     except Booking.DoesNotExist:
         return Response({"error": "Booking not found."}, status=404)
-    
+
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -511,13 +517,14 @@ def get_booking_details(request, booking_id):
         return Response(booking_data)
     except Booking.DoesNotExist:
         return Response({"error": "Booking not found or not assigned to you."}, status=404)
-    
+
 
 class CustomerWalletView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        wallet, created = CustomerWallet.objects.get_or_create(user=request.user)
+        wallet, created = CustomerWallet.objects.get_or_create(
+            user=request.user)
         data = {
             "id": wallet.id,
             "amount": wallet.amount,
@@ -530,10 +537,11 @@ class CustomerWalletView(APIView):
         serializer = CustomerWalletSerializer(data=request.data)
         if serializer.is_valid():
             amount = serializer.validated_data['amount']
-            wallet, created = CustomerWallet.objects.get_or_create(user=request.user)
+            wallet, created = CustomerWallet.objects.get_or_create(
+                user=request.user)
             wallet.account_total_balance += amount
             wallet.save()
-            
+
             return Response({'message': 'Amount successfully added to your wallet'}, status=status.HTTP_202_ACCEPTED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -544,7 +552,8 @@ class EmergencyCancel(APIView):
     def post(self, request, booking_id):
         try:
             with transaction.atomic():
-                booking = get_object_or_404(Booking, id=booking_id, customer=request.user)
+                booking = get_object_or_404(
+                    Booking, id=booking_id, customer=request.user)
 
                 if booking.status in ['CANCELLED', 'COMPLETED']:
                     return Response({'error': 'This booking has already been cancelled or completed'},
@@ -559,12 +568,15 @@ class EmergencyCancel(APIView):
 
                 payment = booking.payment
                 payment_method = payment.payment_method if payment else None
-                service_amount = payment.final_amount if payment else booking.total_amount  
-                platform_fee = payment.platform_fee if payment else Decimal('0.00')
+                service_amount = payment.final_amount if payment else booking.total_amount
+                platform_fee = payment.platform_fee if payment else Decimal(
+                    '0.00')
                 discount = payment.discount if payment else Decimal('0.00')
 
-                wallet, _ = CustomerWallet.objects.get_or_create(user=request.user)
-                admin_wallet, _ = AdminWallet.objects.get_or_create(id=1, defaults={'total_earnings': Decimal('0.00')})
+                wallet, _ = CustomerWallet.objects.get_or_create(
+                    user=request.user)
+                admin_wallet, _ = AdminWallet.objects.get_or_create(
+                    id=1, defaults={'total_earnings': Decimal('0.00')})
 
                 if payment_method != 'COD':
                     refund_amount = booking.total_amount - fine_amount
@@ -592,9 +604,8 @@ class EmergencyCancel(APIView):
                         note=f"Fine ₹{fine_amount} for cancelled Booking #{booking.id}"
                     )
 
-
                 else:
-                 
+
                     CustomerWalletTransaction.objects.create(
                         wallet=wallet,
                         amount=-fine_amount,
@@ -611,7 +622,8 @@ class EmergencyCancel(APIView):
                             note=f"Discount recovery for cancelled COD Booking #{booking.id}"
                         )
                 if booking.barber:
-                    barber_wallet, _ = BarberWallet.objects.get_or_create(barber=booking.barber)
+                    barber_wallet, _ = BarberWallet.objects.get_or_create(
+                        barber=booking.barber)
                     barber_wallet.balance += fine_amount
                     barber_wallet.save()
 
@@ -623,8 +635,9 @@ class EmergencyCancel(APIView):
 
                 booking.status = 'CANCELLED'
                 booking.save()
-              
-                refund_amount = payment.final_amount - fine_amount if payment_method != 'COD' else Decimal('0.00')
+
+                refund_amount = payment.final_amount - \
+                    fine_amount if payment_method != 'COD' else Decimal('0.00')
 
                 return Response({
                     'message': 'Booking cancelled successfully!',
@@ -639,12 +652,6 @@ class EmergencyCancel(APIView):
             return Response({'error': f'An error occurred: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-from .models import Rating
-
-
-from rest_framework import generics, permissions, status
-from rest_framework.response import Response
-
 class RatingListCreateView(generics.ListCreateAPIView):
     serializer_class = RatingSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -652,16 +659,17 @@ class RatingListCreateView(generics.ListCreateAPIView):
     def get_queryset(self):
         booking_id = self.request.query_params.get('booking')
         barber_id = self.request.query_params.get('barber')
-        
+
         queryset = Rating.objects.all()
-        
+
         if booking_id:
-            queryset = queryset.filter(booking_id=booking_id, user=self.request.user)
+            queryset = queryset.filter(
+                booking_id=booking_id, user=self.request.user)
         elif barber_id:
             queryset = queryset.filter(barber_id=barber_id)
         else:
             queryset = queryset.filter(user=self.request.user)
-            
+
         return queryset.order_by('-created_at')
 
     def perform_create(self, serializer):
@@ -676,15 +684,17 @@ class RatingListCreateView(generics.ListCreateAPIView):
             return super().create(request, *args, **kwargs)
         except Exception as e:
             return Response(
-                {'error': str(e)}, 
+                {'error': str(e)},
                 status=status.HTTP_400_BAD_REQUEST
             )
-            
+
+
 class CreateComplaintView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, booking_id):
-        booking = get_object_or_404(Booking, id=booking_id, customer=request.user)
+        booking = get_object_or_404(
+            Booking, id=booking_id, customer=request.user)
 
         if hasattr(booking, 'complaint'):
             return Response({"detail": "Complaint already submitted for this booking."}, status=400)
@@ -696,8 +706,6 @@ class CreateComplaintView(APIView):
         return Response(serializer.errors, status=400)
 
 
-from.serializer import CustomerTransactionSerializer
-
 class CustomerWalletTransactionHistoryView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -706,14 +714,15 @@ class CustomerWalletTransactionHistoryView(APIView):
         if not wallet:
             return Response({'history': []})
 
-        transactions = CustomerWalletTransaction.objects.filter(wallet=wallet).order_by('-created_at')
+        transactions = CustomerWalletTransaction.objects.filter(
+            wallet=wallet).order_by('-created_at')
         serializer = CustomerTransactionSerializer(transactions, many=True)
         return Response({'history': serializer.data})
-    
+
 
 class CustomerComplaintsListView(APIView):
     permission_classes = [IsAuthenticated]
-    
+
     def get(self, request):
         booking_id = request.query_params.get('booking')
         complaints = Complaints.objects.filter(user=request.user)
@@ -721,8 +730,6 @@ class CustomerComplaintsListView(APIView):
         if booking_id:
             complaints = complaints.filter(booking_id=booking_id)
 
-        serializer = ComplaintSerializer(complaints.order_by('-updated_at'), many=True)
+        serializer = ComplaintSerializer(
+            complaints.order_by('-updated_at'), many=True)
         return Response(serializer.data)
-
-
-
