@@ -26,7 +26,7 @@ The platform has **three dedicated portals**:
 ## 📅 Booking Types
 1. **Instant Booking** – Book services immediately.  
 2. **Scheduled Booking** – Book services for future dates & times.  
-3. **Slot-based Booking** – Beauticians manage availability effectively.  
+
 
 ---
 
@@ -85,4 +85,3 @@ The platform has **three dedicated portals**:
 
 ---
 
-## 📂 Project Structure
