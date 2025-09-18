@@ -22,12 +22,31 @@ function RegisterPage() {
   const dispatch = useDispatch();
 
   const registerSchema = Yup.object().shape({
-    name: Yup.string().trim().min(2, 'Name must be at least 2 characters').required('Name is required'),
-    email: Yup.string().trim().email('Invalid email').required('Email is required'),
-    phone: Yup.string().matches(/^\d{10}$/, 'Phone must be 10 digits').required('Phone is required'),
-    password: Yup.string().min(8, 'Password must be at least 8 characters').required('Password is required'),
-    confirmPassword: Yup.string().oneOf([Yup.ref('password'), null], 'Passwords must match').required('Confirm password is required'),
+    name: Yup.string()
+      .trim()
+      .matches(/^[A-Za-z\s]+$/, 'Name should only contain alphabets and spaces')
+      .min(2, 'Name must be at least 2 characters')
+      .required('Name is required'),
+    email: Yup.string()
+      .trim()
+      .email('Invalid email')
+      .required('Email is required'),
+    phone: Yup.string()
+      .matches(/^\d{10}$/, 'Phone must be exactly 10 digits')
+      .notOneOf(['0000000000', '1111111111', '9999999999'], 'Invalid phone number')
+      .required('Phone is required'),
+    password: Yup.string()
+      .min(8, 'Password must be at least 8 characters')
+      .matches(/[A-Z]/, 'Password must contain at least one uppercase letter')
+      .matches(/[a-z]/, 'Password must contain at least one lowercase letter')
+      .matches(/\d/, 'Password must contain at least one number')
+      .matches(/[@$!%*#?&]/, 'Password must contain at least one special character')
+      .required('Password is required'),
+    confirmPassword: Yup.string()
+      .oneOf([Yup.ref('password'), null], 'Passwords must match')
+      .required('Confirm password is required'),
   });
+
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));

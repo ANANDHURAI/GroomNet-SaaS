@@ -27,7 +27,6 @@ The platform has **three dedicated portals**:
 1. **Instant Booking** – Book services immediately.  
 2. **Scheduled Booking** – Book services for future dates & times.  
 
-
 ---
 
 ## 🌟 Key Features

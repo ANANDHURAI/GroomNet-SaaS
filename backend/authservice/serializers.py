@@ -3,22 +3,59 @@ from .models import User
 from django.contrib.auth import authenticate
 from django.core.cache import cache
 
+import re
+from django.contrib.auth import get_user_model
+
 
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, min_length=8)
     user_type = serializers.ChoiceField(
-        choices=[('customer', 'Customer')], 
+        choices=[('customer', 'Customer')],
         default='customer'
     )
-    
+
     class Meta:
         model = User
         fields = ['name', 'email', 'phone', 'password', 'user_type']
-    
+
     def validate_email(self, value):
+       
+        value = value.lower()
         if User.objects.filter(email=value).exists():
             raise serializers.ValidationError("A user with this email already exists.")
-        return value.lower()
+        return value
+
+    def validate_phone(self, value):
+       
+        if not value.isdigit():
+            raise serializers.ValidationError("Phone number must contain only digits.")
+        if len(value) != 10:
+            raise serializers.ValidationError("Phone number must be exactly 10 digits.")
+        if value in ["0000000000", "1111111111", "9999999999"]:
+            raise serializers.ValidationError("Invalid phone number.")
+        return value
+
+    def validate_password(self, value):
+      
+        if len(value) < 8:
+            raise serializers.ValidationError("Password must be at least 8 characters long.")
+        if not re.search(r"[A-Z]", value):
+            raise serializers.ValidationError("Password must contain at least one uppercase letter.")
+        if not re.search(r"[a-z]", value):
+            raise serializers.ValidationError("Password must contain at least one lowercase letter.")
+        if not re.search(r"\d", value):
+            raise serializers.ValidationError("Password must contain at least one number.")
+        if not re.search(r"[@$!%*#?&]", value):
+            raise serializers.ValidationError(
+                "Password must contain at least one special character (@, $, !, %, *, #, ?, &)."
+            )
+        return value
+
+    def validate_name(self, value):
+ 
+        if not re.match(r'^[A-Za-z\s]+$', value):
+            raise serializers.ValidationError("Name should only contain alphabets and spaces.")
+        return value.title()
 
 
 class OtpSerializer(serializers.Serializer):
