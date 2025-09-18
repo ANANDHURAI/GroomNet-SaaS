@@ -1,7 +1,7 @@
 # 🚀 GroomNet – Connect Customers with Beauticians
 
 Hi 👋, I’m **Anandhurai**.  
-This is my **second real-world project**, designed to **connect customers and beauticians** seamlessly.  
+This is my **second Indusrial project**, designed to **connect customers and beauticians** seamlessly.  
 
 The platform has **three dedicated portals**:  
 - 👩‍💼 **Customer** – Browse services, book appointments, manage payments.  
