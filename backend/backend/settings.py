@@ -6,11 +6,13 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
+
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = "django-insecure-a6tjyxxc^46bt%zb)yo7%@qzug@_jct$_98y9=gozf8x@&8t=l"
 
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = [
     "groomnet.shop",
@@ -89,7 +91,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'GroomNetWebsite',
         'USER': 'postgres',
-        'PASSWORD': 'anand@2004',
+        'PASSWORD': 'anand',
         'HOST': 'localhost',
         'PORT': '5432',
     }
@@ -200,12 +202,15 @@ SIMPLE_JWT = {
 
 AUTH_USER_MODEL = 'authservice.User'
 
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
-EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = 'smtp.gmail.com'
+# EMAIL_PORT = 587
+# EMAIL_USE_TLS = True
+# EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
+# EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
+
+
+
 
 
 LOGGING = {
@@ -246,6 +251,8 @@ STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
 
 
 STRIPE_PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY")
+
+
 ASGI_APPLICATION = 'backend.asgi.application'
 
 CHANNEL_LAYERS = {
@@ -269,3 +276,11 @@ GOOGLE_OAUTH2_CLIENT_SECRET = os.getenv("GOOGLE_OAUTH2_CLIENT_SECRET")
 
 BASE_APP_URL = os.getenv('BASE_APP_URL', 'https://groomnet.shop')
 BASE_API_URL = os.getenv('BASE_API_URL', 'https://api.groomnet.shop')
+
+
+SENDGRID_API_KEY = os.environ.get("SENDGRID_API_KEY")
+DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL")
+
+
+EMAIL_BACKEND = "sendgrid_backend.SendgridBackend"
+SENDGRID_SANDBOX_MODE_IN_DEBUG = False

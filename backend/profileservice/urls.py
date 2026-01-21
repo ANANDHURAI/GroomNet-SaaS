@@ -10,6 +10,5 @@ router.register(r'addresses', AddressViewSet, basename='address')
 urlpatterns = [
     path('user-profile/', UserProfileView.as_view(), name='user-profile'),
     path('barber-profile/<int:pk>/', BarberProfileView.as_view(), name='barber-profile'),
-    path('user-profile/<int:user_id>/',UserProfileView.as_view(), name='user-profile-detail'),
     path('', include(router.urls)),
 ]

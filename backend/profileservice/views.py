@@ -10,14 +10,19 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework.exceptions import PermissionDenied
 
 
+    
 class UserProfileView(RetrieveUpdateAPIView):
     serializer_class = UserProfileSerializer
     permission_classes = [IsAuthenticated]
     parser_classes = [MultiPartParser, FormParser, JSONParser]
 
+    def get_serializer_context(self):
+        return {"request": self.request}
+
     def get_object(self):
         profile, _ = UserProfile.objects.get_or_create(user=self.request.user)
         return profile
+
 
 
 class AddressViewSet(ModelViewSet):
@@ -47,6 +52,9 @@ class AddressViewSet(ModelViewSet):
 class BarberProfileView(RetrieveAPIView):
     serializer_class = UserProfileSerializer
     permission_classes = [IsAuthenticated]
+    
+    def get_serializer_context(self):
+        return {"request": self.request}
 
     def get_queryset(self):
         return UserProfile.objects.all()

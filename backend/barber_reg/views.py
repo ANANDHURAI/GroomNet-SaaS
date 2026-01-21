@@ -19,6 +19,9 @@ from django.utils import timezone
 from datetime import timedelta
 import random
 import string
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
+from django.conf import settings
 
 User = get_user_model()
 logger = logging.getLogger(__name__)
@@ -37,17 +40,17 @@ class BarberPersonalDetailsView(APIView):
         Your OTP for email verification is: {otp}
         This OTP is valid for 10 minutes
         """
-
         try:
-            send_mail(
-                subject,
-                message,
-                settings.DEFAULT_FROM_EMAIL,
-                [email],
-                fail_silently=False,
+            mail = Mail(
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                to_emails=email,
+                subject=subject,
+                plain_text_content=message
             )
+            sg = SendGridAPIClient(settings.SENDGRID_API_KEY)
+            sg.send(mail)
         except Exception as e:
-            print(f"Failed to send OTP email: {str(e)}")
+            print(f"Failed to send OTP email via SendGrid: {str(e)}")
 
     def post(self, request):
         serializer = BarberPersonalDetailsSerializer(data=request.data)
@@ -201,17 +204,20 @@ class ResendOTPView(APIView):
         Your new OTP for email verification is: {otp}
         This OTP is valid for 10 minutes.
         """
-
         try:
-            send_mail(
-                subject,
-                message,
-                settings.DEFAULT_FROM_EMAIL,
-                [email],
-                fail_silently=False,
+            mail = Mail(
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                to_emails=email,
+                subject=subject,
+                plain_text_content=message
             )
+            sg = SendGridAPIClient(settings.SENDGRID_API_KEY)
+            sg.send(mail)
         except Exception as e:
-            print(f"Failed to send OTP email: {str(e)}")
+            print(f"Failed to send OTP email via SendGrid: {str(e)}")
+
+
+
 
 
 class DocumentUploadView(APIView):

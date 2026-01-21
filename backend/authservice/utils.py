@@ -1,15 +1,24 @@
-from django.core.mail import send_mail
+import ssl
+import certifi
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
 from django.conf import settings
 
 
+ssl._create_default_https_context = lambda: ssl.create_default_context(cafile=certifi.where())
+
 def send_otp(email, otp):
-    subject = 'Your OTP for Password Reset'
-    message = f'Your OTP for resetting your password is: {otp}\n\nThis OTP is valid for 5 minutes.'
-    from_email = settings.EMAIL_HOST_USER
+    message = Mail(
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        to_emails=email,
+        subject="Your OTP for Password Reset",
+        plain_text_content=f"Your OTP is {otp}. Valid for 5 minutes."
+    )
 
     try:
-        send_mail(subject, message, from_email, [email])
+        sg = SendGridAPIClient(settings.SENDGRID_API_KEY)
+        sg.send(message)
         return True
     except Exception as e:
-        print(f"Error sending OTP email: {e}")
+        print(f"Error sending OTP: {e}")
         return False

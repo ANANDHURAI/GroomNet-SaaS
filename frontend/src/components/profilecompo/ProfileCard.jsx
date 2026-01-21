@@ -1,4 +1,4 @@
-// components/shared/ProfileCard.jsx
+
 import React from 'react';
 import { User, Camera, Edit3 } from 'lucide-react';
 
@@ -25,7 +25,7 @@ const ProfileCard = ({ profile, isEditing, onEdit, onSave, onCancel, onImageUplo
                 )}
               </div>
               
-              {/* Only show camera button in edit mode */}
+             
               {isEditing && (
                 <>
                   <button 
@@ -87,7 +87,7 @@ const ProfileCard = ({ profile, isEditing, onEdit, onSave, onCancel, onImageUplo
         </div>
       </div>
 
-      {/* Content Section */}
+    
       <div className="p-8">
         {children}
       </div>
