@@ -44,8 +44,7 @@ class Home(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        categories = CategoryModel.objects.filter(
-            is_blocked=False).order_by('-id')
+        categories = CategoryModel.objects.filter(is_blocked=False).order_by('-id')
         services = ServiceModel.objects.filter(
             is_blocked=False, category__is_blocked=False).order_by('-id')
 
@@ -54,7 +53,9 @@ class Home(APIView):
             'categories': categories,
             'services': services,
         }
-        serializer = HomeSerializer(data)
+        
+      
+        serializer = HomeSerializer(data, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 

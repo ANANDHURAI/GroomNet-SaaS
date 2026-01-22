@@ -118,6 +118,15 @@ def google_login(request):
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
 
+
+def get_profile_image_url(user, request):
+  
+    if hasattr(user, "profileimage") and user.profileimage:
+        return request.build_absolute_uri(user.profileimage.url)
+    return None
+
+
+
 class CustomerBarberLogin(APIView):
     permission_classes = [AllowAny]
 
@@ -134,9 +143,11 @@ class CustomerBarberLogin(APIView):
                     'email': user.email,
                     'name': user.name,
                     'user_type': user.user_type,
-                    'is_active': user.is_active,     
+                    'is_active': user.is_active,
                     'is_verified': user.is_verified,
+                    'profile_image': get_profile_image_url(user, request),
                 }
+
             }, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -252,7 +263,8 @@ class OTPVerification(APIView):
                     'name': user.name,
                     'email': user.email,
                     'user_type': user.user_type,
-                    'phone': user.phone
+                    'phone': user.phone,
+                    'profile_image': get_profile_image_url(user, request),
                 }
             }, status=status.HTTP_201_CREATED)
             

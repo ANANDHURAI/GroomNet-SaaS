@@ -238,6 +238,16 @@ class HomeSerializer(serializers.Serializer):
     greeting_message = serializers.CharField()
     categories = CategorySerializer(many=True)
     services = ServiceSerializer(many=True)
+    profile_image = serializers.SerializerMethodField()
+
+    def get_profile_image(self, obj):
+        request = self.context.get('request')
+
+        user = request.user
+    
+        if hasattr(user, 'profileimage') and user.profileimage:
+            return request.build_absolute_uri(user.profileimage.url)
+        return None
 
 class PaymentSerializer(serializers.ModelSerializer):
     booking_id = serializers.IntegerField(source='booking.id', read_only=True)
