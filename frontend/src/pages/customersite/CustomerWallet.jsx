@@ -12,6 +12,8 @@ function CustomerWallet() {
     const [showSuccess, setShowSuccess] = useState(false)
     const [successAmount, setSuccessAmount] = useState('')
     const [verifying, setVerifying] = useState(false)
+    const [message, setMessage] = useState('')
+
 
     const fetchWalletDetails = () => {
         apiClient.get('/customersite/wallet/')
@@ -38,11 +40,11 @@ function CustomerWallet() {
                 fetchTransactions()
                 setTimeout(() => setShowSuccess(false), 3000)
             } else {
-                alert('Payment verification failed')
+                setMessage('Payment verification failed')
             }
         } catch (error) {
             console.error('Payment verification failed:', error)
-            alert('Payment verification failed')
+            setMessage('Payment verification failed')
         } finally {
             setVerifying(false)
         }
@@ -65,7 +67,7 @@ function CustomerWallet() {
 
     const handleAddAmount = () => {
         if (!amount || isNaN(amount) || parseFloat(amount) <= 0) {
-            alert("Enter a valid amount")
+            setMessage('Enter a valid amount')
             return
         }
 
@@ -74,7 +76,7 @@ function CustomerWallet() {
             .then(res => window.location.href = res.data.url)
             .catch(err => {
                 console.error('Stripe Checkout failed:', err)
-                alert('Failed to initiate payment')
+                setMessage('Failed to initiate payment')
             })
             .finally(() => setLoading(false))
     }
@@ -97,6 +99,13 @@ function CustomerWallet() {
                         </span>
                     </div>
                 )}
+
+                {message && (
+                    <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
+                        {message}
+                    </div>
+                )}
+
 
                 <div className="bg-gradient-to-r from-green-400 to-blue-500 text-white p-6 rounded-xl shadow-md flex justify-between items-center">
                     <div>

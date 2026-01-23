@@ -45,6 +45,7 @@ class CreateStripeCheckoutSession(APIView):
             if payment.discount > 0:
                 description += f" (Discount Applied: ₹{payment.discount})"
 
+            # Use settings.BASE_APP_URL instead of hardcoding
             success_url = f"{settings.BASE_APP_URL}/booking-success?session_id={{CHECKOUT_SESSION_ID}}"
             cancel_url = f"{settings.BASE_APP_URL}/payment-cancelled"
 
@@ -87,6 +88,8 @@ class CreateStripeCheckoutSession(APIView):
                 {"error": "Payment service error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+
 
 
 class VerifyPayment(APIView):

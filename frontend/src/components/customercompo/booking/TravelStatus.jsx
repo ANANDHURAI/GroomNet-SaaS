@@ -7,10 +7,6 @@ function TravelStatus({ travelStatus }) {
         <Truck size={18} /> Travel Status
       </h3>
       <p><strong>Status:</strong> {travelStatus.travel_status}</p>
-      <p className="mt-1">
-        <Clock size={14} className="inline mr-1" />
-        <strong>ETA:</strong> {travelStatus.eta} | <strong>Distance:</strong> {travelStatus.distance}
-      </p>
 
       {travelStatus.travel_status === 'ARRIVED' && (
         <div className="mt-2 p-2 bg-green-100 rounded border border-green-300">

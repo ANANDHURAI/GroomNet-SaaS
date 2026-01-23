@@ -10,7 +10,7 @@ load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = "django-insecure-a6tjyxxc^46bt%zb)yo7%@qzug@_jct$_98y9=gozf8x@&8t=l"
+SECRET_KEY = os.getenv("SECRET_KEY")
 
 DEBUG = True
 
@@ -131,6 +131,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
+    "http://localhost:3000", 
+    "http://127.0.0.1:3000",
     "http://localhost:8000",
     "https://accounts.google.com",
     "https://oauth2.googleapis.com",
@@ -152,6 +154,8 @@ CORS_ALLOWED_HEADERS = [
     'x-csrftoken',
     'x-requested-with',
 ]
+CORS_ALLOW_CREDENTIALS = True
+
 
 CSRF_TRUSTED_ORIGINS = [
     "https://groomnet.shop",
@@ -238,8 +242,6 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 
 STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
-
-
 STRIPE_PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY")
 
 
@@ -264,8 +266,8 @@ GOOGLE_OAUTH2_CLIENT_ID = os.getenv("GOOGLE_OAUTH2_CLIENT_ID")
 GOOGLE_OAUTH2_CLIENT_SECRET = os.getenv("GOOGLE_OAUTH2_CLIENT_SECRET")
 
 
-BASE_APP_URL = os.getenv('BASE_APP_URL', 'https://groomnet.shop')
-BASE_API_URL = os.getenv('BASE_API_URL', 'https://api.groomnet.shop')
+BASE_APP_URL = 'http://localhost:5173' 
+BASE_API_URL = 'http://localhost:8000'
 
 
 SENDGRID_API_KEY = os.environ.get("SENDGRID_API_KEY")
