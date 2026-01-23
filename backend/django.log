@@ -51776,3 +51776,599 @@ code 400, message Bad HTTP/0.9 request type ('\x16\x03\x01\x06Ô\x01\x00\x06Ð\x03
 You're accessing the development server over HTTPS, but it only supports HTTP.
 code 400, message Bad request version ("úú\x13\x01\x13\x02\x13\x03À+À/À,À0Ì©Ì¨À\x13À\x14\x00\x9c\x00\x9d\x00/\x005\x01\x00\x06'êê\x00\x00ÿ\x01\x00\x01\x00\x00+\x00\x07\x06ªª\x03\x04\x03\x03\x00\x05\x00\x05\x01\x00\x00\x00\x00\x00")
 You're accessing the development server over HTTPS, but it only supports HTTP.
+Unauthorized: /chat-service/chat/total-unread/
+Unauthorized: /customersite/booking-history/
+Unauthorized: /chat-service/chat/total-unread/
+Unauthorized: /customersite/booking-history/
+Unauthorized: /chat-service/chat/total-unread/
+Unauthorized: /chat-service/chat/total-unread/
+Unauthorized: /auth/token/refresh/
+Not Found: /chat-service/chat/10/mark-as-read/
+Not Found: /chat-service/chat/10/mark-as-read/
+Not Found: /chat-service/chat/10/mark-as-read/
+Not Found: /chat-service/chat/10/mark-as-read/
+Internal Server Error: /instant-booking/booking/11/
+Traceback (most recent call last):
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\redis\asyncio\connection.py", line 307, in connect_check_health
+    await self.retry.call_with_retry(
+        lambda: self._connect(), lambda error: self.disconnect()
+    )
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\redis\asyncio\retry.py", line 50, in call_with_retry
+    return await do()
+           ^^^^^^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\redis\asyncio\connection.py", line 768, in _connect
+    reader, writer = await asyncio.open_connection(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        **self._connection_arguments()
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Anandhurai\AppData\Local\Programs\Python\Python314\Lib\asyncio\streams.py", line 48, in open_connection
+    transport, _ = await loop.create_connection(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        lambda: protocol, host, port, **kwds)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Anandhurai\AppData\Local\Programs\Python\Python314\Lib\asyncio\base_events.py", line 1168, in create_connection
+    raise exceptions[0]
+  File "C:\Users\Anandhurai\AppData\Local\Programs\Python\Python314\Lib\asyncio\base_events.py", line 1143, in create_connection
+    sock = await self._connect_sock(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+        exceptions, addrinfo, laddr_infos)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Anandhurai\AppData\Local\Programs\Python\Python314\Lib\asyncio\base_events.py", line 1042, in _connect_sock
+    await self.sock_connect(sock, address)
+  File "C:\Users\Anandhurai\AppData\Local\Programs\Python\Python314\Lib\asyncio\selector_events.py", line 645, in sock_connect
+    return await fut
+           ^^^^^^^^^
+  File "C:\Users\Anandhurai\AppData\Local\Programs\Python\Python314\Lib\asyncio\selector_events.py", line 685, in _sock_connect_cb
+    raise OSError(err, f'Connect call failed {address}')
+ConnectionRefusedError: [Errno 10061] Connect call failed ('127.0.0.1', 6379)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\sync.py", line 555, in thread_handler
+    raise exc_info[1]
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\django\core\handlers\exception.py", line 42, in inner
+    response = await get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\sync.py", line 555, in thread_handler
+    raise exc_info[1]
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\django\core\handlers\base.py", line 253, in _get_response_async
+    response = await wrapped_callback(
+               ^^^^^^^^^^^^^^^^^^^^^^^
+        request, *callback_args, **callback_kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\sync.py", line 504, in __call__
+    ret = await asyncio.shield(exec_coro)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\current_thread_executor.py", line 40, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\sync.py", line 559, in thread_handler
+    return func(*args, **kwargs)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\django\views\generic\base.py", line 105, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\rest_framework\views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\rest_framework\views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\rest_framework\views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\rest_framework\views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\instantbooking\views.py", line 92, in post
+    self._notify_barbers_new_booking(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        request, booking, available_barbers)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\instantbooking\views.py", line 120, in _notify_barbers_new_booking
+    async_to_sync(channel_layer.group_send)(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        group_name,
+        ^^^^^^^^^^^
+    ...<9 lines>...
+        }
+        ^
+    )
+    ^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\sync.py", line 325, in __call__
+    return call_result.result()
+           ~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\Anandhurai\AppData\Local\Programs\Python\Python314\Lib\concurrent\futures\_base.py", line 443, in result
+    return self.__get_result()
+           ~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\Anandhurai\AppData\Local\Programs\Python\Python314\Lib\concurrent\futures\_base.py", line 395, in __get_result
+    raise self._exception
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\sync.py", line 365, in main_wrap
+    result = await awaitable
+             ^^^^^^^^^^^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\channels_redis\core.py", line 518, in group_send
+    await connection.zremrangebyscore(
+        key, min=0, max=int(time.time()) - self.group_expiry
+    )
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\redis\asyncio\client.py", line 720, in execute_command
+    conn = self.connection or await pool.get_connection()
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\redis\asyncio\connection.py", line 1198, in get_connection
+    await self.ensure_connection(connection)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\redis\asyncio\connection.py", line 1231, in ensure_connection
+    await connection.connect()
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\redis\asyncio\connection.py", line 298, in connect
+    await self.connect_check_health(check_health=True)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\redis\asyncio\connection.py", line 317, in connect_check_health
+    raise ConnectionError(self._error_message(e))
+redis.exceptions.ConnectionError: Error 10061 connecting to 127.0.0.1:6379. Connect call failed ('127.0.0.1', 6379).
+Internal Server Error: /instant-booking/booking/11/
+Traceback (most recent call last):
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\redis\asyncio\connection.py", line 307, in connect_check_health
+    await self.retry.call_with_retry(
+        lambda: self._connect(), lambda error: self.disconnect()
+    )
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\redis\asyncio\retry.py", line 50, in call_with_retry
+    return await do()
+           ^^^^^^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\redis\asyncio\connection.py", line 768, in _connect
+    reader, writer = await asyncio.open_connection(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        **self._connection_arguments()
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Anandhurai\AppData\Local\Programs\Python\Python314\Lib\asyncio\streams.py", line 48, in open_connection
+    transport, _ = await loop.create_connection(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        lambda: protocol, host, port, **kwds)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Anandhurai\AppData\Local\Programs\Python\Python314\Lib\asyncio\base_events.py", line 1168, in create_connection
+    raise exceptions[0]
+  File "C:\Users\Anandhurai\AppData\Local\Programs\Python\Python314\Lib\asyncio\base_events.py", line 1143, in create_connection
+    sock = await self._connect_sock(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+        exceptions, addrinfo, laddr_infos)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Anandhurai\AppData\Local\Programs\Python\Python314\Lib\asyncio\base_events.py", line 1042, in _connect_sock
+    await self.sock_connect(sock, address)
+  File "C:\Users\Anandhurai\AppData\Local\Programs\Python\Python314\Lib\asyncio\selector_events.py", line 645, in sock_connect
+    return await fut
+           ^^^^^^^^^
+  File "C:\Users\Anandhurai\AppData\Local\Programs\Python\Python314\Lib\asyncio\selector_events.py", line 685, in _sock_connect_cb
+    raise OSError(err, f'Connect call failed {address}')
+ConnectionRefusedError: [Errno 10061] Connect call failed ('127.0.0.1', 6379)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\sync.py", line 555, in thread_handler
+    raise exc_info[1]
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\django\core\handlers\exception.py", line 42, in inner
+    response = await get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\sync.py", line 555, in thread_handler
+    raise exc_info[1]
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\django\core\handlers\base.py", line 253, in _get_response_async
+    response = await wrapped_callback(
+               ^^^^^^^^^^^^^^^^^^^^^^^
+        request, *callback_args, **callback_kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\sync.py", line 504, in __call__
+    ret = await asyncio.shield(exec_coro)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\current_thread_executor.py", line 40, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\sync.py", line 559, in thread_handler
+    return func(*args, **kwargs)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\django\views\generic\base.py", line 105, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\rest_framework\views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\rest_framework\views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\rest_framework\views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\rest_framework\views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\instantbooking\views.py", line 92, in post
+    self._notify_barbers_new_booking(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        request, booking, available_barbers)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\instantbooking\views.py", line 120, in _notify_barbers_new_booking
+    async_to_sync(channel_layer.group_send)(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        group_name,
+        ^^^^^^^^^^^
+    ...<9 lines>...
+        }
+        ^
+    )
+    ^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\sync.py", line 325, in __call__
+    return call_result.result()
+           ~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\Anandhurai\AppData\Local\Programs\Python\Python314\Lib\concurrent\futures\_base.py", line 443, in result
+    return self.__get_result()
+           ~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\Anandhurai\AppData\Local\Programs\Python\Python314\Lib\concurrent\futures\_base.py", line 395, in __get_result
+    raise self._exception
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\sync.py", line 365, in main_wrap
+    result = await awaitable
+             ^^^^^^^^^^^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\channels_redis\core.py", line 518, in group_send
+    await connection.zremrangebyscore(
+        key, min=0, max=int(time.time()) - self.group_expiry
+    )
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\redis\asyncio\client.py", line 720, in execute_command
+    conn = self.connection or await pool.get_connection()
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\redis\asyncio\connection.py", line 1198, in get_connection
+    await self.ensure_connection(connection)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\redis\asyncio\connection.py", line 1231, in ensure_connection
+    await connection.connect()
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\redis\asyncio\connection.py", line 298, in connect
+    await self.connect_check_health(check_health=True)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\redis\asyncio\connection.py", line 317, in connect_check_health
+    raise ConnectionError(self._error_message(e))
+redis.exceptions.ConnectionError: Error 10061 connecting to 127.0.0.1:6379. Connect call failed ('127.0.0.1', 6379).
+Internal Server Error: /instant-booking/booking/11/
+Traceback (most recent call last):
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\redis\asyncio\connection.py", line 307, in connect_check_health
+    await self.retry.call_with_retry(
+        lambda: self._connect(), lambda error: self.disconnect()
+    )
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\redis\asyncio\retry.py", line 50, in call_with_retry
+    return await do()
+           ^^^^^^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\redis\asyncio\connection.py", line 768, in _connect
+    reader, writer = await asyncio.open_connection(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        **self._connection_arguments()
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Anandhurai\AppData\Local\Programs\Python\Python314\Lib\asyncio\streams.py", line 48, in open_connection
+    transport, _ = await loop.create_connection(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        lambda: protocol, host, port, **kwds)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Anandhurai\AppData\Local\Programs\Python\Python314\Lib\asyncio\base_events.py", line 1168, in create_connection
+    raise exceptions[0]
+  File "C:\Users\Anandhurai\AppData\Local\Programs\Python\Python314\Lib\asyncio\base_events.py", line 1143, in create_connection
+    sock = await self._connect_sock(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+        exceptions, addrinfo, laddr_infos)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Anandhurai\AppData\Local\Programs\Python\Python314\Lib\asyncio\base_events.py", line 1042, in _connect_sock
+    await self.sock_connect(sock, address)
+  File "C:\Users\Anandhurai\AppData\Local\Programs\Python\Python314\Lib\asyncio\selector_events.py", line 645, in sock_connect
+    return await fut
+           ^^^^^^^^^
+  File "C:\Users\Anandhurai\AppData\Local\Programs\Python\Python314\Lib\asyncio\selector_events.py", line 685, in _sock_connect_cb
+    raise OSError(err, f'Connect call failed {address}')
+ConnectionRefusedError: [Errno 10061] Connect call failed ('127.0.0.1', 6379)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\sync.py", line 555, in thread_handler
+    raise exc_info[1]
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\django\core\handlers\exception.py", line 42, in inner
+    response = await get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\sync.py", line 555, in thread_handler
+    raise exc_info[1]
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\django\core\handlers\base.py", line 253, in _get_response_async
+    response = await wrapped_callback(
+               ^^^^^^^^^^^^^^^^^^^^^^^
+        request, *callback_args, **callback_kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\sync.py", line 504, in __call__
+    ret = await asyncio.shield(exec_coro)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\current_thread_executor.py", line 40, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\sync.py", line 559, in thread_handler
+    return func(*args, **kwargs)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\django\views\generic\base.py", line 105, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\rest_framework\views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\rest_framework\views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\rest_framework\views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\rest_framework\views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\instantbooking\views.py", line 92, in post
+    self._notify_barbers_new_booking(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        request, booking, available_barbers)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\instantbooking\views.py", line 120, in _notify_barbers_new_booking
+    async_to_sync(channel_layer.group_send)(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        group_name,
+        ^^^^^^^^^^^
+    ...<9 lines>...
+        }
+        ^
+    )
+    ^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\sync.py", line 325, in __call__
+    return call_result.result()
+           ~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\Anandhurai\AppData\Local\Programs\Python\Python314\Lib\concurrent\futures\_base.py", line 443, in result
+    return self.__get_result()
+           ~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\Anandhurai\AppData\Local\Programs\Python\Python314\Lib\concurrent\futures\_base.py", line 395, in __get_result
+    raise self._exception
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\sync.py", line 365, in main_wrap
+    result = await awaitable
+             ^^^^^^^^^^^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\channels_redis\core.py", line 518, in group_send
+    await connection.zremrangebyscore(
+        key, min=0, max=int(time.time()) - self.group_expiry
+    )
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\redis\asyncio\client.py", line 720, in execute_command
+    conn = self.connection or await pool.get_connection()
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\redis\asyncio\connection.py", line 1198, in get_connection
+    await self.ensure_connection(connection)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\redis\asyncio\connection.py", line 1231, in ensure_connection
+    await connection.connect()
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\redis\asyncio\connection.py", line 298, in connect
+    await self.connect_check_health(check_health=True)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\redis\asyncio\connection.py", line 317, in connect_check_health
+    raise ConnectionError(self._error_message(e))
+redis.exceptions.ConnectionError: Error 10061 connecting to 127.0.0.1:6379. Connect call failed ('127.0.0.1', 6379).
+Internal Server Error: /instant-booking/booking/11/
+Traceback (most recent call last):
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\redis\asyncio\connection.py", line 307, in connect_check_health
+    await self.retry.call_with_retry(
+        lambda: self._connect(), lambda error: self.disconnect()
+    )
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\redis\asyncio\retry.py", line 50, in call_with_retry
+    return await do()
+           ^^^^^^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\redis\asyncio\connection.py", line 768, in _connect
+    reader, writer = await asyncio.open_connection(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        **self._connection_arguments()
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Anandhurai\AppData\Local\Programs\Python\Python314\Lib\asyncio\streams.py", line 48, in open_connection
+    transport, _ = await loop.create_connection(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        lambda: protocol, host, port, **kwds)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Anandhurai\AppData\Local\Programs\Python\Python314\Lib\asyncio\base_events.py", line 1168, in create_connection
+    raise exceptions[0]
+  File "C:\Users\Anandhurai\AppData\Local\Programs\Python\Python314\Lib\asyncio\base_events.py", line 1143, in create_connection
+    sock = await self._connect_sock(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+        exceptions, addrinfo, laddr_infos)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Anandhurai\AppData\Local\Programs\Python\Python314\Lib\asyncio\base_events.py", line 1042, in _connect_sock
+    await self.sock_connect(sock, address)
+  File "C:\Users\Anandhurai\AppData\Local\Programs\Python\Python314\Lib\asyncio\selector_events.py", line 645, in sock_connect
+    return await fut
+           ^^^^^^^^^
+  File "C:\Users\Anandhurai\AppData\Local\Programs\Python\Python314\Lib\asyncio\selector_events.py", line 685, in _sock_connect_cb
+    raise OSError(err, f'Connect call failed {address}')
+ConnectionRefusedError: [Errno 10061] Connect call failed ('127.0.0.1', 6379)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\sync.py", line 555, in thread_handler
+    raise exc_info[1]
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\django\core\handlers\exception.py", line 42, in inner
+    response = await get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\sync.py", line 555, in thread_handler
+    raise exc_info[1]
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\django\core\handlers\base.py", line 253, in _get_response_async
+    response = await wrapped_callback(
+               ^^^^^^^^^^^^^^^^^^^^^^^
+        request, *callback_args, **callback_kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\sync.py", line 504, in __call__
+    ret = await asyncio.shield(exec_coro)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\current_thread_executor.py", line 40, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\sync.py", line 559, in thread_handler
+    return func(*args, **kwargs)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\django\views\generic\base.py", line 105, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\rest_framework\views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\rest_framework\views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\rest_framework\views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\rest_framework\views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\instantbooking\views.py", line 92, in post
+    self._notify_barbers_new_booking(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        request, booking, available_barbers)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\instantbooking\views.py", line 120, in _notify_barbers_new_booking
+    async_to_sync(channel_layer.group_send)(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        group_name,
+        ^^^^^^^^^^^
+    ...<9 lines>...
+        }
+        ^
+    )
+    ^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\sync.py", line 325, in __call__
+    return call_result.result()
+           ~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\Anandhurai\AppData\Local\Programs\Python\Python314\Lib\concurrent\futures\_base.py", line 443, in result
+    return self.__get_result()
+           ~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\Anandhurai\AppData\Local\Programs\Python\Python314\Lib\concurrent\futures\_base.py", line 395, in __get_result
+    raise self._exception
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\sync.py", line 365, in main_wrap
+    result = await awaitable
+             ^^^^^^^^^^^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\channels_redis\core.py", line 518, in group_send
+    await connection.zremrangebyscore(
+        key, min=0, max=int(time.time()) - self.group_expiry
+    )
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\redis\asyncio\client.py", line 720, in execute_command
+    conn = self.connection or await pool.get_connection()
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\redis\asyncio\connection.py", line 1198, in get_connection
+    await self.ensure_connection(connection)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\redis\asyncio\connection.py", line 1231, in ensure_connection
+    await connection.connect()
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\redis\asyncio\connection.py", line 298, in connect
+    await self.connect_check_health(check_health=True)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\redis\asyncio\connection.py", line 317, in connect_check_health
+    raise ConnectionError(self._error_message(e))
+redis.exceptions.ConnectionError: Error 10061 connecting to 127.0.0.1:6379. Connect call failed ('127.0.0.1', 6379).
+Internal Server Error: /instant-booking/booking/11/
+Traceback (most recent call last):
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\redis\asyncio\connection.py", line 307, in connect_check_health
+    await self.retry.call_with_retry(
+        lambda: self._connect(), lambda error: self.disconnect()
+    )
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\redis\asyncio\retry.py", line 50, in call_with_retry
+    return await do()
+           ^^^^^^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\redis\asyncio\connection.py", line 768, in _connect
+    reader, writer = await asyncio.open_connection(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        **self._connection_arguments()
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Anandhurai\AppData\Local\Programs\Python\Python314\Lib\asyncio\streams.py", line 48, in open_connection
+    transport, _ = await loop.create_connection(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        lambda: protocol, host, port, **kwds)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Anandhurai\AppData\Local\Programs\Python\Python314\Lib\asyncio\base_events.py", line 1168, in create_connection
+    raise exceptions[0]
+  File "C:\Users\Anandhurai\AppData\Local\Programs\Python\Python314\Lib\asyncio\base_events.py", line 1143, in create_connection
+    sock = await self._connect_sock(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+        exceptions, addrinfo, laddr_infos)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Anandhurai\AppData\Local\Programs\Python\Python314\Lib\asyncio\base_events.py", line 1042, in _connect_sock
+    await self.sock_connect(sock, address)
+  File "C:\Users\Anandhurai\AppData\Local\Programs\Python\Python314\Lib\asyncio\selector_events.py", line 645, in sock_connect
+    return await fut
+           ^^^^^^^^^
+  File "C:\Users\Anandhurai\AppData\Local\Programs\Python\Python314\Lib\asyncio\selector_events.py", line 685, in _sock_connect_cb
+    raise OSError(err, f'Connect call failed {address}')
+ConnectionRefusedError: [Errno 10061] Connect call failed ('127.0.0.1', 6379)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\sync.py", line 555, in thread_handler
+    raise exc_info[1]
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\django\core\handlers\exception.py", line 42, in inner
+    response = await get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\sync.py", line 555, in thread_handler
+    raise exc_info[1]
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\django\core\handlers\base.py", line 253, in _get_response_async
+    response = await wrapped_callback(
+               ^^^^^^^^^^^^^^^^^^^^^^^
+        request, *callback_args, **callback_kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\sync.py", line 504, in __call__
+    ret = await asyncio.shield(exec_coro)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\current_thread_executor.py", line 40, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\sync.py", line 559, in thread_handler
+    return func(*args, **kwargs)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\django\views\generic\base.py", line 105, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\rest_framework\views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\rest_framework\views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\rest_framework\views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\rest_framework\views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\instantbooking\views.py", line 92, in post
+    self._notify_barbers_new_booking(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        request, booking, available_barbers)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\instantbooking\views.py", line 120, in _notify_barbers_new_booking
+    async_to_sync(channel_layer.group_send)(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        group_name,
+        ^^^^^^^^^^^
+    ...<9 lines>...
+        }
+        ^
+    )
+    ^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\sync.py", line 325, in __call__
+    return call_result.result()
+           ~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\Anandhurai\AppData\Local\Programs\Python\Python314\Lib\concurrent\futures\_base.py", line 443, in result
+    return self.__get_result()
+           ~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\Anandhurai\AppData\Local\Programs\Python\Python314\Lib\concurrent\futures\_base.py", line 395, in __get_result
+    raise self._exception
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\sync.py", line 365, in main_wrap
+    result = await awaitable
+             ^^^^^^^^^^^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\channels_redis\core.py", line 518, in group_send
+    await connection.zremrangebyscore(
+        key, min=0, max=int(time.time()) - self.group_expiry
+    )
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\redis\asyncio\client.py", line 720, in execute_command
+    conn = self.connection or await pool.get_connection()
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\redis\asyncio\connection.py", line 1198, in get_connection
+    await self.ensure_connection(connection)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\redis\asyncio\connection.py", line 1231, in ensure_connection
+    await connection.connect()
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\redis\asyncio\connection.py", line 298, in connect
+    await self.connect_check_health(check_health=True)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\redis\asyncio\connection.py", line 317, in connect_check_health
+    raise ConnectionError(self._error_message(e))
+redis.exceptions.ConnectionError: Error 10061 connecting to 127.0.0.1:6379. Connect call failed ('127.0.0.1', 6379).

@@ -38,7 +38,7 @@ from profileservice.serializers import AddressSerializer
 from authservice.models import User
 from .models import Booking, CustomerWallet, Complaints, CustomerWalletTransaction
 logger = logging.getLogger(__name__)
-
+from rest_framework.exceptions import ValidationError
 
 class Home(APIView):
     permission_classes = [IsAuthenticated]
@@ -343,40 +343,71 @@ def booking_summary(request):
         return Response({"error": str(e)}, status=400)
 
 
+
+
+
+
+
+
 class BookingCreateView(generics.CreateAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = BookingCreateSerializer
 
-    def perform_create(self, serializer):
-        serializer.save()
-
     def create(self, request, *args, **kwargs):
-        booking_type = request.data.get(
-            'booking_type') or request.session.get('booking_type')
+        booking_type = request.data.get('booking_type') or request.session.get('booking_type')
+
         if not booking_type:
             return Response(
-                {"detail": "Booking type is missing."},
+                {"detail": "Booking type is missing. Please try again."},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        booking = serializer.save()
+        try:
+            with transaction.atomic():
+                booking = serializer.save()
+
+        except ValidationError as e:
+            # Clean rollback + friendly message
+            return Response(
+                {
+                    "success": False,
+                    "detail": e.detail if hasattr(e, "detail")
+                    else "Booking failed. Please try again."
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        except Exception:
+            # Any unexpected failure → rollback
+            logger.exception("Booking creation failed")
+            return Response(
+                {
+                    "success": False,
+                    "detail": "Something went wrong while creating your booking. Please try again."
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
         logger.info(f"Booking created successfully: {booking.id}")
 
         return Response(
             {
+                "success": True,
                 "detail": "Booking created successfully",
                 "booking_id": booking.id,
-                "success": True,
                 "total_amount": float(booking.total_amount),
                 "payment_method": request.data.get('payment_method')
             },
             status=status.HTTP_201_CREATED
         )
-
+        
+        
+        
+        
+        
 
 class BookingSuccessView(APIView):
     permission_classes = [IsAuthenticated]
@@ -401,6 +432,12 @@ class BookingSuccessView(APIView):
             "booking_type": booking.booking_type
         }
         return Response(data)
+
+
+
+
+
+
 
 
 class BookingHistoryView(APIView):
@@ -436,6 +473,12 @@ class BookingHistoryView(APIView):
             data.append(booking_info)
 
         return Response(data)
+
+
+
+
+
+
 
 
 class BookingDetailView(APIView):
@@ -474,6 +517,11 @@ class BookingDetailView(APIView):
             "booking_status": booking.status,
         }
         return Response(data)
+
+
+
+
+
 
 
 @api_view(['PATCH'])

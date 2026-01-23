@@ -90,8 +90,6 @@ class CreateStripeCheckoutSession(APIView):
             )
 
 
-
-
 class VerifyPayment(APIView):
     def post(self, request):
         session_id = request.data.get('session_id')
