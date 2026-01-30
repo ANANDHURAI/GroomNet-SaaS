@@ -1,7 +1,6 @@
 from django.db import models
 from authservice.models import User
 from adminsite.models import ServiceModel , Coupon
-from barbersite.models import BarberSlot
 from profileservice.models import Address
 from django.conf import settings
 
@@ -40,7 +39,12 @@ class Booking(models.Model):
         null=True, blank=True
     )
     service = models.ForeignKey(ServiceModel, on_delete=models.CASCADE)
-    slot = models.ForeignKey(BarberSlot, on_delete=models.CASCADE, null=True, blank=True)
+    slot = models.ForeignKey(
+        "barbersite.BarberSlot",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True
+    )
     coupon = models.ForeignKey(Coupon, on_delete=models.SET_NULL, null=True, blank=True)
     
     travel_status = models.CharField(max_length=20,choices=TRAVEL_STATUS_CHOICES,default="NOT_STARTED")
@@ -60,6 +64,7 @@ class Booking(models.Model):
     def __str__(self):
         barber_name = self.barber.name if self.barber else "No Barber Assigned"
         return f"{self.customer.name} - {self.service.name} - {barber_name}"
+
 
 class PaymentModel(models.Model):
     PAYMENT_METHODS = [
@@ -95,6 +100,10 @@ class PaymentModel(models.Model):
         return self.final_amount
 
 
+
+
+
+
 class CustomerWallet(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="user_wallet")
     amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
@@ -104,6 +113,11 @@ class CustomerWallet(models.Model):
     def __str__(self):
         return f"{self.user.name}'s Wallet - Balance: ₹{self.account_total_balance}"
 
+
+
+
+
+
 class CustomerWalletTransaction(models.Model):
     wallet = models.ForeignKey(CustomerWallet, on_delete=models.CASCADE, related_name="transactions")
     amount = models.DecimalField(max_digits=10, decimal_places=2)
@@ -112,6 +126,11 @@ class CustomerWalletTransaction(models.Model):
 
     def __str__(self):
         return f"₹{self.amount} on {self.created_at.strftime('%Y-%m-%d')} - {self.note or 'No note'}"
+
+
+
+
+
 
 class Complaints(models.Model):
     COMPLAINT_STATUS = [
@@ -142,6 +161,11 @@ class Complaints(models.Model):
 
     def __str__(self):
         return f"{self.complaint_name} ({self.user.name}) - {self.complaint_status}"
+
+
+
+
+
 
 class Rating(models.Model):
     RATING_CHOICES = [(i, i) for i in range(1, 6)]

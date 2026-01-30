@@ -2,9 +2,10 @@ import React, { useEffect, useState } from 'react';
 import apiClient from '../../slices/api/apiIntercepters';
 import { MessageCircle, Clock, AlertCircle, ChevronLeft } from 'lucide-react';
 import LoadingSpinner from '../../components/admincompo/LoadingSpinner';
-import { useNavigate, useLocation } from 'react-router-dom';
-import NotificationBadge from '../../components/notification/NotificationBadge';
-import { useNotifications } from '../../components/customHooks/useNotifications';
+import { useNavigate } from 'react-router-dom';
+import { useNotificationContext } from '../../contexts/NotificationContext';
+
+
 
 
 function Appointments() {
@@ -13,7 +14,7 @@ function Appointments() {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
-  const { bookingUnreadCounts } = useNotifications();
+  const { bookingUnreadCounts, totalUnreadCount, clearBookingUnreadCount } = useNotificationContext();
 
   const handleStartTravel = (bookingId) => {
     navigate(`/travel-status/${bookingId}`);
@@ -67,7 +68,7 @@ function Appointments() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 p-6">
       <div className="max-w-6xl mx-auto">
-        {/* Header */}
+       
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
             <button 

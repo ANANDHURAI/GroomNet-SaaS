@@ -33,17 +33,27 @@ urlpatterns = [
     path('categories/', CategoryListView.as_view(), name='categories'),
     path('services/', ServiceListView.as_view(), name='services'),
     path('barbers/', BarberListView.as_view(), name='barbers'),
+    
+    
     path('available-dates/', available_dates, name='available-dates'),
     path('available-slots/', AvailableSlotListView.as_view(), name='available-slots'),
+    
+    
     path('addresses/', AddressListCreateView.as_view(), name='addresses'),
+    
     path('booking-summary/', booking_summary, name='booking-summary'),
+    
     path('create-booking/', BookingCreateView.as_view(), name='create-booking'),
+    
+    
     path('booking-success/', BookingSuccessView.as_view()),
     path('booking-history/', BookingHistoryView.as_view()),
     path('booking-details/<int:pk>/', BookingDetailView.as_view()),
     path('booking/<int:booking_id>/update-travel-status/', update_travel_status, name="update_travel_status"),
     path('booking/<int:booking_id>/get-travel-status/',get_travel_status, name="get_travel_status"),
     path('booking/<int:booking_id>/', get_booking_details, name="get_booking_details"),
+    
+    
     path('wallet/', CustomerWalletView.as_view(), name="wallet_details"),
     path('booking/<int:booking_id>/cancel/', EmergencyCancel.as_view(), name="emergency_cancel"),
     path('ratings/', RatingListCreateView.as_view(), name='rating-list-create'),

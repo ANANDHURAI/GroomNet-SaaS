@@ -15,118 +15,94 @@ stripe.api_key = settings.STRIPE_SECRET_KEY
 
 class CreateStripeCheckoutSession(APIView):
     def post(self, request, *args, **kwargs):
+        booking_id = request.data.get("booking_id")
+        booking = Booking.objects.get(id=booking_id)
+        payment = PaymentModel.objects.get(booking=booking)
+
+        capture_method = 'manual' if booking.booking_type == 'INSTANT_BOOKING' else 'automatic'
+
+        success_url = f"{settings.BASE_APP_URL}/booking-success?session_id={{CHECKOUT_SESSION_ID}}"
+        cancel_url = f"{settings.BASE_APP_URL}/payment-cancelled"
+
         try:
-            booking_id = request.data.get("booking_id")
-
-            if not booking_id:
-                return Response(
-                    {"error": "booking_id is required"},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-
-            booking = get_object_or_404(
-                Booking, id=booking_id, customer=request.user)
-            payment = PaymentModel.objects.get(booking=booking)
-
-            total_amount = payment.final_amount
-            unit_amount = int(total_amount * 100)
-
-            if unit_amount <= 0:
-                return Response(
-                    {"error": "Invalid payment amount"},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-
-            barber_name = "Barber"
-            if hasattr(booking.barber, 'name') and booking.barber.name:
-                barber_name = booking.barber.name
-
-            description = f"Booking with {barber_name} - Service: {booking.service.name}"
-            if payment.discount > 0:
-                description += f" (Discount Applied: ₹{payment.discount})"
-
-            # Use settings.BASE_APP_URL instead of hardcoding
-            success_url = f"{settings.BASE_APP_URL}/booking-success?session_id={{CHECKOUT_SESSION_ID}}"
-            cancel_url = f"{settings.BASE_APP_URL}/payment-cancelled"
-
-            checkout_session = stripe.checkout.Session.create(
+            session = stripe.checkout.Session.create(
                 payment_method_types=['card'],
                 line_items=[{
                     'price_data': {
                         'currency': 'inr',
-                        'unit_amount': unit_amount,
+                        'unit_amount': int(payment.final_amount * 100),
                         'product_data': {
-                            'name': booking.service.name,
-                            'description': description,
+                            'name': f"{booking.service.name} ({booking.booking_type.replace('_', ' ')})",
                         },
                     },
                     'quantity': 1,
                 }],
                 mode='payment',
+                payment_intent_data={
+                    'capture_method': capture_method, 
+                    'metadata': {
+                        'booking_id': str(booking.id),
+                        'booking_type': booking.booking_type
+                    }
+                },
                 success_url=success_url,
                 cancel_url=cancel_url,
                 metadata={
                     "booking_id": str(booking.id),
-                    "customer_id": str(request.user.id),
-                    "payment_id": str(payment.id),
+                    "booking_type": booking.booking_type
                 }
             )
-
+            
             return Response({
-                "sessionId": checkout_session.id,
-                "stripe_public_key": settings.STRIPE_PUBLISHABLE_KEY,
-                "url": checkout_session.url,
-                "amount": float(total_amount),
-                "original_amount": float(payment.service_amount + payment.platform_fee),
-                "discount": float(payment.discount),
-                "currency": "INR"
+                "sessionId": session.id,
+                "stripe_public_key": settings.STRIPE_PUBLISHABLE_KEY
             })
-
         except Exception as e:
-            logger.error(f"Stripe error: {str(e)}")
-            return Response(
-                {"error": "Payment service error"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
-
+            return Response({"error": str(e)}, status=500)
+        
+        
+        
 
 class VerifyPayment(APIView):
     def post(self, request):
         session_id = request.data.get('session_id')
-        if not session_id:
-            return Response({"error": "session_id is required"}, status=400)
-
         try:
             session = stripe.checkout.Session.retrieve(session_id)
-            if session.payment_status == 'paid':
-                booking_id = session.metadata.get("booking_id")
-
+            booking_id = session.metadata.get("booking_id")
+            
+            if session.payment_status == 'paid' or session.payment_status == 'unpaid': 
+               
                 with transaction.atomic():
                     booking = Booking.objects.get(id=booking_id)
-                    booking.is_payment_done = True
-                    booking.save()
-
-                    payment = PaymentModel.objects.filter(
-                        booking=booking).first()
-                    if payment:
-                        payment.transaction_id = session.id
+                    payment = PaymentModel.objects.get(booking=booking)
+                    
+                    payment.transaction_id = session.payment_intent
+                    payment.payment_method = 'STRIPE'
+                    
+                    if booking.booking_type == 'SCHEDULE_BOOKING':
+                        
+                        booking.status = 'CONFIRMED'
+                        booking.is_payment_done = True
                         payment.payment_status = 'SUCCESS'
-                        payment.payment_method = 'STRIPE'
-                        payment.save()
+                        self.add_to_admin_wallet(payment.total_amount, booking.id)
+                    else:
+                       
+                        booking.status = 'PENDING'
+                        booking.is_payment_done = False
+                        payment.payment_status = 'PENDING' 
+                    
+                    booking.save()
+                    payment.save()
 
-                        self.add_to_admin_wallet(
-                            payment.total_amount, booking_id)
-
-                        logger.info(
-                            f"Payment verified and admin wallet updated for booking {booking_id}")
-
-                return Response({"message": "Payment verified and booking updated."})
-            else:
-                return Response({"message": "Payment not completed yet."}, status=202)
+                return Response({
+                    "booking_id": booking.id,
+                    "booking_type": booking.booking_type,
+                    "status": "verified"
+                })
         except Exception as e:
-            logger.error(f"Error in payment verification: {str(e)}")
             return Response({"error": str(e)}, status=500)
-
+    
+    
     def add_to_admin_wallet(self, amount, booking_id=None):
         try:
             admin_wallet, _ = AdminWallet.objects.get_or_create(

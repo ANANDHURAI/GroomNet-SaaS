@@ -402,6 +402,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         await self.send_total_unread_update(user_id)
 
 
+
 class NotificationConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         query_string = self.scope.get('query_string', b'').decode()
@@ -418,15 +419,19 @@ class NotificationConsumer(AsyncWebsocketConsumer):
                 
                 if user_id:
                     self.user = await database_sync_to_async(User.objects.get)(id=user_id)
+                 
                     self.group_name = f'notifications_{user_id}'
-                    
-                    await self.channel_layer.group_add(
-                        self.group_name,
-                        self.channel_name
-                    )
+                    await self.channel_layer.group_add(self.group_name, self.channel_name)
+
+                    if self.user.user_type == 'barber':
+                        self.booking_group_name = f'barber_{user_id}'
+                    else:
+                        self.booking_group_name = f'customer_{user_id}'
+
+                    await self.channel_layer.group_add(self.booking_group_name, self.channel_name)
                     
                     await self.accept()
-                    print(f"Notification WebSocket connected for user {user_id}")
+                    print(f"✅ Notification Socket: User {user_id} ({self.user.user_type}) joined {self.group_name} & {self.booking_group_name}")
                     return
                         
             except Exception as e:
@@ -436,16 +441,70 @@ class NotificationConsumer(AsyncWebsocketConsumer):
 
     async def disconnect(self, close_code):
         if hasattr(self, 'group_name'):
-            await self.channel_layer.group_discard(
-                self.group_name,
-                self.channel_name
-            )
+            await self.channel_layer.group_discard(self.group_name, self.channel_name)
+        if hasattr(self, 'booking_group_name'):
+            await self.channel_layer.group_discard(self.booking_group_name, self.channel_name)
 
     async def notification_update(self, event):
+        await self.send(text_data=json.dumps(event))
+
+    async def new_booking_request(self, event):
         await self.send(text_data=json.dumps({
-            'type': event['update_type'],
-            'total_count': event.get('total_count'),
-            'booking_counts': event.get('booking_counts'),
-            'booking_id': event.get('booking_id'),
-            'unread_count': event.get('unread_count')
+            "type": "new_booking_request",
+            "booking_id": event["booking_id"],
+            "service": event["service"],
+            "customer_name": event["customer_name"],
+            "customer_id": event["customer_id"],
+            "address": event["address"],
+            "total_amount": event["total_amount"],
+            "barber_image": event.get("barber_image"),
         }))
+
+    async def service_request(self, event):
+        await self.send(text_data=json.dumps({
+            "type": "service_request",
+            "subtype": event["subtype"],
+            "booking_id": event["booking_id"]
+        }))
+
+    async def service_response(self, event):
+        await self.send(text_data=json.dumps({
+            "type": "service_response",
+            "subtype": event["subtype"],
+            "response": event["response"]
+        }))
+
+    async def booking_completed(self, event):
+        await self.send(text_data=json.dumps({
+            "type": "booking_completed",
+            "booking_id": event["booking_id"],
+            "message": "Service completed successfully"
+        }))
+
+    async def booking_accepted(self, event):
+        await self.send(text_data=json.dumps({
+            "type": "booking_accepted",
+            "booking_id": event["booking_id"],
+            "barber_details": event.get("barber_details")
+        }))
+
+    async def booking_cancelled(self, event):
+        await self.send(text_data=json.dumps({
+            "type": "booking_cancelled",
+            "message": event["message"]
+        }))
+    
+    async def travel_update(self, event):
+        await self.send(text_data=json.dumps({
+            "type": "travel_update",
+            "booking_id": event["booking_id"],
+            "travel_status": event["travel_status"]
+        }))
+    
+    async def remove_booking(self, event):
+        await self.send(text_data=json.dumps({
+            "type": "remove_booking",
+            "booking_id": event["booking_id"],
+            "message": event["message"]
+        }))  
+        

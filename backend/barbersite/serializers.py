@@ -4,6 +4,8 @@ from adminsite.serializers import ServiceSerializer
 from .models import BarberSlot, BarberSlotBooking, BarberWallet, WalletTransaction, Portfolio, BarberService
 
 
+
+
 class BarberSlotSerializer(serializers.ModelSerializer):
     class Meta:
         model = BarberSlot

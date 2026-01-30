@@ -49,7 +49,7 @@ const GlobalBookingNotifier = ({
     navigate('/instant-booking/');
   };
 
-  if (!isVisible || !currentBooking) {
+  if (!currentBooking) {
     return null;
   }
 

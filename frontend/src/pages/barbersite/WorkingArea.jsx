@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Power } from 'lucide-react';
 import apiClient from '../../slices/api/apiIntercepters';
 import BarberSidebar from '../../components/barbercompo/BarberSidebar';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -26,8 +25,7 @@ const WorkingArea = () => {
   } = useBooking();
 
   const barberId = sessionStorage.getItem('barber_id');
-
-  const shouldShowNotification = activeTab === 'scheduled';
+  const showGlobalNotifier = currentBooking?.status === 'PENDING' && activeTab !== 'instant';
 
   useEffect(() => {
     if (!barberId) {
@@ -96,14 +94,15 @@ const WorkingArea = () => {
 
   return (
     <div className="flex flex-col lg:flex-row min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-      {shouldShowNotification && currentBooking?.status === 'PENDING' && (
+      
+      {showGlobalNotifier && (
         <GlobalBookingNotifier
           currentBooking={currentBooking}
           notification={globalNotification}
           setNotification={setGlobalNotification}
           navigate={navigate}
           location={location}
-          isOnWorkingAreaPage={false} 
+          isOnWorkingAreaPage={false}
           onAccept={handleGoToInstantBooking} 
           onViewDetails={handleGoToInstantBooking} 
         />
@@ -115,13 +114,13 @@ const WorkingArea = () => {
       
       <main className="flex-1 p-6">
         <div className="max-w-6xl mx-auto">
-          {/* Header Card */}
+          
           <div className="bg-white rounded-2xl shadow-sm border border-slate-200 mb-6 overflow-hidden">
             <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-6">
               <h1 className="text-2xl font-bold text-white">Manage your Bookings</h1>
             </div>
             
-            {/* Tab Navigation */}
+            
             <div className="flex bg-slate-50">
               <button
                 className={`flex-1 py-4 px-6 font-semibold text-sm transition-all duration-200 relative ${
@@ -132,6 +131,7 @@ const WorkingArea = () => {
                 onClick={() => handleTabChange('instant')}
               >
                 <span>Instant Booking</span>
+                
                 {currentBooking?.status === 'PENDING' && activeTab !== 'instant' && (
                   <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center animate-pulse">
                     <span className="text-white text-xs font-bold">!</span>
@@ -153,17 +153,16 @@ const WorkingArea = () => {
             </div>
           </div>
 
-          {/* Notification Alert */}
           {notification && (
-            <div className="bg-blue-500 text-white p-4 rounded-xl shadow-lg mb-6 border-l-4 border-blue-600">
+            <div className="bg-blue-50 text-white p-4 rounded-xl shadow-lg mb-6 border-l-4 border-blue-600">
               <div className="flex items-center">
                 <div className="w-2 h-2 bg-white rounded-full mr-3 animate-pulse"></div>
-                <p className="font-medium">{notification}</p>
+                <p className="font-medium text-blue-900">{notification}</p>
               </div>
             </div>
           )}
 
-          {/* Pending Booking Alert for Scheduled Tab */}
+          
           {activeTab === 'scheduled' && currentBooking?.status === 'PENDING' && (
             <div className="bg-gradient-to-r from-amber-400 to-orange-500 text-white p-6 rounded-2xl shadow-xl mb-6 border border-orange-200">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -188,7 +187,7 @@ const WorkingArea = () => {
             </div>
           )}
 
-          {/* Content Area */}
+         
           <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
             {activeTab === 'instant' ? (
               <InstantBookingTab

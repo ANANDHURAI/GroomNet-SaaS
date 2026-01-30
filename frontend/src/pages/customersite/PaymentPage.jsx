@@ -52,86 +52,56 @@ function PaymentPage() {
   }, []);
 
   const handlePaymentMethod = async () => {
-    setLoading(true);
-    setError(null);
-
-    if (!bookingData.selectedServiceId || !bookingData.selectedAddressId) {
-      setError("Missing required booking information. Please go back and complete all steps.");
-      setLoading(false);
-      return;
-    }
-
-    try {
-      const bookingPayload = {
-        service: bookingData.selectedServiceId,
-        barber: bookingData.selectedBarberId,
-        slot: bookingData.selectedSlotId,
-        address: bookingData.selectedAddressId,
-        payment_method: method,
-        booking_type: bookingType
-      };
-      if (couponCode && couponCode.trim()) {
-        bookingPayload.coupon_code = couponCode.trim();
-      }
-
-      console.log('Creating booking with payload:', bookingPayload);
-
-      const bookingRes = await apiClient.post('/customersite/create-booking/', bookingPayload);
-
-      const bookingId = bookingRes.data.booking_id;
-      sessionStorage.setItem('instantBookingId', bookingId);
-
-      if (method === "COD" || method === "WALLET") {
-        setTimeout(() => {
-          navigate('/booking-success');
-        }, 2000);
-        return;
-      }
-
-      if (method === "STRIPE") {
-        const stripeSessionRes = await apiClient.post('/payment-service/create-checkout-session/', {
-          booking_id: bookingId
-        });
-
-        const { sessionId, stripe_public_key } = stripeSessionRes.data;
-        const stripe = await loadStripe(stripe_public_key);
-        await stripe.redirectToCheckout({ sessionId });
-      }
-
-    } catch (error) {
-      console.error('Booking error:', error);
+      setLoading(true);
       
-      if (error.response?.data) {
-        const errorData = error.response.data;
-  
-        if (error.response.status === 400) {
-          if (errorData.coupon_code) {
-            setError(`Coupon Error: ${errorData.coupon_code[0] || errorData.coupon_code}`);
-          } else if (errorData.payment_method) {
-            setError(`Payment Error: ${errorData.payment_method[0] || errorData.payment_method}`);
-          } else if (errorData.detail) {
-            setError(errorData.detail);
-          } else if (typeof errorData === 'string') {
-            setError(errorData);
-          } else {
-            setError("Booking validation failed. Please check your details.");
-          }
-        } 
+      try {
+        const payload = {
+          service: bookingData.selectedServiceId,
+          address: bookingData.selectedAddressId,
+          payment_method: method,
+          booking_type: bookingType, 
+          coupon_code: couponCode
+        };
+
         
-        else if (errorData.error) {
-          setError(errorData.error);
-        } else if (errorData.detail) {
-          setError(errorData.detail);
-        } else {
-          setError("Something went wrong while processing your booking.");
+        if (bookingType === "SCHEDULE_BOOKING") {
+          payload.barber = bookingData.selectedBarberId;
+          payload.slot = bookingData.selectedSlotId;
         }
-      } else {
-        setError("Network error. Please check your connection and try again.");
-      }
+
+       
+        const res = await apiClient.post('/customersite/create-booking/', payload);
+        const { booking_id } = res.data;
+        
+        
+        sessionStorage.setItem('instantBookingId', booking_id);
+
       
-      setLoading(false);
-    }
-  };
+        if (method === "STRIPE") {
+          const sessionRes = await apiClient.post('/payment-service/create-checkout-session/', {
+            booking_id: booking_id
+          });
+          const stripe = await loadStripe(sessionRes.data.stripe_public_key);
+          await stripe.redirectToCheckout({ sessionId: sessionRes.data.sessionId });
+        } 
+        else {
+        
+          if (bookingType === "INSTANT_BOOKING") {
+           
+            navigate(`/find-barbers?booking_id=${booking_id}`);
+          } else {
+            
+            navigate('/booking-success');
+          }
+        }
+
+      } catch (err) {
+        console.error(err);
+        setError(err.response?.data?.error || "Booking failed");
+      } finally {
+        setLoading(false);
+      }
+    };
 
   const hasAllData = bookingData.selectedServiceId && bookingData.selectedAddressId;
 

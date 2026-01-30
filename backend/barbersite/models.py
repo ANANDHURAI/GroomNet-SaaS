@@ -1,7 +1,7 @@
 from django.db import models
 from authservice.models import User
-from adminsite.models import CategoryModel, ServiceModel
-
+from adminsite.models import ServiceModel
+from customersite.models import Booking
 
 class BarberService(models.Model):
     barber = models.ForeignKey(
@@ -25,10 +25,20 @@ class BarberSlot(models.Model):
     start_time = models.TimeField()
     end_time = models.TimeField()
     is_booked = models.BooleanField(default=False)
+    
+    def is_slot_available(barber, slot):
+        active_instant = Booking.objects.filter(
+            barber=barber, 
+            booking_type="INSTANT_BOOKING", 
+            status="CONFIRMED"
+        ).exists()
+        if active_instant:
+            return False 
 
     def __str__(self):
         return f"{self.barber.name} | {self.date} | {self.start_time}-{self.end_time}"
-
+    
+    
 
 class BarberSlotBooking(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)

@@ -109,9 +109,7 @@ class ChatMessagesView(APIView):
 
         serializer = ChatMessageSerializer(message, context={'request': request})
         return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-
-    
+  
 
 
 @api_view(['GET'])

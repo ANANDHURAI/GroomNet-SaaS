@@ -1,8 +1,8 @@
-import React from 'react';
+
 import { Scissors, User, Bell } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import NotificationBadge from '../../components/notification/NotificationBadge';
-import { useNotifications } from '../../components/customHooks/useNotifications';
+import { useNotificationContext } from '../../contexts/NotificationContext';
 import { useSelector } from "react-redux";
 
 function Navbar() {
@@ -10,7 +10,7 @@ function Navbar() {
   const registerUser = useSelector(state => state.register?.user);
   const currentUser = user || registerUser;
 
-  const { totalUnreadCount } = useNotifications();
+  const { totalUnreadCount } = useNotificationContext();
   const rawImage = currentUser?.profile_image || currentUser?.profileimage;
 
 

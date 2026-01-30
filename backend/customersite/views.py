@@ -1,5 +1,4 @@
 from .serializer import CustomerTransactionSerializer
-from rest_framework import generics, permissions, serializers
 from rest_framework import generics, permissions, status
 from .models import Rating
 from adminsite.models import Coupon
@@ -38,7 +37,10 @@ from profileservice.serializers import AddressSerializer
 from authservice.models import User
 from .models import Booking, CustomerWallet, Complaints, CustomerWalletTransaction
 logger = logging.getLogger(__name__)
-from rest_framework.exceptions import ValidationError
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
+
+
 
 class Home(APIView):
     permission_classes = [IsAuthenticated]
@@ -344,70 +346,68 @@ def booking_summary(request):
 
 
 
+from .models import PaymentModel
 
-
-
-
-
-class BookingCreateView(generics.CreateAPIView):
+class BookingCreateView(APIView):
     permission_classes = [IsAuthenticated]
-    serializer_class = BookingCreateSerializer
 
-    def create(self, request, *args, **kwargs):
-        booking_type = request.data.get('booking_type') or request.session.get('booking_type')
-
-        if not booking_type:
-            return Response(
-                {"detail": "Booking type is missing. Please try again."},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        serializer = self.get_serializer(data=request.data)
+    def post(self, request):
+        serializer = BookingCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        try:
-            with transaction.atomic():
-                booking = serializer.save()
+        data = serializer.validated_data
+        user = request.user
 
-        except ValidationError as e:
-            # Clean rollback + friendly message
-            return Response(
-                {
-                    "success": False,
-                    "detail": e.detail if hasattr(e, "detail")
-                    else "Booking failed. Please try again."
-                },
-                status=status.HTTP_400_BAD_REQUEST
+        with transaction.atomic():
+           
+            coupon = data.pop("coupon", None)
+            
+            booking = Booking.objects.create(
+                customer=user,
+                service=data["service"],
+                address=data["address"],
+                barber=data.get("barber"),
+                slot=data.get("slot"),
+                coupon=coupon, 
+                booking_type=data["booking_type"],
+                total_amount=data["total_amount"],
+                status="PENDING",
+                is_payment_done=False
             )
 
-        except Exception:
-            # Any unexpected failure → rollback
-            logger.exception("Booking creation failed")
-            return Response(
-                {
-                    "success": False,
-                    "detail": "Something went wrong while creating your booking. Please try again."
-                },
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            
+            discount = Decimal('0.00')
+            if coupon:
+                original_amount = data["service"].price + (data["service"].price * Decimal('0.05'))
+                discount = coupon.get_discount_amount(original_amount)
+
+            payment = PaymentModel.objects.create(
+                booking=booking,
+                payment_method=data["payment_method"],
+                payment_status="PENDING",
+                service_amount=data["service"].price,
+                platform_fee=data["service"].price * Decimal('0.05'),
+                discount=discount,
+                final_amount=data["total_amount"],
             )
 
-        logger.info(f"Booking created successfully: {booking.id}")
+           
+            if booking.booking_type == "SCHEDULE_BOOKING":
+                booking.status = "CONFIRMED"
+                booking.is_payment_done = True
+                payment.payment_status = "SUCCESS"
+                booking.service_started_at = booking.slot.start_time
+                booking.save()
+                payment.save()
 
-        return Response(
-            {
-                "success": True,
-                "detail": "Booking created successfully",
-                "booking_id": booking.id,
-                "total_amount": float(booking.total_amount),
-                "payment_method": request.data.get('payment_method')
-            },
-            status=status.HTTP_201_CREATED
-        )
+        return Response({
+            "booking_id": booking.id,
+            "booking_type": booking.booking_type,
+            "status": booking.status
+        }, status=201)
+
         
-        
-        
-        
-        
+    
 
 class BookingSuccessView(APIView):
     permission_classes = [IsAuthenticated]
@@ -436,10 +436,6 @@ class BookingSuccessView(APIView):
 
 
 
-
-
-
-
 class BookingHistoryView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -464,9 +460,17 @@ class BookingHistoryView(APIView):
                     "date": str(b.slot.date) if b.slot else "N/A",
                 })
             else:
+              
+                if b.status == "CONFIRMED" and b.barber:
+                    barber_name = b.barber.name
+                elif b.status == "CANCELLED":
+                    barber_name = "No Barber Found"
+                else:
+                    barber_name = "Searching..." 
+
                 booking_info.update({
-                    "barbername": "No barber assigned",
-                    "slottime": "N/A",
+                    "barbername": barber_name,
+                    "slottime": "Instant",
                     "date": str(b.created_at.date()),
                 })
 
@@ -477,35 +481,48 @@ class BookingHistoryView(APIView):
 
 
 
-
-
-
-
 class BookingDetailView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, pk):
         try:
             booking = Booking.objects.get(pk=pk, customer=request.user)
+            is_rated = getattr(booking, 'rating', None) is not None or Rating.objects.filter(booking=booking, user=request.user).exists()
+            has_complaint = hasattr(booking, 'complaint')
+            
+            
         except Booking.DoesNotExist:
             return Response({"detail": "Booking not found"}, status=status.HTTP_404_NOT_FOUND)
 
         payment = getattr(booking, 'payment', None)
 
-        if booking.slot:
-            slottime = f"{booking.slot.start_time} - {booking.slot.end_time}"
+        if booking.booking_type == "SCHEDULE_BOOKING" and booking.slot:
+           
+            slottime = f"{booking.slot.start_time.strftime('%I:%M %p')} - {booking.slot.end_time.strftime('%I:%M %p')}"
+            date = str(booking.slot.date)
             start_time = str(booking.slot.start_time)
             end_time = str(booking.slot.end_time)
-            date = str(booking.slot.date)
         else:
-            slottime = "N/A"
-            start_time = "N/A"
-            end_time = "N/A"
+
+            created_time = booking.created_at.strftime("%I:%M %p")
+            slottime = f"Booked at {created_time}"
+            
+            
+            start_time = str(booking.service_started_at.time()) if booking.service_started_at else str(booking.created_at.time())
+            end_time = "N/A" 
             date = str(booking.created_at.date())
+
+        if booking.barber:
+            barber_name = booking.barber.name
+        elif booking.status == "CANCELLED":
+            barber_name = "Booking Cancelled - No Barber"
+        else:
+            barber_name = "Searching for Barber..."
+
         data = {
             "orderid": booking.id,
             "name": booking.customer.name,
-            "barbername": booking.barber.name if booking.barber else "Unassigned",
+            "barbername": barber_name,
             "slottime": slottime,
             "start_time": start_time,
             "end_time": end_time,
@@ -513,13 +530,12 @@ class BookingDetailView(APIView):
             "service": booking.service.name,
             "booking_type": booking.booking_type,
             "total_amount": str(booking.total_amount),
+            "is_rated": is_rated,
+            "has_complaint": has_complaint,
             "payment_method": payment.payment_method if payment else "N/A",
             "booking_status": booking.status,
         }
         return Response(data)
-
-
-
 
 
 
@@ -536,6 +552,17 @@ def update_travel_status(request, booking_id):
 
         booking.travel_status = new_status
         booking.save()
+
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            f"customer_{booking.customer.id}",
+            {
+                "type": "travel_update", 
+                "booking_id": booking.id,
+                "travel_status": new_status
+            }
+        )
+
         return Response({"message": "Travel status updated.", "travel_status": booking.travel_status})
     except Booking.DoesNotExist:
         return Response({"error": "Booking not found or not assigned to you."}, status=404)
@@ -595,37 +622,30 @@ class CustomerWalletView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+
 class EmergencyCancel(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, booking_id):
         try:
             with transaction.atomic():
-                booking = get_object_or_404(
-                    Booking, id=booking_id, customer=request.user)
+                booking = get_object_or_404(Booking, id=booking_id, customer=request.user)
 
                 if booking.status in ['CANCELLED', 'COMPLETED']:
-                    return Response({'error': 'This booking has already been cancelled or completed'},
-                                    status=status.HTTP_400_BAD_REQUEST)
+                    return Response({'error': 'Booking already processed'}, status=400)
 
                 if booking.travel_status in ['ALMOST_NEAR', 'ARRIVED']:
-                    return Response({'error': "You can't cancel this booking because the barber is almost at or has reached your location"},
-                                    status=status.HTTP_400_BAD_REQUEST)
+                    return Response({'error': "Cannot cancel: Barber is too close."}, status=400)
 
                 fine_percentage = Decimal('0.10')
                 fine_amount = booking.total_amount * fine_percentage
-
                 payment = booking.payment
                 payment_method = payment.payment_method if payment else None
-                service_amount = payment.final_amount if payment else booking.total_amount
-                platform_fee = payment.platform_fee if payment else Decimal(
-                    '0.00')
-                discount = payment.discount if payment else Decimal('0.00')
+                
+                wallet, _ = CustomerWallet.objects.get_or_create(user=request.user)
+                admin_wallet, _ = AdminWallet.objects.get_or_create(id=1, defaults={'total_earnings': Decimal('0.00')})
 
-                wallet, _ = CustomerWallet.objects.get_or_create(
-                    user=request.user)
-                admin_wallet, _ = AdminWallet.objects.get_or_create(
-                    id=1, defaults={'total_earnings': Decimal('0.00')})
+                refund_amount = Decimal('0.00')
 
                 if payment_method != 'COD':
                     refund_amount = booking.total_amount - fine_amount
@@ -635,58 +655,48 @@ class EmergencyCancel(APIView):
                     admin_wallet.total_earnings -= refund_amount
                     admin_wallet.save()
 
-                    AdminWalletTransaction.objects.create(
-                        wallet=admin_wallet,
-                        amount=-refund_amount,
-                        note=f"Booking #{booking.id} - Refund issued to customer for emergency cancel"
-                    )
-
                     CustomerWalletTransaction.objects.create(
-                        wallet=wallet,
-                        amount=refund_amount,
-                        note=f"Refund of ₹{refund_amount} for cancelled Booking #{booking.id} (Emergency)"
+                        wallet=wallet, amount=refund_amount, 
+                        note=f"Refund (Emergency Cancel) #{booking.id}"
                     )
-
                     CustomerWalletTransaction.objects.create(
-                        wallet=wallet,
-                        amount=-fine_amount,
-                        note=f"Fine ₹{fine_amount} for cancelled Booking #{booking.id}"
+                        wallet=wallet, amount=-fine_amount, 
+                        note=f"Cancellation Fine #{booking.id}"
                     )
-
                 else:
-
+                   
                     CustomerWalletTransaction.objects.create(
-                        wallet=wallet,
-                        amount=-fine_amount,
-                        note=f"Fine ₹{fine_amount} for cancelled Booking #{booking.id} (COD)"
+                        wallet=wallet, amount=-fine_amount, 
+                        note=f"Cancellation Fine (COD) #{booking.id}"
                     )
 
-                    if discount > 0:
-                        admin_wallet.total_earnings += discount
-                        admin_wallet.save()
-
-                        AdminWalletTransaction.objects.create(
-                            wallet=admin_wallet,
-                            amount=discount,
-                            note=f"Discount recovery for cancelled COD Booking #{booking.id}"
-                        )
+               
                 if booking.barber:
-                    barber_wallet, _ = BarberWallet.objects.get_or_create(
-                        barber=booking.barber)
+                    barber_wallet, _ = BarberWallet.objects.get_or_create(barber=booking.barber)
                     barber_wallet.balance += fine_amount
                     barber_wallet.save()
-
                     WalletTransaction.objects.create(
-                        wallet=barber_wallet,
-                        amount=fine_amount,
-                        note=f"Fine received from emergency cancel of booking #{booking.id}"
+                        wallet=barber_wallet, amount=fine_amount, 
+                        note=f"Fine received: Cancelled Booking #{booking.id}"
                     )
 
                 booking.status = 'CANCELLED'
                 booking.save()
+                
+                if payment:
+                    payment.payment_status = 'REFUNDED' if payment_method != 'COD' else 'CANCELLED'
+                    payment.save()
 
-                refund_amount = payment.final_amount - \
-                    fine_amount if payment_method != 'COD' else Decimal('0.00')
+                if booking.barber:
+                    channel_layer = get_channel_layer()
+                    async_to_sync(channel_layer.group_send)(
+                        f"barber_{booking.barber.id}",
+                        {
+                            "type": "booking_cancelled",
+                            "booking_id": booking.id,
+                            "message": "Customer cancelled the booking."
+                        }
+                    )
 
                 return Response({
                     'message': 'Booking cancelled successfully!',
@@ -695,15 +705,14 @@ class EmergencyCancel(APIView):
                     'wallet_balance': str(wallet.account_total_balance)
                 }, status=status.HTTP_200_OK)
 
-        except Booking.DoesNotExist:
-            return Response({'error': 'Booking not found'}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
-            return Response({'error': f'An error occurred: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({'error': f'Error: {str(e)}'}, status=500)
+        
 
 
 class RatingListCreateView(generics.ListCreateAPIView):
     serializer_class = RatingSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         booking_id = self.request.query_params.get('booking')
@@ -712,8 +721,7 @@ class RatingListCreateView(generics.ListCreateAPIView):
         queryset = Rating.objects.all()
 
         if booking_id:
-            queryset = queryset.filter(
-                booking_id=booking_id, user=self.request.user)
+            queryset = queryset.filter(booking_id=booking_id, user=self.request.user)
         elif barber_id:
             queryset = queryset.filter(barber_id=barber_id)
         else:
@@ -723,6 +731,10 @@ class RatingListCreateView(generics.ListCreateAPIView):
 
     def perform_create(self, serializer):
         booking = serializer.validated_data['booking']
+      
+        if Rating.objects.filter(booking=booking, user=self.request.user).exists():
+            raise ValueError("You have already rated this booking.")
+
         serializer.save(
             user=self.request.user,
             barber=booking.barber
@@ -731,19 +743,19 @@ class RatingListCreateView(generics.ListCreateAPIView):
     def create(self, request, *args, **kwargs):
         try:
             return super().create(request, *args, **kwargs)
+        except ValueError as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            return Response(
-                {'error': str(e)},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
 
 
 class CreateComplaintView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, booking_id):
-        booking = get_object_or_404(
-            Booking, id=booking_id, customer=request.user)
+        booking = get_object_or_404(Booking, id=booking_id, customer=request.user)
 
         if hasattr(booking, 'complaint'):
             return Response({"detail": "Complaint already submitted for this booking."}, status=400)
@@ -753,8 +765,9 @@ class CreateComplaintView(APIView):
             serializer.save(user=request.user, booking=booking)
             return Response(serializer.data, status=201)
         return Response(serializer.errors, status=400)
-
-
+    
+    
+    
 class CustomerWalletTransactionHistoryView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -767,6 +780,7 @@ class CustomerWalletTransactionHistoryView(APIView):
             wallet=wallet).order_by('-created_at')
         serializer = CustomerTransactionSerializer(transactions, many=True)
         return Response({'history': serializer.data})
+
 
 
 class CustomerComplaintsListView(APIView):

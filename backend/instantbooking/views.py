@@ -12,24 +12,43 @@ from django.utils import timezone
 from datetime import timedelta
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
-from customersite.models import Booking
+from customersite.models import Booking, CustomerWallet, CustomerWalletTransaction
 from .serializers import (
     BarberActionSerializer,
 )
+
 from django.conf import settings
 from urllib.parse import urljoin
 import logging
-from decimal import Decimal
 logger = logging.getLogger("django")
 User = get_user_model()
+import time
+import stripe
+from django.conf import settings
 
+stripe.api_key = settings.STRIPE_SECRET_KEY
+from django.db.models import Q
 
+    
 class BookingMixin:
     @staticmethod
     def has_active_instant_booking(barber):
         return Booking.objects.filter(
             barber=barber,
-            booking_type=["INSTANT_BOOKING", "SCHEDULE_BOOKING"],
+            booking_type__in=["INSTANT_BOOKING", "SCHEDULE_BOOKING"],
+            status__in=["PENDING", "CONFIRMED"]
+        ).exists()
+        
+        
+    BUFFER_MINUTES = 30 
+
+    @staticmethod
+    def is_barber_busy(barber):
+        """
+        Check if barber is currently in an active session.
+        """
+        return Booking.objects.filter(
+            barber=barber,
             status__in=["PENDING", "CONFIRMED"]
         ).exists()
 
@@ -58,16 +77,17 @@ class BookingMixin:
         ).distinct()
 
         available_barbers = []
-
         for barber in potential_barbers:
+            
             if BookingMixin.has_active_instant_booking(barber):
                 continue
+          
             if BookingMixin.has_conflicting_scheduled_booking(barber):
                 continue
-
             available_barbers.append(barber)
-
         return available_barbers
+
+
 
 
 class MakingFindingBarberRequest(APIView, BookingMixin):
@@ -78,10 +98,13 @@ class MakingFindingBarberRequest(APIView, BookingMixin):
             booking = Booking.objects.get(
                 id=booking_id,
                 status="PENDING",
-                booking_type="INSTANT_BOOKING"
+                booking_type="INSTANT_BOOKING",
+                barber__isnull=True
             )
 
             available_barbers = self.get_available_barbers_for_booking(booking)
+           
+            print(f"🔍 Finding Barbers for Booking {booking.id}. Found: {[b.id for b in available_barbers]}")
 
             if not available_barbers:
                 return Response(
@@ -89,48 +112,44 @@ class MakingFindingBarberRequest(APIView, BookingMixin):
                     status=status.HTTP_404_NOT_FOUND
                 )
 
-            self._notify_barbers_new_booking(
-                request, booking, available_barbers)
+            self._notify_barbers_new_booking(request, booking, available_barbers)
 
-            return Response(
-                {
-                    "message": "Booking request sent to available barbers.",
-                    "barbers_notified": len(available_barbers)
-                },
-                status=status.HTTP_200_OK
-            )
+            return Response({
+                "message": "Booking request sent.",
+                "barbers_notified": len(available_barbers)
+            }, status=status.HTTP_200_OK)
 
         except Booking.DoesNotExist:
-            return Response(
-                {"error": "Booking not found or invalid status."},
-                status=status.HTTP_404_NOT_FOUND
-            )
+            return Response({"error": "Booking not found or invalid status."}, status=404)
 
     def _notify_barbers_new_booking(self, request, booking, barbers):
         channel_layer = get_channel_layer()
+        
+        image_url = None
+        if hasattr(booking.customer, 'profileimage') and booking.customer.profileimage:
+            image_url = request.build_absolute_uri(booking.customer.profileimage.url)
 
         for barber in barbers:
             group_name = f"barber_{barber.id}"
-            image_url = (
-                request.build_absolute_uri(barber.profileimage.url)
-                if barber.profileimage
-                else None
-            )
+            try:
+                async_to_sync(channel_layer.group_send)(
+                    group_name,
+                    {
+                        "type": "new_booking_request",
+                        "booking_id": booking.id,
+                        "service": booking.service.name,
+                        "customer_name": booking.customer.name,
+                        "customer_id": booking.customer.id, 
+                        "address": str(booking.address),
+                        "total_amount": str(booking.total_amount),
+                        "barber_image": image_url,
+                    }
+                )
+                logger.info(f"Notification sent to barber {barber.id}")
+            except Exception as e:
+                logger.error(f"Socket Error for barber {barber.id}: {str(e)}")
 
-            async_to_sync(channel_layer.group_send)(
-                group_name,
-                {
-                    "type": "new_booking_request",
-                    "booking_id": booking.id,
-                    "service": booking.service.name,
-                    "customer_name": booking.customer.name,
-                    "customer_id": booking.customer.id,
-                    "address": str(booking.address),
-                    "total_amount": str(booking.total_amount),
-                    "barber_image": image_url,
-                }
-            )
-            logger.info(f"Sent booking {booking.id} to barber {barber.id}")
+
 
 
 class DoggleStatusView(APIView, BookingMixin):
@@ -139,60 +158,57 @@ class DoggleStatusView(APIView, BookingMixin):
     def get(self, request, barber_id):
         try:
             barber = User.objects.get(id=barber_id, user_type='barber')
-
-            has_active_instant = self.has_active_instant_booking(barber)
-            has_upcoming_scheduled = self.has_conflicting_scheduled_booking(
-                barber)
-
             return Response({
                 'is_online': barber.is_online,
-                'has_active_instant_booking': has_active_instant,
-                'has_upcoming_scheduled_booking': has_upcoming_scheduled
+                'has_active_instant_booking': self.has_active_instant_booking(barber),
+                'has_upcoming_scheduled_booking': self.has_conflicting_scheduled_booking(barber)
             }, status=200)
-
         except User.DoesNotExist:
             return Response({'message': 'Barber not found'}, status=404)
 
     def post(self, request, barber_id):
         action = request.data.get('action')
-
         try:
-            barber = User.objects.get(id=barber_id, user_type='barber')
+           
+            with transaction.atomic():
+                barber = User.objects.select_for_update().get(id=barber_id, user_type='barber')
+                
+                if action == 'online':
+                    return self._handle_go_online(barber)
+                elif action == 'offline':
+                    return self._handle_go_offline(barber)
+                
+                return Response({'message': 'Invalid Action'}, status=status.HTTP_400_BAD_REQUEST)
+
         except User.DoesNotExist:
             return Response({'message': 'Barber not found'}, status=404)
-
-        if action == 'online':
-            return self._handle_go_online(barber)
-        elif action == 'offline':
-            return self._handle_go_offline(barber)
-        else:
-            return Response({'message': 'Invalid action provided.'}, status=400)
+        except Exception as e:
+            logger.error(f"Error in DoggleStatusView POST: {str(e)}") 
+            return Response({'message': 'Internal Server Error', 'details': str(e)}, status=500)
 
     def _handle_go_online(self, barber):
         if self.has_active_instant_booking(barber):
             return Response({
-                'message': 'You already have an active instant booking. Complete it before going online again.'
-            }, status=400)
+                'message': 'Finish your current booking before going online.'
+            }, status=status.HTTP_400_BAD_REQUEST)
 
         if self.has_conflicting_scheduled_booking(barber):
             return Response({
-                'message': 'You have a scheduled booking in the next 30 minutes. Cannot go online for instant bookings.'
-            }, status=400)
+                'message': 'Upcoming scheduled booking soon. Cannot go online for instant requests.'
+            }, status=status.HTTP_400_BAD_REQUEST)
 
         barber.is_online = True
         barber.save()
-        return Response({'message': 'Barber is now online.'}, status=200)
+        return Response({'message': 'You are now Online.', 'is_online': True}, status=200)
 
     def _handle_go_offline(self, barber):
-        if self.has_active_instant_booking(barber):
-            return Response({
-                'message': 'You cannot go offline while you have an active instant booking.'
-            }, status=400)
-
+        
         barber.is_online = False
         barber.save()
-        return Response({'message': 'Barber is now offline.'}, status=200)
-
+        return Response({'message': 'You are now Offline.', 'is_online': False}, status=200)
+    
+    
+    
 
 class ActiveBookingView(APIView):
     permission_classes = [IsAuthenticated]
@@ -205,19 +221,11 @@ class ActiveBookingView(APIView):
 
         active_instant_booking = Booking.objects.filter(
             barber=barber,
-            status__in=["PENDING", "CONFIRMED"],
+            status__in=["PENDING", "CONFIRMED"], 
             booking_type="INSTANT_BOOKING"
         ).order_by('-created_at').first()
-
-        now = timezone.now()
-        upcoming_scheduled = Booking.objects.filter(
-            barber=barber,
-            booking_type="SCHEDULE_BOOKING",
-            status__in=["PENDING", "CONFIRMED"],
-            service_started_at__gte=now,
-            service_started_at__lt=now + timedelta(hours=2)
-        ).order_by('service_started_at')[:3]
-
+        
+        
         response_data = {
             "active_instant_booking": None,
             "upcoming_scheduled_bookings": []
@@ -236,6 +244,17 @@ class ActiveBookingView(APIView):
                 },
                 "status": active_instant_booking.status
             }
+            
+        now = timezone.now()
+        
+        upcoming_scheduled = Booking.objects.filter(
+            barber=barber,
+            booking_type="SCHEDULE_BOOKING",
+            status__in=["PENDING", "CONFIRMED"],
+            service_started_at__gte=now,
+            service_started_at__lt=now + timedelta(hours=2)
+        ).order_by('service_started_at')[:3]
+        
 
         for booking in upcoming_scheduled:
             response_data["upcoming_scheduled_bookings"].append({
@@ -250,7 +269,9 @@ class ActiveBookingView(APIView):
         return Response(response_data, status=200)
 
 
-class HandleBarberActions(APIView, BookingMixin):
+
+
+class HandleBarberActions(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, barber_id, booking_id):
@@ -258,130 +279,108 @@ class HandleBarberActions(APIView, BookingMixin):
         serializer.is_valid(raise_exception=True)
         action = serializer.validated_data['action']
 
-        try:
-            barber = User.objects.get(id=barber_id, user_type='barber')
-        except User.DoesNotExist:
-            return Response({'error': 'Barber not found.'}, status=404)
+        barber = get_object_or_404(User, id=barber_id, user_type='barber')
 
         if action == 'accept':
-            return self._handle_accept_booking(barber, booking_id)
+            return self._handle_accept(barber, booking_id)
         elif action == 'reject':
-            return self._handle_reject_booking(barber, booking_id)
+            return self._handle_reject(barber, booking_id)
 
-    def _handle_accept_booking(self, barber, booking_id):
-
-        if self.has_active_instant_booking(barber):
-            return Response({
-                'error': 'You already have an active instant booking.'
-            }, status=400)
-
-        if self.has_conflicting_scheduled_booking(barber):
-            return Response({
-                'error': 'You have a conflicting scheduled booking.'
-            }, status=400)
-
+    
+    def _handle_accept(self, barber, booking_id):
         with transaction.atomic():
             try:
                 booking = Booking.objects.select_for_update().get(
                     id=booking_id,
-                    status='PENDING',
-                    barber__isnull=True,
-                    booking_type="INSTANT_BOOKING"
+                    status="PENDING",
+                    booking_type="INSTANT_BOOKING",
+                    barber__isnull=True
                 )
             except Booking.DoesNotExist:
-                return Response({
-                    'error': 'Booking not found or already accepted by another barber.'
-                }, status=404)
+                return Response({'error': 'Booking expired or taken.'}, status=404)
 
-            if self.has_active_instant_booking(barber):
-                return Response({
-                    'error': 'You accepted another booking.'
-                }, status=400)
+            payment = booking.payment
+
+            if payment.payment_method == 'STRIPE' and payment.transaction_id:
+                try:
+                    stripe.PaymentIntent.capture(payment.transaction_id)
+                    payment.payment_status = "SUCCESS"
+                except stripe.error.StripeError as e:
+                    return Response({'error': f'Payment capture failed: {str(e)}'}, status=500)
+           
+            elif payment.payment_method == 'WALLET':
+                try:
+                    customer_wallet = CustomerWallet.objects.select_for_update().get(user=booking.customer)
+                    if customer_wallet.account_total_balance < payment.final_amount:
+                        return Response({'error': 'Customer has insufficient wallet balance.'}, status=400)
+                   
+                    customer_wallet.account_total_balance -= payment.final_amount
+                    customer_wallet.save()
+                   
+                    CustomerWalletTransaction.objects.create(
+                        wallet=customer_wallet,
+                        amount=-payment.final_amount,
+                        note=f"Paid for Instant Booking #{booking.id}"
+                    )
+                    
+                   
+                    admin_wallet, _ = AdminWallet.objects.get_or_create(id=1)
+                    admin_wallet.total_earnings += payment.final_amount
+                    admin_wallet.save()
+                    
+                    payment.payment_status = "SUCCESS"
+                    
+                except CustomerWallet.DoesNotExist:
+                    return Response({'error': 'Customer wallet not found.'}, status=400)
+
+          
+            elif payment.payment_method == 'COD':
+                payment.payment_status = "PENDING"
 
             booking.barber = barber
-            booking.status = 'CONFIRMED'
-            booking.travel_status = 'NOT_STARTED'
+            booking.status = "CONFIRMED"
+            booking.travel_status = "NOT_STARTED"
             booking.save()
+            payment.save()
 
-        self._notify_customer_booking_accepted(booking, barber)
-        self._notify_other_barbers_remove_booking(booking, barber)
+        
+        self._notify_customer_success(booking, barber)
+        self._notify_other_barbers_remove(booking, barber)
 
-        return Response({
-            'message': f'Booking accepted successfully.',
-            'booking_id': booking.id,
-            'status': 'success'
-        }, status=200)
+        return Response({"status": "success", "booking_id": booking.id})
+    
+    
+    def _handle_reject(self, barber, booking_id):
+        return Response({"status": "success", "message": "Booking rejected locally."})
 
-    def _handle_reject_booking(self, barber, booking_id):
-        try:
-            booking = Booking.objects.get(
-                id=booking_id,
-                status='PENDING',
-                booking_type="INSTANT_BOOKING"
-            )
-        except Booking.DoesNotExist:
-            return Response({
-                'error': 'Booking not found or already processed.'
-            }, status=404)
-
-        available_barbers = [
-            b for b in self.get_available_barbers_for_booking(booking)
-            if b.id != barber.id
-        ]
-
-        if not available_barbers:
-            self._notify_customer_no_barbers_available(booking)
-        else:
-            self._notify_barbers_new_booking(booking, available_barbers)
-
-        return Response({
-            'message': 'Booking rejected successfully.',
-            'status': 'success'
-        }, status=200)
-
-    def _notify_customer_booking_accepted(self, booking, barber):
+    def _notify_customer_success(self, booking, barber):
         channel_layer = get_channel_layer()
         profile_image_url = None
         if hasattr(barber, 'profileimage') and barber.profileimage:
-            try:
-                relative_url = urljoin(
-                    settings.MEDIA_URL, barber.profileimage.name)
-                profile_image_url = self.request.build_absolute_uri(
-                    relative_url)
-            except Exception:
-                profile_image_url = None
+             profile_image_url = self.request.build_absolute_uri(barber.profileimage.url)
 
         async_to_sync(channel_layer.group_send)(
             f"customer_{booking.customer.id}",
             {
                 "type": "booking_accepted",
                 "booking_id": booking.id,
-                "message": f"{barber.name} accepted your booking.",
                 "barber_details": {
                     "name": barber.name,
                     "phone": barber.phone,
-                    "profile_image": profile_image_url,
+                    "profile_image": profile_image_url
                 }
             }
         )
 
-    def _notify_other_barbers_remove_booking(self, booking, accepting_barber):
-
+    def _notify_other_barbers_remove(self, booking, accepting_barber):
+       
         channel_layer = get_channel_layer()
-
-        other_barbers = User.objects.filter(
-            user_type='barber',
-            is_online=True
-        ).exclude(id=accepting_barber.id)
-
-        for barber in other_barbers:
-            async_to_sync(channel_layer.group_send)(
-                f"barber_{barber.id}",
-                {
-                    "type": "remove_booking",
-                    "booking_id": booking.id,
-                    "message": "This booking was accepted by another barber."
-                }
+        potential_barbers = User.objects.filter(user_type='barber', is_online=True).exclude(id=accepting_barber.id)
+        
+        for b in potential_barbers:
+             async_to_sync(channel_layer.group_send)(
+                f"barber_{b.id}",
+                {"type": "remove_booking", "booking_id": booking.id, "message": "Booking taken."}
             )
 
     def _notify_customer_no_barbers_available(self, booking):
@@ -416,23 +415,102 @@ class HandleBarberActions(APIView, BookingMixin):
             )
 
 
+
+
+class ExpireInstantBookingView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, booking_id):
+        try:
+           
+            booking = Booking.objects.get(
+                id=booking_id,
+                booking_type="INSTANT_BOOKING",
+                status="PENDING",
+                barber__isnull=True
+            )
+        except Booking.DoesNotExist:
+            return Response({"message": "Booking already processed or invalid"}, status=400)
+
+        with transaction.atomic():
+            payment = booking.payment
+            refund_processed = False
+
+         
+            if payment.payment_method == 'STRIPE':
+                try:
+                    if payment.transaction_id:
+                        stripe.PaymentIntent.cancel(payment.transaction_id)
+                        logger.info(f"Stripe Payment cancelled for booking {booking_id}")
+                        refund_processed = True
+                except stripe.error.StripeError as e:
+                    logger.error(f"Stripe refund error: {str(e)}")
+
+            elif payment.payment_method == 'WALLET':
+                try:
+                  
+                    wallet = CustomerWallet.objects.get(user=booking.customer)
+                   
+                    refund_amount = payment.final_amount
+                    wallet.account_total_balance += refund_amount
+                    wallet.save()
+
+                    CustomerWalletTransaction.objects.create(
+                        wallet=wallet,
+                        amount=refund_amount,
+                        note=f"Refund for Booking #{booking.id} (No Barber Found)"
+                    )
+                    
+                    refund_processed = True
+                    logger.info(f"Wallet Refund of ₹{refund_amount} processed for user {booking.customer.id}")
+                    
+                except CustomerWallet.DoesNotExist:
+                    logger.error(f"Wallet not found for user {booking.customer.id}")
+                except Exception as e:
+                    logger.error(f"Wallet refund error: {str(e)}")
+
+            elif payment.payment_method == 'COD':
+                refund_processed = True
+
+            booking.status = "CANCELLED"
+            booking.save()
+            
+            if refund_processed:
+                payment.payment_status = "REFUNDED" if payment.payment_method != 'COD' else 'FAILED'
+            else:
+                payment.payment_status = "FAILED"
+            
+            payment.save()
+           
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)(
+                f"customer_{booking.customer.id}",
+                {
+                    "type": "booking_cancelled",
+                    "booking_id": booking.id,
+                    "message": "No barbers available. Payment refunded to your wallet/card."
+                }
+            )
+
+        return Response({"status": "expired", "refund_processed": refund_processed}, status=200)
+
+
+
+
 class CompletedServiceView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, booking_id):
         booking = get_object_or_404(
-            Booking.objects.select_related(
-                'customer', 'address', 'service', 'payment'),
+            Booking.objects.select_related('customer', 'address', 'service', 'payment'),
             id=booking_id
         )
         payment = booking.payment
-
         data = {
             'id': booking.id,
             'customer_name': booking.customer.name,
             'customer_phone': booking.customer.phone,
-            'address': f"{booking.address.building}, {booking.address.street}, "
-            f"{booking.address.city}, {booking.address.state} - {booking.address.pincode}",
+            'address': str(booking.address),
             'service': booking.service.name,
             'price': str(booking.total_amount),
             'service_amount': str(payment.service_amount),
@@ -442,117 +520,126 @@ class CompletedServiceView(APIView):
             'payment_done': payment.payment_status == "SUCCESS",
             'status': booking.status,
             'is_released_to_barber': payment.is_released_to_barber,
+            'service_started_at': booking.service_started_at,
         }
         return Response(data)
 
     def post(self, request, booking_id):
         booking = get_object_or_404(Booking, id=booking_id)
+        action = request.data.get('action')
+        channel_layer = get_channel_layer()
 
-        if booking.status == "COMPLETED":
-            return Response({"message": "Service already completed."}, status=200)
+        if action == 'request_start':
+            async_to_sync(channel_layer.group_send)(
+                f"customer_{booking.customer.id}",
+                {"type": "service_request", "subtype": "start_request", "booking_id": booking.id}
+            )
+            return Response({"status": "Request sent"}, status=200)
 
-        try:
-            request_data = request.data if request.data else {}
-        except:
-            request_data = {}
+        if action == 'respond_start':
+            response = request.data.get('response') 
+            async_to_sync(channel_layer.group_send)(
+                f"barber_{booking.barber.id}",
+                {"type": "service_response", "subtype": "start_response", "response": response}
+            )
+            return Response({"status": "Response sent"}, status=200)
 
-        action = request_data.get('action', 'complete_service')
-        payment = booking.payment
+        if action == 'force_start':
+            if not booking.service_started_at:
+                booking.service_started_at = timezone.now()
+                booking.save()
+            return Response({"status": "Service started"}, status=200)
 
-        if action == 'collect_cod' and payment.payment_method == "COD":
-            return Response({
-                "status": "COD collection acknowledged",
-                "message": "Amount collection recorded. You can now complete the service."
-            }, status=200)
+        if action == 'request_complete':
+            async_to_sync(channel_layer.group_send)(
+                f"customer_{booking.customer.id}",
+                {"type": "service_request", "subtype": "complete_request", "booking_id": booking.id}
+            )
+            return Response({"status": "Verification sent"}, status=200)
+
+        if action == 'respond_complete':
+            response = request.data.get('response') 
+            async_to_sync(channel_layer.group_send)(
+                f"barber_{booking.barber.id}",
+                {"type": "service_response", "subtype": "complete_response", "response": response}
+            )
+            return Response({"status": "Response sent"}, status=200)
+        
+        
+        if action == 'collect_cod':
+            payment = booking.payment
+            if payment.payment_method == 'COD':
+                payment.payment_status = "SUCCESS"
+                payment.save()
+                return Response({"status": "Cash collected successfully"}, status=200)
+            else:
+                return Response({"error": "This is not a COD booking"}, status=400)
 
         if action == 'complete_service':
+            payment = booking.payment
             booking.status = "COMPLETED"
-            booking.completed_at = now()
+            booking.completed_at = timezone.now()
             booking.save()
 
             if payment.payment_method == "COD":
-                payment_successful = True
                 payment.payment_status = "SUCCESS"
-                payment.save()
-            else:
-                payment_successful = payment.payment_status == "SUCCESS"
+            
+            payment.save()
 
-            not_released_to_barber = not payment.is_released_to_barber
+            earnings_added = 0.0
 
-            if payment_successful and not_released_to_barber:
-                try:
-                    with transaction.atomic():
-                        admin_wallet = AdminWallet.objects.first()
-                        if not admin_wallet:
-                            return Response({"error": "Admin wallet not found"}, status=500)
-
-                        barber_wallet, _ = BarberWallet.objects.get_or_create(
-                            barber=booking.barber)
-
-                        final_amount = payment.final_amount
-                        platform_fee = payment.platform_fee
-
-                        if payment.payment_method == "COD":
-                            barber_amount = final_amount - platform_fee
-
-                            barber_wallet.balance += barber_amount
-                            barber_wallet.save()
-
-                            WalletTransaction.objects.create(
-                                wallet=barber_wallet,
-                                amount=barber_amount,
-                                note=f"COD Payment for Booking #{booking.id}"
-                            )
-
-                            admin_wallet.total_earnings += platform_fee
-                            admin_wallet.save()
-
-                            AdminWalletTransaction.objects.create(
-                                wallet=admin_wallet,
-                                amount=platform_fee,
-                                note=f"Platform fee from COD Booking #{booking.id}"
-                            )
-
+            if not payment.is_released_to_barber and payment.payment_status == "SUCCESS":
+                with transaction.atomic():
+                    admin_wallet, _ = AdminWallet.objects.get_or_create(id=1)
+                    barber_wallet, _ = BarberWallet.objects.get_or_create(barber=booking.barber)
+                    
+                    final_amount = payment.final_amount
+                    platform_fee = payment.platform_fee
+                    barber_share = final_amount - platform_fee
+                    
+                    if payment.payment_method == "COD":
+    
+                        barber_wallet.balance -= platform_fee
+                        WalletTransaction.objects.create(wallet=barber_wallet, amount=-platform_fee, note=f"Platform Fee for COD Booking #{booking.id}")
+                        
+                        admin_wallet.total_earnings += platform_fee
+                        AdminWalletTransaction.objects.create(wallet=admin_wallet, amount=platform_fee, note=f"Fee collected from Barber #{booking.barber.id}")
+                        
+                        earnings_added = float(barber_share) 
+                        
+                    else:
+                       
+                        if admin_wallet.total_earnings >= barber_share:
+                            admin_wallet.total_earnings -= barber_share
+                            barber_wallet.balance += barber_share
+                            
+                            WalletTransaction.objects.create(wallet=barber_wallet, amount=barber_share, note=f"Earnings for Booking #{booking.id}")
+                            AdminWalletTransaction.objects.create(wallet=admin_wallet, amount=-barber_share, note=f"Payout to Barber #{booking.barber.id}")
+                            
+                            earnings_added = float(barber_share)
                         else:
+                           
+                            logger.error(f"Insufficient Admin Funds to pay Barber {booking.barber.id}")
 
-                            barber_amount = final_amount - platform_fee
+                    admin_wallet.save()
+                    barber_wallet.save()
+                    payment.is_released_to_barber = True
+                    payment.released_at = timezone.now()
+                    payment.save()
+                    booking.is_payment_done = True
+                    booking.save()
 
-                            if admin_wallet.total_earnings >= barber_amount:
-                                admin_wallet.total_earnings -= barber_amount
-                                admin_wallet.save()
-
-                                barber_wallet.balance += barber_amount
-                                barber_wallet.save()
-
-                                WalletTransaction.objects.create(
-                                    wallet=barber_wallet,
-                                    amount=barber_amount,
-                                    note=f"Payment for Booking #{booking.id}"
-                                )
-
-                                AdminWalletTransaction.objects.create(
-                                    wallet=admin_wallet,
-                                    amount=-barber_amount,
-                                    note=f"Payout to Barber ({booking.barber.name}) for Booking #{booking.id}"
-                                )
-                            else:
-                                return Response({
-                                    "error": f"Insufficient admin funds. Required: ₹{barber_amount}, Available: ₹{admin_wallet.total_earnings}"
-                                }, status=400)
-
-                        payment.is_released_to_barber = True
-                        payment.released_at = now()
-                        payment.save()
-
-                        booking.is_payment_done = True
-                        booking.save()
-
-                except Exception as e:
-                    return Response({"error": f"Payment processing failed: {str(e)}"}, status=500)
+            if booking.barber:
+                channel_layer = get_channel_layer()
+                async_to_sync(channel_layer.group_send)(
+                    f"barber_{booking.barber.id}",
+                    {"type": "booking_completed", "booking_id": booking.id}
+                )
 
             return Response({
                 "status": "Service marked as completed successfully",
-                "message": "Service has been completed and payment processed."
+                "message": "Service has been completed.",
+                "earnings": earnings_added
             }, status=200)
 
         return Response({"error": "Invalid action"}, status=400)

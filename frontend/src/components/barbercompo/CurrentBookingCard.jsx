@@ -1,10 +1,11 @@
 import React from 'react';
 import { User, Clock, MapPin, IndianRupee, MessageCircle, Play } from 'lucide-react';
 import NotificationBadge from '../notification/NotificationBadge';
-import { useNotifications } from '../customHooks/useNotifications';
+import { useNotificationContext } from '../../contexts/NotificationContext';
 
 export const CurrentBookingCard = ({ booking, navigate }) => {
-  const { bookingUnreadCounts } = useNotifications();
+  
+  const { bookingUnreadCounts} = useNotificationContext();
 
   const handleStartService = () => {
     navigate(`/travel-status/${booking.booking_id}`);
@@ -125,8 +126,9 @@ export const CurrentBookingCard = ({ booking, navigate }) => {
             onClick={() => navigate(`/barber/chat/${booking.booking_id}`)}
           >
            
-            {booking.booking_id && bookingUnreadCounts[booking.booking_id] > 0 && (
-              <NotificationBadge count={bookingUnreadCounts[booking.booking_id]} />
+            {booking.booking_id && bookingUnreadCounts?.[booking.booking_id] > 0 && (
+              <NotificationBadge count={bookingUnreadCounts?.[booking.booking_id]} />
+
             )}
             
             <div className="absolute inset-0 bg-gradient-to-r from-blue-100 to-purple-100 rounded-2xl opacity-0 group-hover/btn:opacity-30 transition-opacity duration-300"></div>

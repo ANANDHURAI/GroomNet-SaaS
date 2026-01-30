@@ -1,4 +1,4 @@
-// BarberSidebar.jsx
+
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
@@ -38,7 +38,7 @@ function BarberSidebar() {
 
   return (
     <>
-      {/* Custom CSS for hiding scrollbar */}
+     
       <style jsx>{`
         .scrollbar-hide {
           scrollbar-width: none;

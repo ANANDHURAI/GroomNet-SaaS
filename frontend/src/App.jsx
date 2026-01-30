@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { Provider } from 'react-redux'
 import { store } from './redux/store'
+import { NotificationProvider } from './contexts/NotificationContext';
 import LoginPage from './pages/authservice/LoginPage'
 import RegisterPage from './pages/authservice/RegsiterPage'
 import HomePage from './pages/commonpages/HomePage'
@@ -75,6 +76,7 @@ function App() {
     <GoogleOAuthProvider clientId="137089648588-63scrg565l4a5qqo39i1ibrd96ogptjr.apps.googleusercontent.com">
       <Provider store={store}>
         <BrowserRouter>
+        <NotificationProvider>
           <BookingProvider>
             <ServiceProvider>
               <Routes>
@@ -304,7 +306,8 @@ function App() {
                 <Route path="/my-addresses" element={<AddressPage />} />
 
                 <Route path="/admin-wallet/" element={<AdminWallet />} />
-                <Route path="/find-barber/" element={<FindBarbers />} />
+                <Route path="/find-barbers" element={<FindBarbers />} />
+
                 <Route path="/instant-booking/" element={<WorkingArea />} />
                 <Route path="/barber/chat/:bookingId" element={<BarberChatPage />} />
 
@@ -346,6 +349,7 @@ function App() {
             </ServiceProvider>
           </BookingProvider>
 
+        </NotificationProvider>
         </BrowserRouter>
       </Provider>
     </GoogleOAuthProvider>

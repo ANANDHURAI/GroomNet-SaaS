@@ -121,18 +121,26 @@ function Earnings() {
               <p className="text-gray-500">No transactions yet.</p>
             ) : (
               <div className="bg-white rounded-lg shadow divide-y">
-                {wallet.transactions?.map(tx => (
-                  <div key={tx.id} className="px-4 py-3 flex justify-between items-center">
-                    <div>
-                      <p className="text-green-700 font-medium">+₹{tx.amount}</p>
-                      {tx.note && <p className="text-sm text-gray-500">{tx.note}</p>}
+                {wallet.transactions?.map(tx => {
+                 
+                  const isNegative = parseFloat(tx.amount) < 0;
+                  
+                  return (
+                    <div key={tx.id} className="px-4 py-3 flex justify-between items-center">
+                      <div>
+                      
+                        <p className={`font-medium ${isNegative ? 'text-red-600' : 'text-green-700'}`}>
+                          {isNegative ? '' : '+'}₹{tx.amount}
+                        </p>
+                        {tx.note && <p className="text-sm text-gray-500">{tx.note}</p>}
+                      </div>
+                      <div className="text-xs text-gray-400 flex items-center gap-1">
+                        <Calendar size={14} />
+                        {new Date(tx.created_at).toLocaleString()}
+                      </div>
                     </div>
-                    <div className="text-xs text-gray-400 flex items-center gap-1">
-                      <Calendar size={14} />
-                      {new Date(tx.created_at).toLocaleString()}
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>

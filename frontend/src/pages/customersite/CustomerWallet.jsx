@@ -118,7 +118,7 @@ function CustomerWallet() {
                     </div>
                 </div>
 
-                {/* Add Money Section */}
+              
                 <div className="bg-white rounded-lg shadow-md p-6 border">
                     <div className="flex items-center space-x-3 mb-4">
                         <Plus className="h-5 w-5 text-green-600" />

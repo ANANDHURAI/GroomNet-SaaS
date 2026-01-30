@@ -17,73 +17,60 @@ const InstantBookingTab = ({
     currentBooking,
     setCurrentBooking,
     notification,
-    setNotification,
-    connectionStatus
+    setNotification
   } = useBooking();
 
   const barberId = sessionStorage.getItem('barber_id');
 
   const fetchActiveBookings = useCallback(async () => {
-    if (!barberId) return null;
+    if (!barberId) return;
 
     try {
-      const response = await apiClient.get(
-        `/instant-booking/active-booking/${barberId}`
-      );
-      console.log("Active booking data:", response.data.active_instant_booking);
-      
+      const response = await apiClient.get(`/instant-booking/active-booking/${barberId}`);
       const activeBooking = response.data.active_instant_booking;
+      
       if (activeBooking) {
-        setCurrentBooking({
-          ...activeBooking,
-          status: 'CONFIRMED'
-        });
-        return activeBooking;
+      
+        setCurrentBooking({ ...activeBooking, status: 'CONFIRMED' });
       } else {
-       
-        if (currentBooking?.status !== 'PENDING') {
-          setCurrentBooking(null);
-        }
-        return null;
+    
+        setCurrentBooking(prev => {
+            if (prev?.status === 'PENDING') {
+                return prev; 
+            }
+            return null;
+        });
       }
     } catch (err) {
       console.error('Error fetching active bookings:', err);
-      if (err.response?.status === 401) {
-        setNotification('Session expired. Please login again.');
-      }
-      return null;
     }
-  }, [barberId, setCurrentBooking, setNotification, currentBooking]);
+  }, [barberId, setCurrentBooking]);
 
   useEffect(() => {
-    
-    if (isOnline && barberId) {
-      fetchActiveBookings();
-    }
-  }, [isOnline, barberId, fetchActiveBookings]);
+      const interval = setInterval(() => {
+          if (isOnline) fetchActiveBookings();
+      }, 5000); 
+      return () => clearInterval(interval);
+  }, [isOnline, fetchActiveBookings]);
+
+  useEffect(() => {
+    if(barberId) fetchActiveBookings();
+  }, [barberId, fetchActiveBookings]);
 
   const handleAcceptBooking = async () => {
     if (!currentBooking) return;
-    
     try {
       setIsLoadingAction(true);
       const response = await apiClient.post(
         `/instant-booking/barber-action/${barberId}/${currentBooking.booking_id}/`,
         { action: 'accept' }
       );
-
       if (response.data.status === 'success') {
         setCurrentBooking(prev => ({ ...prev, status: 'CONFIRMED' }));
-        setNotification('Booking accepted successfully!');
-
-        setTimeout(() => setNotification(''), 3000);
+        setNotification('Booking accepted!');
       }
     } catch (error) {
-      console.error('Error accepting booking:', error);
-      setNotification(
-        error.response?.data?.error || 
-        'Failed to accept booking. Please try again.'
-      );
+      setNotification('Failed to accept.');
     } finally {
       setIsLoadingAction(false);
     }
@@ -91,26 +78,16 @@ const InstantBookingTab = ({
 
   const handleRejectBooking = async () => {
     if (!currentBooking) return;
-    
     try {
       setIsLoadingAction(true);
-      const response = await apiClient.post(
+      await apiClient.post(
         `/instant-booking/barber-action/${barberId}/${currentBooking.booking_id}/`,
         { action: 'reject' }
       );
-
-      if (response.data.status === 'success') {
-        setCurrentBooking(null);
-        setNotification('Booking rejected successfully');
-    
-        setTimeout(() => setNotification(''), 3000);
-      }
+      setCurrentBooking(null);
+      setNotification('Booking rejected.');
     } catch (error) {
-      console.error('Error rejecting booking:', error);
-      setNotification(
-        error.response?.data?.error || 
-        'Failed to reject booking. Please try again.'
-      );
+      setNotification('Failed to reject.');
     } finally {
       setIsLoadingAction(false);
     }
@@ -118,16 +95,10 @@ const InstantBookingTab = ({
 
   return (
     <>
-      <StatusCard
-        isOnline={isOnline}
-        toggleOnlineStatus={toggleOnlineStatus}
-        loading={loading}
-      />
+      <StatusCard isOnline={isOnline} toggleOnlineStatus={toggleOnlineStatus} loading={loading} />
       
       {notification && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-          <p className="text-sm text-blue-800">{notification}</p>
-        </div>
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4 text-blue-800">{notification}</div>
       )}
 
       {currentBooking?.status === 'PENDING' && (
@@ -140,22 +111,15 @@ const InstantBookingTab = ({
       )}
 
       {currentBooking?.status === 'CONFIRMED' && (
-        <CurrentBookingCard
-          booking={currentBooking}
-          navigate={navigate}
-        />
+        <CurrentBookingCard booking={currentBooking} navigate={navigate} />
       )}
 
-      {!currentBooking && isOnline && connectionStatus === 'connected' && (
-        <div className="text-center mt-6">
-          <p className="text-gray-600">Waiting for new bookings...</p>
-        </div>
+      {!currentBooking && isOnline && (
+        <div className="text-center mt-6 text-gray-600">Waiting for new bookings...</div>
       )}
 
       {!isOnline && (
-        <div className="text-center mt-6">
-          <p className="text-gray-600">You are currently offline.</p>
-        </div>
+        <div className="text-center mt-6 text-gray-600">You are currently offline.</div>
       )}
     </>
   );

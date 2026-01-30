@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import apiClient from '../../slices/api/apiIntercepters';
 import { useNavigate } from 'react-router-dom';
 import CustomerLayout from '../../components/customercompo/CustomerLayout';
-import { useNotifications } from '../../components/customHooks/useNotifications';
+import { useNotificationContext } from '../../contexts/NotificationContext';
 import NotificationBadge from '../../components/notification/NotificationBadge';
 
 function BookingHistoryPage() {
@@ -11,7 +11,7 @@ function BookingHistoryPage() {
   const [error, setError] = useState(null);
   const [hoveredBooking, setHoveredBooking] = useState(null);
   const navigate = useNavigate();
-  const { totalUnreadCount, bookingUnreadCounts } = useNotifications();
+  const { bookingUnreadCounts } = useNotificationContext();
 
   useEffect(() => {
     apiClient
@@ -135,7 +135,7 @@ function BookingHistoryPage() {
                 onMouseLeave={() => setHoveredBooking(null)}
               >
                
-                {bookingUnreadCounts[booking.id] > 0 && (
+                {bookingUnreadCounts && bookingUnreadCounts[booking.id] > 0 && (
                   <div className="absolute -top-3 -right-3 z-20">
                     <NotificationBadge count={bookingUnreadCounts[booking.id]} />
                     <div className="absolute top-0 right-0 w-6 h-6 bg-red-400 rounded-full animate-ping opacity-30"></div>
