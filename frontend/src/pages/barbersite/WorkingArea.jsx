@@ -73,12 +73,34 @@ const WorkingArea = () => {
 
       setIsOnline(!isOnline);
       setNotification(response.data.message);
+
     } catch (err) {
       console.error('Error updating barber status:', err);
-      setNotification(
-        err.response?.data?.message ||
-        'Failed to update status. Please try again.'
-      );
+      
+      const errorResponse = err.response?.data;
+      const errorCode = errorResponse?.error_code;
+      const errorMessage = errorResponse?.message || 'Failed to update status. Please try again.';
+
+      setNotification(errorMessage);
+
+      if (err.response?.status === 403) {
+          
+          if (errorCode === 'NO_SERVICES') {
+             
+              setTimeout(() => {
+                  setNotification("Redirecting to Services page...");
+                  navigate('/barber/my-services');
+              }, 2000);
+          } 
+          else if (errorCode === 'NO_PORTFOLIO' || errorCode === 'INCOMPLETE_PORTFOLIO') {
+            
+              setTimeout(() => {
+                  setNotification("Redirecting to Portfolio page...");
+                  navigate('/barbers-portfolio');
+              }, 2000);
+          }
+      }
+
     } finally {
       setLoading(false);
     }
@@ -119,7 +141,6 @@ const WorkingArea = () => {
             <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-6">
               <h1 className="text-2xl font-bold text-white">Manage your Bookings</h1>
             </div>
-            
             
             <div className="flex bg-slate-50">
               <button
@@ -162,7 +183,7 @@ const WorkingArea = () => {
             </div>
           )}
 
-          
+         
           {activeTab === 'scheduled' && currentBooking?.status === 'PENDING' && (
             <div className="bg-gradient-to-r from-amber-400 to-orange-500 text-white p-6 rounded-2xl shadow-xl mb-6 border border-orange-200">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -187,7 +208,6 @@ const WorkingArea = () => {
             </div>
           )}
 
-         
           <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
             {activeTab === 'instant' ? (
               <InstantBookingTab

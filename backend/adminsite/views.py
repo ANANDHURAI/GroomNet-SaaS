@@ -281,7 +281,11 @@ class BarbersListView(ListAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        queryset = User.objects.filter(user_type='barber')
+        queryset = User.objects.filter(
+            user_type='barber',
+            is_verified=True  
+        )
+
         search = self.request.query_params.get('search')
         is_active = self.request.query_params.get('is_active')
         is_blocked = self.request.query_params.get('is_blocked')
@@ -292,6 +296,7 @@ class BarbersListView(ListAPIView):
                 Q(email__icontains=search) |
                 Q(phone__icontains=search)
             )
+
         if is_active in ['true', 'false']:
             queryset = queryset.filter(is_active=(is_active == 'true'))
 
@@ -299,6 +304,7 @@ class BarbersListView(ListAPIView):
             queryset = queryset.filter(is_blocked=(is_blocked == 'true'))
 
         return queryset.distinct()
+
 
 
 class BarberDetailView(RetrieveAPIView):

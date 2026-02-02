@@ -1,6 +1,5 @@
 from barbersite.models import BarberWallet, WalletTransaction
 from adminsite.models import AdminWallet, AdminWalletTransaction
-from django.utils.timezone import now
 from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -18,18 +17,17 @@ from .serializers import (
 )
 
 from django.conf import settings
-from urllib.parse import urljoin
 import logging
 logger = logging.getLogger("django")
 User = get_user_model()
-import time
 import stripe
-from django.conf import settings
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
-from django.db.models import Q
+from barbersite.models import Portfolio , BarberService
 
-    
+
+
+
 class BookingMixin:
     @staticmethod
     def has_active_instant_booking(barber):
@@ -186,20 +184,54 @@ class DoggleStatusView(APIView, BookingMixin):
             logger.error(f"Error in DoggleStatusView POST: {str(e)}") 
             return Response({'message': 'Internal Server Error', 'details': str(e)}, status=500)
 
+
+
+
     def _handle_go_online(self, barber):
         if self.has_active_instant_booking(barber):
             return Response({
-                'message': 'Finish your current booking before going online.'
+                'message': 'Finish your current booking before going online.',
+                'error_code': 'ACTIVE_BOOKING'
             }, status=status.HTTP_400_BAD_REQUEST)
 
         if self.has_conflicting_scheduled_booking(barber):
             return Response({
-                'message': 'Upcoming scheduled booking soon. Cannot go online for instant requests.'
+                'message': 'Upcoming scheduled booking soon. Cannot go online.',
+                'error_code': 'SCHEDULE_CONFLICT'
             }, status=status.HTTP_400_BAD_REQUEST)
 
+       
+        has_services = BarberService.objects.filter(barber=barber, is_active=True).exists()
+        if not has_services:
+            return Response({
+                'message': 'You must add at least one service before going online.',
+                'error_code': 'NO_SERVICES' 
+            }, status=status.HTTP_403_FORBIDDEN)
+
+       
+        try:
+            portfolio = Portfolio.objects.get(user=barber)
+           
+            if not portfolio.current_location or not portfolio.expert_at:
+                 return Response({
+                    'message': 'Please complete your portfolio before going online.',
+                    'error_code': 'INCOMPLETE_PORTFOLIO'
+                }, status=status.HTTP_403_FORBIDDEN)
+        except Portfolio.DoesNotExist:
+            return Response({
+                'message': 'Please create your portfolio before going online.',
+                'error_code': 'NO_PORTFOLIO'
+            }, status=status.HTTP_403_FORBIDDEN)
+
+      
         barber.is_online = True
         barber.save()
         return Response({'message': 'You are now Online.', 'is_online': True}, status=200)
+
+
+
+
+
 
     def _handle_go_offline(self, barber):
         

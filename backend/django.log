@@ -58844,3 +58844,74 @@ TypeError: fromisoformat: argument must be str
 Unauthorized: /adminsite/customers-list/
 Unauthorized: /adminsite/customers-list/
 Unauthorized: /auth/token/refresh/
+Unauthorized: /auth/logout/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /instant-booking/active-booking/6/
+Unauthorized: /instant-booking/active-booking/6/
+Unauthorized: /instant-booking/working/status/6/
+Unauthorized: /instant-booking/active-booking/6/
+Unauthorized: /instant-booking/working/status/6/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /customersite/wallet/
+Unauthorized: /customersite/customer-wallet/transactions/
+Unauthorized: /customersite/wallet/
+Unauthorized: /customersite/customer-wallet/transactions/
+Unauthorized: /instant-booking/working/status/6/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /instant-booking/working/status/6/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /instant-booking/working/status/6/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /instant-booking/working/status/6/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /instant-booking/working/status/6/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /instant-booking/working/status/6/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /instant-booking/working/status/6/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /instant-booking/working/status/6/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /instant-booking/working/status/6/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /instant-booking/working/status/6/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /instant-booking/working/status/6/
+Unauthorized: /instant-booking/active-booking/6/
+Unauthorized: /instant-booking/active-booking/6/
+Unauthorized: /instant-booking/working/status/6/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /adminsite/barbers-list/
+Unauthorized: /adminsite/barbers-list/
+Not Found: /favicon.ico
+Unauthorized: /profile-service/user-profile/
+Unauthorized: /profile-service/user-profile/
+Bad Request: /auth/customer-barber-login/
+Forbidden: /instant-booking/working/status/7/
+Forbidden: /instant-booking/working/status/7/
+Forbidden: /instant-booking/working/status/7/
+Not Found: /barbersite/barber-portfolio/
+Not Found: /barbersite/barber-portfolio/
+Forbidden: /instant-booking/working/status/7/
+Not Found: /barbersite/barber-portfolio/
+Not Found: /barbersite/barber-portfolio/
+Unauthorized: /adminsite/admin-wallet/
+Unauthorized: /adminsite/admin-wallet/transactions/
+Unauthorized: /adminsite/admin-wallet/
+Unauthorized: /adminsite/admin-wallet/transactions/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /adminsite/admin-wallet/
+Unauthorized: /adminsite/admin-wallet/transactions/
+Unauthorized: /adminsite/admin-wallet/
+Unauthorized: /adminsite/admin-wallet/transactions/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /adminsite/dashboard/admin/
+Unauthorized: /adminsite/dashboard/admin/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /adminsite/admin-wallet/
+Unauthorized: /adminsite/admin-wallet/transactions/
+Unauthorized: /adminsite/admin-wallet/
+Unauthorized: /adminsite/admin-wallet/transactions/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /auth/logout/
+Unauthorized: /auth/token/refresh/

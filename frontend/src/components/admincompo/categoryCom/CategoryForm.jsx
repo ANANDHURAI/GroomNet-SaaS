@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { ImageCropper } from '../../common/ImageCropper';
 
 export const CategoryForm = ({
     formData,
@@ -8,20 +9,9 @@ export const CategoryForm = ({
     isEditing,
     error,
 }) => {
-    const [imageError, setImageError] = useState(null);
-
-    const handleImageChange = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            const validTypes = ['image/jpeg', 'image/png'];
-            if (!validTypes.includes(file.type)) {
-                setImageError('Only JPG and PNG images are allowed.');
-                onFormChange({ ...formData, image: null });
-            } else {
-                setImageError(null);
-                onFormChange({ ...formData, image: file });
-            }
-        }
+   
+    const handleImageCropped = (file) => {
+        onFormChange({ ...formData, image: file });
     };
 
     return (
@@ -47,42 +37,18 @@ export const CategoryForm = ({
                 />
             </div>
 
-            <div>
-                <label className="block mb-1 font-medium text-sm text-gray-700">
-                    Category Image
-                </label>
-
-                {isEditing && formData.image && typeof formData.image === "string" && (
-                    <div className="mb-2">
-                        <img
-                            src={formData.image}
-                            alt="Current category"
-                            className="h-20 w-auto rounded"
-                        />
-                        <p className="text-xs text-gray-500 mt-1">Current image</p>
-                    </div>
-                )}
-
-                <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageChange}
-                    className="w-full border border-gray-300 rounded-md px-4 py-2"
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                    Upload a new image only if you want to replace the current one.
-                </p>
-
-                {imageError && (
-                    <p className="text-red-600 text-sm mt-1">{imageError}</p>
-                )}
-            </div>
+            {/* Replaced old file input with ImageCropper */}
+            <ImageCropper 
+                currentImage={formData.image} 
+                onImageCropped={handleImageCropped}
+                label="Category Image"
+                aspect={1} // 1:1 Aspect ratio for categories (Square)
+            />
 
             <div className="flex justify-end gap-3 pt-4">
                 <button
                     type="submit"
                     className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-md font-medium transition"
-                    disabled={!!imageError}
                 >
                     {isEditing ? "Update Category" : "Create Category"}
                 </button>

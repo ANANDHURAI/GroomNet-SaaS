@@ -3,6 +3,8 @@ from authservice.models import User
 from adminsite.models import ServiceModel
 from customersite.models import Booking
 
+
+
 class BarberService(models.Model):
     barber = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name='barber_services')
@@ -16,6 +18,7 @@ class BarberService(models.Model):
 
     def __str__(self):
         return f"{self.barber.name} - {self.service.name}"
+
 
 
 class BarberSlot(models.Model):
@@ -87,3 +90,5 @@ class Portfolio(models.Model):
 
     def __str__(self):
         return f"{self.user.name}'s Portfolio"
+
+
