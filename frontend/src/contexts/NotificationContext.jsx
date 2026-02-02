@@ -35,12 +35,11 @@ export const NotificationProvider = ({ children }) => {
     const ws = new WebSocket(wsUrl);
     socketRef.current = ws;
 
-    ws.onopen = () => console.log('✅ Global Notification Socket Connected');
+    ws.onopen = () => console.log('Global Notification Socket Connected');
     
     ws.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
-        console.log("📩 Global Socket Message:", data);
         
         if (data.type) {
             window.dispatchEvent(new CustomEvent(data.type, { detail: data }));
@@ -69,7 +68,7 @@ export const NotificationProvider = ({ children }) => {
     };
 
     ws.onclose = () => {
-        console.log('❌ Global Socket Disconnected.');
+        console.log('Global Socket Disconnected.');
         socketRef.current = null;
         
     };

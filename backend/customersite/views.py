@@ -8,7 +8,6 @@ from barbersite.models import BarberWallet, WalletTransaction
 from django.db import transaction
 from decimal import Decimal
 from django.shortcuts import get_object_or_404
-from datetime import datetime
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
@@ -40,6 +39,8 @@ logger = logging.getLogger(__name__)
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 from .models import PaymentModel
+import pytz 
+from django.conf import settings 
 
 
 
@@ -379,7 +380,6 @@ class BookingCreateView(APIView):
                 is_payment_done=False
             )
 
-            
             discount = Decimal('0.00')
             if coupon:
                 original_amount = data["service"].price + (data["service"].price * Decimal('0.05'))
@@ -395,16 +395,18 @@ class BookingCreateView(APIView):
                 final_amount=data["total_amount"],
             )
 
-         
             if booking.booking_type == "SCHEDULE_BOOKING":
                 booking.status = "CONFIRMED"
                 booking.is_payment_done = True
                 payment.payment_status = "SUCCESS"
-               
+                
                 if booking.slot:
+                 
+                    local_tz = pytz.timezone(settings.TIME_ZONE)
                     naive_datetime = datetime.combine(booking.slot.date, booking.slot.start_time)
-                    aware_datetime = timezone.make_aware(naive_datetime)
-                    booking.service_started_at = aware_datetime
+                   
+                    local_datetime = local_tz.localize(naive_datetime)
+                    booking.service_started_at = local_datetime
 
                     slot_instance = booking.slot
                     slot_instance.is_booked = True
@@ -418,8 +420,10 @@ class BookingCreateView(APIView):
             "booking_type": booking.booking_type,
             "status": booking.status
         }, status=201)
-        
-        
+
+
+
+      
             
     
 

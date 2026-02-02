@@ -49,12 +49,21 @@ export const BarberSlotBooking = () => {
     setLoading(true);
     try {
       const promises = selectedSlots.map(slotTime => {
-        const [startTime, endTime] = slotTime.split('-');
+        let [startTime, endTime] = slotTime.split('-');
+        
+        if (startTime.length === 5) startTime += ':00';
+        if (endTime.length === 5) endTime += ':00';
+
+        if (endTime === '24:00:00' || endTime === '00:00:00') {
+             endTime = '23:59:59';
+        }
+
         const slotData = {
           date: selectedDate,
-          start_time: startTime + ':00', 
-          end_time: endTime + ':00'    
+          start_time: startTime,
+          end_time: endTime    
         };
+        
         console.log('Creating slot with data:', slotData); 
         return apiClient.post('/barbersite/barber-slots/create-slot/', slotData);
       });
@@ -68,9 +77,7 @@ export const BarberSlotBooking = () => {
       setSelectedSlots([]);
     } catch (error) {
       console.error('Error creating slots:', error);
-      if (error.response) {
-        console.error('Error response:', error.response.data);
-      }
+     
     } finally {
       setLoading(false);
     }

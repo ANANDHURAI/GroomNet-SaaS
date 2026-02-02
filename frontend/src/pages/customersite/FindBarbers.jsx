@@ -47,7 +47,16 @@ function FindBarbers() {
             handleExpiration();
         }
     };
+    const handleNoBarbers = (event) => {
+        const data = event.detail;
+        if (String(data.booking_id) === String(bookingId)) {
+             setStatus("All nearby barbers are currently busy with upcoming schedules.");
+             setBookingExpired(true);
+             setIsSearching(false);
+        }
+    };
 
+    window.addEventListener("no_barbers_available", handleNoBarbers);
     window.addEventListener("booking_accepted", handleAccepted);
     window.addEventListener("booking_cancelled", handleCancelled);
 

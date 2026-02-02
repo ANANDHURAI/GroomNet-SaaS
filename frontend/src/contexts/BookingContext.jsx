@@ -16,7 +16,7 @@ export const BookingProvider = ({ children }) => {
   
     const handleIncomingBooking = (event) => {
       const data = event.detail;
-      console.log("🔔 Context: New Booking Signal Received:", data);
+      
     
       setCurrentBooking({
         booking_id: data.booking_id,
@@ -32,7 +32,7 @@ export const BookingProvider = ({ children }) => {
     };
 
     const handleCompletedBooking = (event) => {
-        console.log("✅ Context: Booking Completed Signal");
+        
         setCurrentBooking(null);
         setGlobalNotificationVisible(false);
         setNotification('');

@@ -1,14 +1,30 @@
 import axios from "axios";
 
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000";
+
 const apiClient = axios.create({
-  baseURL: "http://127.0.0.1:8000",
+  baseURL: BASE_URL,
   headers: {
     "Content-Type": "application/json",
   },
 });
 
-console.log('VITE_API_BASE_URL:', import.meta.env.VITE_API_BASE_URL);
-console.log('All env vars:', import.meta.env);
+const authEndpoints = [
+  '/auth/admin-login/',
+  '/auth/customer-barber-login/',
+  '/auth/google-login/',
+  '/auth/register/',
+  '/auth/token/', 
+  '/auth/otp-verification/',
+  '/barber-reg/personal-details/',
+  '/barber-reg/verify-otp/',
+  '/barber-reg/resend-otp/',
+];
+
+const isAuthRequest = (url) => {
+  const path = url?.startsWith('/') ? url : `/${url}`;
+  return authEndpoints.some(endpoint => path === endpoint || path.startsWith(endpoint));
+};
 
 let isRefreshing = false;
 let refreshSubscribers = [];
@@ -22,25 +38,9 @@ const onRefreshed = (token) => {
   refreshSubscribers = [];
 };
 
-const authEndpoints = [
-  '/auth/admin-login/',
-  '/auth/customer-barber-login/',
-  '/auth/google-login/',
-  '/auth/register/',
-  '/auth/token/',
-  '/auth/otp-verification/',
-  '/barber-reg/personal-details/',
-  '/barber-reg/verify-otp/',  
-  '/barber-reg/resend-otp/',  
-];
 apiClient.interceptors.request.use(
   (config) => {
-    const isAuthEndpoint = authEndpoints.some(endpoint => {
-      const url = config.url?.startsWith('/') ? config.url : `/${config.url}`;
-      return url === endpoint || url.startsWith(endpoint);
-    });
-
-    if (!isAuthEndpoint) {
+    if (!isAuthRequest(config.url)) {
       const token = sessionStorage.getItem("access_token");
       if (token) {
         config.headers["Authorization"] = `Bearer ${token}`;
@@ -61,19 +61,9 @@ apiClient.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    console.log('Response error for URL:', originalRequest.url, 'Status:', error.response?.status);
-
     if (error.response?.status === 401 && !originalRequest._retry) {
-      if (originalRequest.url?.includes("/token/refresh/")) {
-        return Promise.reject(error); 
-      }
-
-      const isAuthEndpoint = authEndpoints.some(endpoint => {
-        const url = originalRequest.url?.startsWith('/') ? originalRequest.url : `/${originalRequest.url}`;
-        return url === endpoint || url.startsWith(endpoint);
-      });
-
-      if (isAuthEndpoint) {
+    
+      if (isAuthRequest(originalRequest.url)) {
         return Promise.reject(error);
       }
 
@@ -92,9 +82,8 @@ apiClient.interceptors.response.use(
       try {
         const refreshToken = sessionStorage.getItem("refresh_token");
         if (!refreshToken) throw new Error("No refresh token available");
-
         const response = await axios.post(
-          `${import.meta.env.VITE_API_BASE_URL}/auth/token/refresh/`,
+          `${BASE_URL}/auth/token/refresh/`,
           { refresh: refreshToken }
         );
 
@@ -106,6 +95,7 @@ apiClient.interceptors.response.use(
 
         originalRequest.headers["Authorization"] = `Bearer ${newAccessToken}`;
         return apiClient(originalRequest);
+        
       } catch (refreshError) {
         isRefreshing = false;
         refreshSubscribers = [];

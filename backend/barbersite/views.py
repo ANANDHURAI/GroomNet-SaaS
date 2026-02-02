@@ -30,6 +30,8 @@ from .models import Portfolio
 logger = logging.getLogger(__name__)
 
 
+
+
 class BarberDashboard(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -188,8 +190,8 @@ class BarberSlotViewSet(viewsets.ViewSet):
                 'required_fields': ['date', 'start_time', 'end_time']
             }, status=status.HTTP_400_BAD_REQUEST)
 
-        if end_time == "24:00:00":  # this code for when book 11-12 pm slot
-            end_time = "23:59:59"  # i get the error because it connected to next day
+        if end_time in ["24:00", "24:00:00", "00:00", "00:00:00"]:
+            end_time = "23:59:59"
 
         if BarberSlot.objects.filter(
             barber=request.user,
@@ -218,6 +220,8 @@ class BarberSlotViewSet(viewsets.ViewSet):
             return Response({
                 'error': f'Failed to create slot: {str(e)}'
             }, status=status.HTTP_400_BAD_REQUEST)
+
+
 
     @action(detail=True, methods=['delete'], url_path='cancel')
     def cancel_slot(self, request, pk=None):

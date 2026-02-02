@@ -14,6 +14,8 @@ const WorkingArea = () => {
   const [notification, setNotification] = useState('');
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('instant');
+  const [nextBookingTime, setNextBookingTime] = useState(null); 
+
   const wsRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
@@ -38,16 +40,28 @@ const WorkingArea = () => {
       try {
         const response = await apiClient.get(`/instant-booking/working/status/${barberId}`);
         setIsOnline(response.data.is_online);
-        setHasActiveBooking(
-          response.data.has_active_instant_booking ||
-          response.data.has_upcoming_scheduled_booking
-        );
+        setHasActiveBooking(response.data.has_active_instant_booking);
+
+        if (response.data.has_upcoming_scheduled_booking) {
+            setNextBookingTime(response.data.next_booking_time);
+            
+            if (response.data.is_online) {
+               setIsOnline(false); 
+            }
+        } else {
+            setNextBookingTime(null);
+        }
+
       } catch (err) {
         console.error('Error fetching barber status:', err);
       }
     };
 
     fetchBarberStatus();
+
+    const interval = setInterval(fetchBarberStatus, 60000);
+    return () => clearInterval(interval);
+
   }, [barberId, navigate]);
 
   const toggleOnlineStatus = async () => {
@@ -84,16 +98,13 @@ const WorkingArea = () => {
       setNotification(errorMessage);
 
       if (err.response?.status === 403) {
-          
           if (errorCode === 'NO_SERVICES') {
-             
               setTimeout(() => {
                   setNotification("Redirecting to Services page...");
                   navigate('/barber/my-services');
               }, 2000);
           } 
           else if (errorCode === 'NO_PORTFOLIO' || errorCode === 'INCOMPLETE_PORTFOLIO') {
-            
               setTimeout(() => {
                   setNotification("Redirecting to Portfolio page...");
                   navigate('/barbers-portfolio');
@@ -183,7 +194,6 @@ const WorkingArea = () => {
             </div>
           )}
 
-         
           {activeTab === 'scheduled' && currentBooking?.status === 'PENDING' && (
             <div className="bg-gradient-to-r from-amber-400 to-orange-500 text-white p-6 rounded-2xl shadow-xl mb-6 border border-orange-200">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -218,6 +228,8 @@ const WorkingArea = () => {
                 setNotification={setNotification}
                 wsRef={wsRef}
                 navigate={navigate}
+               
+                nextBookingTime={nextBookingTime} 
               />
             ) : (
               <ScheduledBookingTab />

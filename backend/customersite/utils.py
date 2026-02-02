@@ -14,3 +14,5 @@ def get_lat_lng_from_address(address_text):
             location = result['results'][0]['geometry']['location']
             return location['lat'], location['lng']
     return None, None
+
+

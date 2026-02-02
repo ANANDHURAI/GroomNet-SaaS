@@ -7,7 +7,7 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework.exceptions import PermissionDenied
 
 
-    
+
 class UserProfileView(RetrieveUpdateAPIView):
     serializer_class = UserProfileSerializer
     permission_classes = [IsAuthenticated]
@@ -32,13 +32,11 @@ class AddressViewSet(ModelViewSet):
     def perform_update(self, serializer):
         address = self.get_object()
         if address.user != self.request.user:
-            raise PermissionDenied(
-                "You do not have permission to edit this address.")
+            raise PermissionDenied("You do not have permission to edit this address.")
+        
         serializer.save()
 
     def perform_destroy(self, instance):
         if instance.user != self.request.user:
-            raise PermissionDenied(
-                "You do not have permission to delete this address.")
+            raise PermissionDenied("You do not have permission to delete this address.")
         instance.delete()
-

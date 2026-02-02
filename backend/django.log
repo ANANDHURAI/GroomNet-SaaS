@@ -58924,3 +58924,659 @@ Unauthorized: /customersite/home/
 Unauthorized: /auth/token/refresh/
 Bad Request: /auth/logout/
 Bad Request: /adminsite/categories/2/
+Unauthorized: /customersite/home/
+Unauthorized: /customersite/home/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /customersite/home/
+Unauthorized: /customersite/home/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /profile-service/user-profile/
+Unauthorized: /profile-service/user-profile/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /auth/logout/
+Unauthorized: /auth/token/refresh/
+Bad Request: /auth/customer-barber-login/
+Unauthorized: /barbersite/service-request/categories/
+Unauthorized: /barbersite/service-request/stats/
+Unauthorized: /barbersite/service-requests/
+Unauthorized: /barbersite/service-request/categories/
+Unauthorized: /barbersite/service-request/stats/
+Unauthorized: /barbersite/service-requests/
+Unauthorized: /instant-booking/active-booking/7/
+Unauthorized: /instant-booking/working/status/7/
+Unauthorized: /instant-booking/active-booking/7/
+Unauthorized: /instant-booking/working/status/7/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /instant-booking/active-booking/7/
+Unauthorized: /instant-booking/working/status/7/
+Unauthorized: /instant-booking/active-booking/7/
+Unauthorized: /instant-booking/working/status/7/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /adminsite/categories/
+Unauthorized: /adminsite/services/
+Unauthorized: /adminsite/categories/
+Unauthorized: /adminsite/services/
+Unauthorized: /instant-booking/active-booking/7/
+Unauthorized: /instant-booking/working/status/7/
+Unauthorized: /instant-booking/working/status/7/
+Unauthorized: /instant-booking/active-booking/7/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /instant-booking/active-booking/7/
+Unauthorized: /instant-booking/working/status/7/
+Unauthorized: /instant-booking/working/status/7/
+Unauthorized: /instant-booking/active-booking/7/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /instant-booking/active-booking/7/
+Unauthorized: /instant-booking/working/status/7/
+Unauthorized: /instant-booking/active-booking/7/
+Unauthorized: /instant-booking/working/status/7/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /instant-booking/active-booking/7/
+Unauthorized: /instant-booking/working/status/7/
+Unauthorized: /instant-booking/active-booking/7/
+Unauthorized: /instant-booking/working/status/7/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /adminsite/services/
+Unauthorized: /adminsite/categories/
+Unauthorized: /adminsite/categories/
+Unauthorized: /adminsite/services/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /customersite/home/
+Unauthorized: /customersite/home/
+Unauthorized: /instant-booking/active-booking/7/
+Unauthorized: /instant-booking/working/status/7/
+Unauthorized: /instant-booking/active-booking/7/
+Unauthorized: /instant-booking/working/status/7/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /auth/logout/
+Unauthorized: /auth/token/refresh/
+Internal Server Error: /instant-booking/working/status/6/
+Traceback (most recent call last):
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\sync.py", line 555, in thread_handler
+    raise exc_info[1]
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\django\core\handlers\exception.py", line 42, in inner
+    response = await get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\sync.py", line 555, in thread_handler
+    raise exc_info[1]
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\django\core\handlers\base.py", line 253, in _get_response_async
+    response = await wrapped_callback(
+               ^^^^^^^^^^^^^^^^^^^^^^^
+        request, *callback_args, **callback_kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\sync.py", line 504, in __call__
+    ret = await asyncio.shield(exec_coro)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\current_thread_executor.py", line 40, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\sync.py", line 559, in thread_handler
+    return func(*args, **kwargs)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\django\views\generic\base.py", line 105, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\rest_framework\views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\rest_framework\views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\rest_framework\views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\rest_framework\views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\instantbooking\views.py", line 233, in get
+    'has_upcoming_scheduled_booking': self.has_conflicting_scheduled_booking(barber)
+                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'DoggleStatusView' object has no attribute 'has_conflicting_scheduled_booking'
+Internal Server Error: /instant-booking/working/status/6/
+Traceback (most recent call last):
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\sync.py", line 555, in thread_handler
+    raise exc_info[1]
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\django\core\handlers\exception.py", line 42, in inner
+    response = await get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\sync.py", line 555, in thread_handler
+    raise exc_info[1]
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\django\core\handlers\base.py", line 253, in _get_response_async
+    response = await wrapped_callback(
+               ^^^^^^^^^^^^^^^^^^^^^^^
+        request, *callback_args, **callback_kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\sync.py", line 504, in __call__
+    ret = await asyncio.shield(exec_coro)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\current_thread_executor.py", line 40, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\sync.py", line 559, in thread_handler
+    return func(*args, **kwargs)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\django\views\generic\base.py", line 105, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\rest_framework\views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\rest_framework\views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\rest_framework\views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\rest_framework\views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\instantbooking\views.py", line 233, in get
+    'has_upcoming_scheduled_booking': self.has_conflicting_scheduled_booking(barber)
+                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'DoggleStatusView' object has no attribute 'has_conflicting_scheduled_booking'
+Bad Request: /barbersite/barber-slots/create-slot/
+Bad Request: /barbersite/barber-slots/create-slot/
+Bad Request: /barbersite/barber-slots/create-slot/
+Bad Request: /barbersite/barber-slots/create-slot/
+Internal Server Error: /instant-booking/working/status/6/
+Traceback (most recent call last):
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\sync.py", line 555, in thread_handler
+    raise exc_info[1]
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\django\core\handlers\exception.py", line 42, in inner
+    response = await get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\sync.py", line 555, in thread_handler
+    raise exc_info[1]
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\django\core\handlers\base.py", line 253, in _get_response_async
+    response = await wrapped_callback(
+               ^^^^^^^^^^^^^^^^^^^^^^^
+        request, *callback_args, **callback_kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\sync.py", line 504, in __call__
+    ret = await asyncio.shield(exec_coro)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\current_thread_executor.py", line 40, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\sync.py", line 559, in thread_handler
+    return func(*args, **kwargs)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\django\views\generic\base.py", line 105, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\rest_framework\views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\rest_framework\views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\rest_framework\views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\rest_framework\views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\instantbooking\views.py", line 233, in get
+    'has_upcoming_scheduled_booking': self.has_conflicting_scheduled_booking(barber)
+                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'DoggleStatusView' object has no attribute 'has_conflicting_scheduled_booking'
+Internal Server Error: /instant-booking/working/status/6/
+Traceback (most recent call last):
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\sync.py", line 555, in thread_handler
+    raise exc_info[1]
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\django\core\handlers\exception.py", line 42, in inner
+    response = await get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\sync.py", line 555, in thread_handler
+    raise exc_info[1]
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\django\core\handlers\base.py", line 253, in _get_response_async
+    response = await wrapped_callback(
+               ^^^^^^^^^^^^^^^^^^^^^^^
+        request, *callback_args, **callback_kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\sync.py", line 504, in __call__
+    ret = await asyncio.shield(exec_coro)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\current_thread_executor.py", line 40, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\sync.py", line 559, in thread_handler
+    return func(*args, **kwargs)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\django\views\generic\base.py", line 105, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\rest_framework\views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\rest_framework\views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\rest_framework\views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\rest_framework\views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\instantbooking\views.py", line 233, in get
+    'has_upcoming_scheduled_booking': self.has_conflicting_scheduled_booking(barber)
+                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'DoggleStatusView' object has no attribute 'has_conflicting_scheduled_booking'
+Internal Server Error: /instant-booking/working/status/6/
+Traceback (most recent call last):
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\sync.py", line 555, in thread_handler
+    raise exc_info[1]
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\django\core\handlers\exception.py", line 42, in inner
+    response = await get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\sync.py", line 555, in thread_handler
+    raise exc_info[1]
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\django\core\handlers\base.py", line 253, in _get_response_async
+    response = await wrapped_callback(
+               ^^^^^^^^^^^^^^^^^^^^^^^
+        request, *callback_args, **callback_kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\sync.py", line 504, in __call__
+    ret = await asyncio.shield(exec_coro)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\current_thread_executor.py", line 40, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\sync.py", line 559, in thread_handler
+    return func(*args, **kwargs)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\django\views\generic\base.py", line 105, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\rest_framework\views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\rest_framework\views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\rest_framework\views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\rest_framework\views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\instantbooking\views.py", line 233, in get
+    'has_upcoming_scheduled_booking': self.has_conflicting_scheduled_booking(barber)
+                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'DoggleStatusView' object has no attribute 'has_conflicting_scheduled_booking'
+Internal Server Error: /instant-booking/working/status/6/
+Traceback (most recent call last):
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\sync.py", line 555, in thread_handler
+    raise exc_info[1]
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\django\core\handlers\exception.py", line 42, in inner
+    response = await get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\sync.py", line 555, in thread_handler
+    raise exc_info[1]
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\django\core\handlers\base.py", line 253, in _get_response_async
+    response = await wrapped_callback(
+               ^^^^^^^^^^^^^^^^^^^^^^^
+        request, *callback_args, **callback_kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\sync.py", line 504, in __call__
+    ret = await asyncio.shield(exec_coro)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\current_thread_executor.py", line 40, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\sync.py", line 559, in thread_handler
+    return func(*args, **kwargs)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\django\views\generic\base.py", line 105, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\rest_framework\views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\rest_framework\views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\rest_framework\views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\rest_framework\views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\instantbooking\views.py", line 233, in get
+    'has_upcoming_scheduled_booking': self.has_conflicting_scheduled_booking(barber)
+                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'DoggleStatusView' object has no attribute 'has_conflicting_scheduled_booking'
+Internal Server Error: /instant-booking/working/status/6/
+Traceback (most recent call last):
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\sync.py", line 555, in thread_handler
+    raise exc_info[1]
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\django\core\handlers\exception.py", line 42, in inner
+    response = await get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\sync.py", line 555, in thread_handler
+    raise exc_info[1]
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\django\core\handlers\base.py", line 253, in _get_response_async
+    response = await wrapped_callback(
+               ^^^^^^^^^^^^^^^^^^^^^^^
+        request, *callback_args, **callback_kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\sync.py", line 504, in __call__
+    ret = await asyncio.shield(exec_coro)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\current_thread_executor.py", line 40, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\sync.py", line 559, in thread_handler
+    return func(*args, **kwargs)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\django\views\generic\base.py", line 105, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\rest_framework\views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\rest_framework\views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\rest_framework\views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\rest_framework\views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\instantbooking\views.py", line 233, in get
+    'has_upcoming_scheduled_booking': self.has_conflicting_scheduled_booking(barber)
+                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'DoggleStatusView' object has no attribute 'has_conflicting_scheduled_booking'
+Internal Server Error: /instant-booking/working/status/6/
+Traceback (most recent call last):
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\sync.py", line 555, in thread_handler
+    raise exc_info[1]
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\django\core\handlers\exception.py", line 42, in inner
+    response = await get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\sync.py", line 555, in thread_handler
+    raise exc_info[1]
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\django\core\handlers\base.py", line 253, in _get_response_async
+    response = await wrapped_callback(
+               ^^^^^^^^^^^^^^^^^^^^^^^
+        request, *callback_args, **callback_kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\sync.py", line 504, in __call__
+    ret = await asyncio.shield(exec_coro)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\current_thread_executor.py", line 40, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\sync.py", line 559, in thread_handler
+    return func(*args, **kwargs)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\django\views\generic\base.py", line 105, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\rest_framework\views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\rest_framework\views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\rest_framework\views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\rest_framework\views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\instantbooking\views.py", line 233, in get
+    'has_upcoming_scheduled_booking': self.has_conflicting_scheduled_booking(barber)
+                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'DoggleStatusView' object has no attribute 'has_conflicting_scheduled_booking'
+Internal Server Error: /instant-booking/working/status/6/
+Traceback (most recent call last):
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\sync.py", line 555, in thread_handler
+    raise exc_info[1]
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\django\core\handlers\exception.py", line 42, in inner
+    response = await get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\sync.py", line 555, in thread_handler
+    raise exc_info[1]
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\django\core\handlers\base.py", line 253, in _get_response_async
+    response = await wrapped_callback(
+               ^^^^^^^^^^^^^^^^^^^^^^^
+        request, *callback_args, **callback_kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\sync.py", line 504, in __call__
+    ret = await asyncio.shield(exec_coro)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\current_thread_executor.py", line 40, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\sync.py", line 559, in thread_handler
+    return func(*args, **kwargs)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\django\views\generic\base.py", line 105, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\rest_framework\views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\rest_framework\views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\rest_framework\views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\rest_framework\views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\instantbooking\views.py", line 233, in get
+    'has_upcoming_scheduled_booking': self.has_conflicting_scheduled_booking(barber)
+                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'DoggleStatusView' object has no attribute 'has_conflicting_scheduled_booking'
+Internal Server Error: /instant-booking/working/status/6/
+Traceback (most recent call last):
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\sync.py", line 555, in thread_handler
+    raise exc_info[1]
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\django\core\handlers\exception.py", line 42, in inner
+    response = await get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\sync.py", line 555, in thread_handler
+    raise exc_info[1]
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\django\core\handlers\base.py", line 253, in _get_response_async
+    response = await wrapped_callback(
+               ^^^^^^^^^^^^^^^^^^^^^^^
+        request, *callback_args, **callback_kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\sync.py", line 504, in __call__
+    ret = await asyncio.shield(exec_coro)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\current_thread_executor.py", line 40, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\sync.py", line 559, in thread_handler
+    return func(*args, **kwargs)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\django\views\generic\base.py", line 105, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\rest_framework\views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\rest_framework\views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\rest_framework\views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\rest_framework\views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\instantbooking\views.py", line 233, in get
+    'has_upcoming_scheduled_booking': self.has_conflicting_scheduled_booking(barber)
+                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'DoggleStatusView' object has no attribute 'has_conflicting_scheduled_booking'
+Error in DoggleStatusView POST: 'DoggleStatusView' object has no attribute 'has_conflicting_scheduled_booking'
+Internal Server Error: /instant-booking/working/status/6/
+Error in DoggleStatusView POST: 'DoggleStatusView' object has no attribute 'has_conflicting_scheduled_booking'
+Internal Server Error: /instant-booking/working/status/6/
+Unauthorized: /customersite/home/
+Unauthorized: /customersite/home/
+Unauthorized: /instant-booking/active-booking/6/
+Unauthorized: /instant-booking/active-booking/6/
+Unauthorized: /instant-booking/working/status/6/
+Unauthorized: /instant-booking/working/status/6/
+Unauthorized: /auth/token/refresh/
+Internal Server Error: /instant-booking/working/status/6/
+Traceback (most recent call last):
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\sync.py", line 555, in thread_handler
+    raise exc_info[1]
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\django\core\handlers\exception.py", line 42, in inner
+    response = await get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\sync.py", line 555, in thread_handler
+    raise exc_info[1]
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\django\core\handlers\base.py", line 253, in _get_response_async
+    response = await wrapped_callback(
+               ^^^^^^^^^^^^^^^^^^^^^^^
+        request, *callback_args, **callback_kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\sync.py", line 504, in __call__
+    ret = await asyncio.shield(exec_coro)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\current_thread_executor.py", line 40, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\sync.py", line 559, in thread_handler
+    return func(*args, **kwargs)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\django\views\generic\base.py", line 105, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\rest_framework\views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\rest_framework\views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\rest_framework\views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\rest_framework\views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\instantbooking\views.py", line 233, in get
+    'has_upcoming_scheduled_booking': self.has_conflicting_scheduled_booking(barber)
+                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'DoggleStatusView' object has no attribute 'has_conflicting_scheduled_booking'
+Internal Server Error: /instant-booking/working/status/6/
+Traceback (most recent call last):
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\sync.py", line 555, in thread_handler
+    raise exc_info[1]
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\django\core\handlers\exception.py", line 42, in inner
+    response = await get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\sync.py", line 555, in thread_handler
+    raise exc_info[1]
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\django\core\handlers\base.py", line 253, in _get_response_async
+    response = await wrapped_callback(
+               ^^^^^^^^^^^^^^^^^^^^^^^
+        request, *callback_args, **callback_kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\sync.py", line 504, in __call__
+    ret = await asyncio.shield(exec_coro)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\current_thread_executor.py", line 40, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\asgiref\sync.py", line 559, in thread_handler
+    return func(*args, **kwargs)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\django\views\generic\base.py", line 105, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\rest_framework\views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\rest_framework\views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\rest_framework\views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "C:\Users\Anandhurai\NewGroomNet\backend\venv\Lib\site-packages\rest_framework\views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Users\Anandhurai\NewGroomNet\backend\instantbooking\views.py", line 233, in get
+    'has_upcoming_scheduled_booking': self.has_conflicting_scheduled_booking(barber)
+                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'DoggleStatusView' object has no attribute 'has_conflicting_scheduled_booking'
+Unauthorized: /instant-booking/working/status/6/
+Unauthorized: /instant-booking/active-booking/6/
+Unauthorized: /instant-booking/working/status/6/
+Unauthorized: /instant-booking/active-booking/6/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /customersite/home/
+Unauthorized: /customersite/home/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /instant-booking/active-booking/6/
+Unauthorized: /instant-booking/working/status/6/
+Unauthorized: /instant-booking/active-booking/6/
+Unauthorized: /instant-booking/working/status/6/
+Unauthorized: /auth/token/refresh/
+Bad Request: /auth/customer-barber-login/
+Bad Request: /auth/customer-barber-login/
+Not Found: /instant-booking/bookings/87/find-barber/
+Not Found: /instant-booking/bookings/87/find-barber/
+Unauthorized: /adminsite/categories/
+Unauthorized: /adminsite/services/
+Unauthorized: /adminsite/categories/
+Unauthorized: /adminsite/services/
+Unauthorized: /auth/token/refresh/
+Not Found: /instant-booking/bookings/88/find-barber/
+Not Found: /instant-booking/bookings/88/find-barber/
+Not Found: /instant-booking/bookings/88/find-barber/
+Not Found: /instant-booking/bookings/88/find-barber/
+Unauthorized: /barbersite/barber-slots/
+Unauthorized: /barbersite/barber-slots/
+Bad Request: /instant-booking/bookings/88/expire/
+Unauthorized: /customersite/home/
+Unauthorized: /customersite/home/
+Bad Request: /auth/logout/
+Notification sent to barber 6
+Notification sent to barber 6
+Insufficient Admin Funds to pay Barber 6
+Unauthorized: /adminsite/categories/
+Unauthorized: /adminsite/services/
+Unauthorized: /adminsite/categories/
+Unauthorized: /adminsite/services/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /adminsite/barbers-list/
+Unauthorized: /adminsite/barbers-list/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /auth/logout/
+Unauthorized: /auth/token/refresh/
+Notification sent to barber 6
+Notification sent to barber 6
+Notification sent to barber 7
+Notification sent to barber 7
+Unauthorized: /instant-booking/bookings/93/find-barber/
+Unauthorized: /barbersite/barber-slots/
+Unauthorized: /barbersite/barber-slots/
+Unauthorized: /instant-booking/bookings/93/find-barber/
+Not Found: /instant-booking/bookings/93/find-barber/
+Not Found: /instant-booking/bookings/93/find-barber/
+Unauthorized: /auth/token/refresh/
+Bad Request: /instant-booking/bookings/93/expire/
+Insufficient Admin Funds to pay Barber 7
+Insufficient Admin Funds to pay Barber 7
+Insufficient Admin Funds to pay Barber 7
+Insufficient Admin Funds to pay Barber 7
+Insufficient Admin Funds to pay Barber 7
+Insufficient Admin Funds to pay Barber 7
+Insufficient Admin Funds to pay Barber 7
+Insufficient Admin Funds to pay Barber 7
+Unauthorized: /instant-booking/active-booking/7/
+Unauthorized: /instant-booking/working/status/7/
+Unauthorized: /customersite/booking-details/94/
+Unauthorized: /customersite/booking-details/94/
+Forbidden: /instant-booking/working/status/8/
+Forbidden: /instant-booking/working/status/8/
+Not Found: /barbersite/barber-portfolio/
+Not Found: /barbersite/barber-portfolio/
+Bad Request: /auth/logout/
+Unauthorized: /instant-booking/working/status/4/
+Unauthorized: /customersite/booking-history/
+Unauthorized: /customersite/booking-history/
+Not Found: /barbersite/barber-portfolio/
+Not Found: /barbersite/barber-portfolio/
+Unauthorized: /adminsite/barbers-list/
+Unauthorized: /adminsite/barbers-list/
+Bad Request: /barbersite/barber-slots/create-slot/
+Bad Request: /barbersite/barber-slots/create-slot/

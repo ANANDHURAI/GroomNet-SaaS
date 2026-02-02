@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from adminsite.models import CategoryModel, ServiceModel,AdminWalletTransaction
+from adminsite.models import CategoryModel, ServiceModel
 from .models import Booking , PaymentModel , Complaints , CustomerWalletTransaction
 from authservice.models import User
 from barbersite.models import BarberSlot
@@ -10,7 +10,7 @@ from profileservice.models import UserProfile
 import requests
 from django.db.models import Avg
 from customersite.models import Rating
-from adminsite.models import Coupon ,CouponUsage , AdminWallet
+from adminsite.models import Coupon
 
 class BarberSerializer(serializers.ModelSerializer):
     average_rating = serializers.SerializerMethodField()

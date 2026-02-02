@@ -27,68 +27,88 @@ from barbersite.models import Portfolio , BarberService
 
 
 
+User = get_user_model()
 
 class BookingMixin:
+  
+    SAFETY_BUFFER_MINUTES = 90 
+
     @staticmethod
     def has_active_instant_booking(barber):
         return Booking.objects.filter(
             barber=barber,
-            booking_type__in=["INSTANT_BOOKING", "SCHEDULE_BOOKING"],
-            status__in=["PENDING", "CONFIRMED"]
-        ).exists()
-        
-        
-    BUFFER_MINUTES = 30 
-
-    @staticmethod
-    def is_barber_busy(barber):
-        """
-        Check if barber is currently in an active session.
-        """
-        return Booking.objects.filter(
-            barber=barber,
-            status__in=["PENDING", "CONFIRMED"]
+            booking_type="INSTANT_BOOKING",
+            status__in=["PENDING", "CONFIRMED", "STARTED", "ARRIVED", "ON_THE_WAY"]
         ).exists()
 
+
+
     @staticmethod
-    def has_conflicting_scheduled_booking(barber, start_time=None, end_time=None):
+    def get_next_scheduled_booking(barber):
+        
         now = timezone.now()
-
-        if start_time is None:
-            start_time = now
-            end_time = now + timedelta(minutes=30)
-
+        window_end = now + timedelta(hours=24)
+        
         return Booking.objects.filter(
             barber=barber,
             booking_type="SCHEDULE_BOOKING",
-            status__in=["PENDING", "CONFIRMED"],
-            service_started_at__gte=start_time,
-            service_started_at__lt=end_time
-        ).exists()
+            status="CONFIRMED",
+            service_started_at__gte=now,
+            service_started_at__lte=window_end
+        ).order_by('service_started_at').first()
+
+
+
+    @staticmethod
+    def is_barber_schedule_conflict(barber, instant_booking_request=None):
+        next_scheduled = BookingMixin.get_next_scheduled_booking(barber)
+        
+        if not next_scheduled:
+            return False 
+
+        now = timezone.now()
+        time_until_next_job = (next_scheduled.service_started_at - now).total_seconds() / 60
+       
+        if time_until_next_job < BookingMixin.SAFETY_BUFFER_MINUTES:
+            return True 
+
+        return False
+
+
+
+
+    @staticmethod
+    def has_conflicting_scheduled_booking(barber):
+        return BookingMixin.is_barber_schedule_conflict(barber)
+
+
 
     @staticmethod
     def get_available_barbers_for_booking(booking):
         potential_barbers = User.objects.filter(
             user_type='barber',
             is_online=True,
-            barber_services__service=booking.service
+            barber_services__service=booking.service,
+            barber_services__is_active=True 
         ).distinct()
 
         available_barbers = []
         for barber in potential_barbers:
-            
             if BookingMixin.has_active_instant_booking(barber):
                 continue
-          
-            if BookingMixin.has_conflicting_scheduled_booking(barber):
+            
+            if BookingMixin.is_barber_schedule_conflict(barber, booking):
                 continue
+                
             available_barbers.append(barber)
+            
         return available_barbers
 
 
 
 
 class MakingFindingBarberRequest(APIView, BookingMixin):
+    
     permission_classes = [IsAuthenticated]
 
     def post(self, request, booking_id):
@@ -101,10 +121,9 @@ class MakingFindingBarberRequest(APIView, BookingMixin):
             )
 
             available_barbers = self.get_available_barbers_for_booking(booking)
-           
-            print(f"🔍 Finding Barbers for Booking {booking.id}. Found: {[b.id for b in available_barbers]}")
-
+            
             if not available_barbers:
+                self._notify_customer_no_barbers_available(booking)
                 return Response(
                     {"message": "No barbers available at the moment."},
                     status=status.HTTP_404_NOT_FOUND
@@ -120,7 +139,25 @@ class MakingFindingBarberRequest(APIView, BookingMixin):
         except Booking.DoesNotExist:
             return Response({"error": "Booking not found or invalid status."}, status=404)
 
+
+
+    def _notify_customer_no_barbers_available(self, booking):
+        
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            f"customer_{booking.customer.id}",
+            {
+                "type": "no_barbers_available",
+                "booking_id": booking.id,
+                "message": "All nearby barbers are currently busy with upcoming schedules."
+            }
+        )
+
+
+
+
     def _notify_barbers_new_booking(self, request, booking, barbers):
+        
         channel_layer = get_channel_layer()
         
         image_url = None
@@ -143,9 +180,9 @@ class MakingFindingBarberRequest(APIView, BookingMixin):
                         "barber_image": image_url,
                     }
                 )
-                logger.info(f"Notification sent to barber {barber.id}")
             except Exception as e:
                 logger.error(f"Socket Error for barber {barber.id}: {str(e)}")
+
 
 
 
@@ -156,18 +193,31 @@ class DoggleStatusView(APIView, BookingMixin):
     def get(self, request, barber_id):
         try:
             barber = User.objects.get(id=barber_id, user_type='barber')
+            
+            
+            has_conflict = self.is_barber_schedule_conflict(barber)
+            next_booking_time = None
+            
+            if has_conflict:
+                next_job = self.get_next_scheduled_booking(barber)
+                if next_job:
+                    next_booking_time = next_job.service_started_at
+
             return Response({
                 'is_online': barber.is_online,
                 'has_active_instant_booking': self.has_active_instant_booking(barber),
-                'has_upcoming_scheduled_booking': self.has_conflicting_scheduled_booking(barber)
+                'has_upcoming_scheduled_booking': has_conflict,
+                'next_booking_time': next_booking_time 
             }, status=200)
         except User.DoesNotExist:
             return Response({'message': 'Barber not found'}, status=404)
 
+
+
+
     def post(self, request, barber_id):
         action = request.data.get('action')
         try:
-           
             with transaction.atomic():
                 barber = User.objects.select_for_update().get(id=barber_id, user_type='barber')
                 
@@ -181,7 +231,6 @@ class DoggleStatusView(APIView, BookingMixin):
         except User.DoesNotExist:
             return Response({'message': 'Barber not found'}, status=404)
         except Exception as e:
-            logger.error(f"Error in DoggleStatusView POST: {str(e)}") 
             return Response({'message': 'Internal Server Error', 'details': str(e)}, status=500)
 
 
@@ -194,13 +243,13 @@ class DoggleStatusView(APIView, BookingMixin):
                 'error_code': 'ACTIVE_BOOKING'
             }, status=status.HTTP_400_BAD_REQUEST)
 
-        if self.has_conflicting_scheduled_booking(barber):
+        if self.is_barber_schedule_conflict(barber):
             return Response({
-                'message': 'Upcoming scheduled booking soon. Cannot go online.',
+                'message': 'Upcoming scheduled booking soon (within 90 mins). Cannot go online.',
                 'error_code': 'SCHEDULE_CONFLICT'
             }, status=status.HTTP_400_BAD_REQUEST)
 
-       
+        
         has_services = BarberService.objects.filter(barber=barber, is_active=True).exists()
         if not has_services:
             return Response({
@@ -208,10 +257,8 @@ class DoggleStatusView(APIView, BookingMixin):
                 'error_code': 'NO_SERVICES' 
             }, status=status.HTTP_403_FORBIDDEN)
 
-       
         try:
             portfolio = Portfolio.objects.get(user=barber)
-           
             if not portfolio.current_location or not portfolio.expert_at:
                  return Response({
                     'message': 'Please complete your portfolio before going online.',
@@ -223,7 +270,6 @@ class DoggleStatusView(APIView, BookingMixin):
                 'error_code': 'NO_PORTFOLIO'
             }, status=status.HTTP_403_FORBIDDEN)
 
-      
         barber.is_online = True
         barber.save()
         return Response({'message': 'You are now Online.', 'is_online': True}, status=200)
@@ -231,16 +277,14 @@ class DoggleStatusView(APIView, BookingMixin):
 
 
 
-
-
     def _handle_go_offline(self, barber):
-        
         barber.is_online = False
         barber.save()
         return Response({'message': 'You are now Offline.', 'is_online': False}, status=200)
     
-    
-    
+
+
+
 
 class ActiveBookingView(APIView):
     permission_classes = [IsAuthenticated]
@@ -319,6 +363,8 @@ class HandleBarberActions(APIView):
             return self._handle_reject(barber, booking_id)
 
     
+    
+    
     def _handle_accept(self, barber, booking_id):
         with transaction.atomic():
             try:
@@ -382,8 +428,11 @@ class HandleBarberActions(APIView):
         return Response({"status": "success", "booking_id": booking.id})
     
     
+    
     def _handle_reject(self, barber, booking_id):
         return Response({"status": "success", "message": "Booking rejected locally."})
+
+
 
     def _notify_customer_success(self, booking, barber):
         channel_layer = get_channel_layer()
@@ -404,6 +453,8 @@ class HandleBarberActions(APIView):
             }
         )
 
+
+
     def _notify_other_barbers_remove(self, booking, accepting_barber):
        
         channel_layer = get_channel_layer()
@@ -414,6 +465,8 @@ class HandleBarberActions(APIView):
                 f"barber_{b.id}",
                 {"type": "remove_booking", "booking_id": booking.id, "message": "Booking taken."}
             )
+
+
 
     def _notify_customer_no_barbers_available(self, booking):
 
@@ -427,6 +480,8 @@ class HandleBarberActions(APIView):
                 "message": "No barbers available to accept your booking right now. Please try again later."
             }
         )
+
+
 
     def _notify_barbers_new_booking(self, booking, barbers):
 
@@ -555,6 +610,8 @@ class CompletedServiceView(APIView):
             'service_started_at': booking.service_started_at,
         }
         return Response(data)
+
+
 
     def post(self, request, booking_id):
         booking = get_object_or_404(Booking, id=booking_id)
