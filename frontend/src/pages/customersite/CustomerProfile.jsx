@@ -1,18 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import apiClient from '../../slices/api/apiIntercepters';
-import CustomerSidebar from '../../components/customercompo/CustomerSidebar'; 
-
 import LoadingSpinner from '../../components/profilecompo/LoadingSpinner';
 import ProfileCard from '../../components/profilecompo/ProfileCard';
 import ProfileField from '../../components/profilecompo/ProfileField';
-import Navbar from '../../components/basics/Navbar';
 import CustomerLayout from '../../components/customercompo/CustomerLayout';
+import { toast } from 'react-hot-toast';
 
 function CustomerProfile() {
   const [profile, setProfile] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editedProfile, setEditedProfile] = useState({});
   const [loading, setLoading] = useState(true);
+  const [saveLoading, setSaveLoading] = useState(false);
+  const [selectedImageFile, setSelectedImageFile] = useState(null);
 
   useEffect(() => {
     fetchProfile();
@@ -28,7 +28,6 @@ function CustomerProfile() {
           sessionStorage.setItem('customer_profile_image', res.data.profileimage);
         }
       }
-
     } catch (error) {
       console.error('Error fetching profile:', error);
     } finally {
@@ -39,20 +38,24 @@ function CustomerProfile() {
   const handleEdit = () => {
     setIsEditing(true);
     setEditedProfile({ ...profile });
+    setSelectedImageFile(null); 
   };
 
   const handleSave = async () => {
+    setSaveLoading(true);
     try {
       const formData = new FormData();
-      
+  
       Object.keys(editedProfile).forEach(key => {
-        if (key !== 'profileImageFile' && key !== 'profileimage' && editedProfile[key] !== null && editedProfile[key] !== undefined) {
+        
+        if (key !== 'profileimage' && editedProfile[key] !== null && editedProfile[key] !== undefined) {
           formData.append(key, editedProfile[key]);
         }
       });
 
-      if (editedProfile.profileImageFile) {
-        formData.append('profileimage', editedProfile.profileImageFile);
+     
+      if (selectedImageFile) {
+        formData.append('profileimage', selectedImageFile);
       }
       
       const res = await apiClient.put('/profile-service/user-profile/', formData, {
@@ -62,20 +65,28 @@ function CustomerProfile() {
       });
       
       setProfile(res.data);
+     
+      if(res.data.profileimage) {
+          sessionStorage.setItem('customer_profile_image', res.data.profileimage);
+          window.dispatchEvent(new Event('profileImageUpdated'));
+      }
+
       setIsEditing(false);
-  
-      setEditedProfile(prev => {
-        const { profileImageFile, ...rest } = prev;
-        return rest;
-      });
+      setSelectedImageFile(null);
+      toast.success("Profile updated successfully!");
+
     } catch (error) {
       console.error('Error updating profile:', error);
+      toast.error("Failed to update profile.");
+    } finally {
+      setSaveLoading(false);
     }
   };
 
   const handleCancel = () => {
     setIsEditing(false);
     setEditedProfile({ ...profile });
+    setSelectedImageFile(null);
   };
 
   const handleChange = (e) => {
@@ -89,15 +100,12 @@ function CustomerProfile() {
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
+     
+      setSelectedImageFile(file);
+
       const previewUrl = URL.createObjectURL(file);
-      setProfile(prev => ({
-        ...prev,
-        profileimage: previewUrl
-      }));
-      
       setEditedProfile(prev => ({
         ...prev,
-        profileImageFile: file,
         profileimage: previewUrl
       }));
     }
@@ -111,34 +119,31 @@ function CustomerProfile() {
 
   return (
     <CustomerLayout>
-        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-          <div className="flex">
-            <div className="flex-1 p-8">
-              <div className="max-w-4xl mx-auto">
+        <div className="min-h-screen bg-gray-50/50 p-6 md:p-12">
+            <div className="max-w-5xl mx-auto">
                 <div className="mb-8">
-                  <h2 className="text-3xl font-bold text-gray-800 mb-2">My Profile</h2>
-                  <p className="text-gray-600">
-                    Manage your personal information and preferences
-                  </p>
+                  <h2 className="text-3xl font-extrabold text-gray-900 tracking-tight">My Profile</h2>
+                  <p className="text-gray-500 mt-2 text-lg">Manage your personal information and account settings</p>
                 </div>
 
                 {loading ? (
-                  <div className="bg-white rounded-2xl shadow-xl">
+                  <div className="flex justify-center py-20">
                     <LoadingSpinner />
                   </div>
                 ) : profile ? (
                   <ProfileCard
-                    profile={profile}
+                    profile={isEditing ? editedProfile : profile} 
                     isEditing={isEditing}
                     onEdit={handleEdit}
                     onSave={handleSave}
                     onCancel={handleCancel}
                     onImageUpload={handleImageUpload}
+                    loading={saveLoading}
                   >
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                       <ProfileField
                         label="Full Name"
-                        value={isEditing ? editedProfile.name : profile.name}
+                        value={editedProfile.name}
                         isEditing={isEditing}
                         onChange={handleChange}
                         name="name"
@@ -147,23 +152,23 @@ function CustomerProfile() {
 
                       <ProfileField
                         label="Email Address"
-                        value={profile.email}
+                        value={profile.email} 
                         isEditing={false}
                       />
 
                       <ProfileField
                         label="Phone Number"
-                        value={isEditing ? editedProfile.phone : profile.phone}
+                        value={editedProfile.phone}
                         isEditing={isEditing}
                         onChange={handleChange}
                         name="phone"
                         type="tel"
-                        placeholder="Enter your phone number"
+                        placeholder="+91 00000 00000"
                       />
 
                       <ProfileField
                         label="Gender"
-                        value={isEditing ? editedProfile.gender : profile.gender}
+                        value={editedProfile.gender}
                         isEditing={isEditing}
                         onChange={handleChange}
                         name="gender"
@@ -172,7 +177,7 @@ function CustomerProfile() {
 
                       <ProfileField
                         label="Date of Birth"
-                        value={isEditing ? editedProfile.date_of_birth : profile.date_of_birth}
+                        value={editedProfile.date_of_birth}
                         isEditing={isEditing}
                         onChange={handleChange}
                         name="date_of_birth"
@@ -182,7 +187,7 @@ function CustomerProfile() {
                       <div className="md:col-span-2">
                         <ProfileField
                           label="About Me"
-                          value={isEditing ? editedProfile.bio : profile.bio}
+                          value={editedProfile.bio}
                           isEditing={isEditing}
                           onChange={handleChange}
                           name="bio"
@@ -193,16 +198,13 @@ function CustomerProfile() {
                     </div>
                   </ProfileCard>
                 ) : (
-                  <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
-                    <p className="text-gray-600">No profile data available</p>
+                  <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-12 text-center">
+                    <p className="text-gray-500 text-lg">Failed to load profile data.</p>
                   </div>
                 )}
-              </div>
             </div>
-          </div>
         </div>
     </CustomerLayout>
-
   );
 }
 

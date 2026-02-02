@@ -1,16 +1,16 @@
 from rest_framework import serializers
-from .models import UserProfile, Address
-from authservice.models import User
+from .models import UserProfile,Address
+from django.contrib.auth import get_user_model
 
-
+User = get_user_model()
 
 class UserProfileSerializer(serializers.ModelSerializer):
-    name = serializers.CharField(source='user.name', read_only=True)
-    email = serializers.CharField(source='user.email', read_only=True)
-    phone = serializers.CharField(source='user.phone', read_only=True)
+   
+    name = serializers.CharField(source='user.name')
+    email = serializers.CharField(source='user.email', read_only=True) 
+    phone = serializers.CharField(source='user.phone', required=False)
     usertype = serializers.CharField(source='user.user_type', read_only=True)
-
-    profileimage = serializers.SerializerMethodField()
+    profileimage = serializers.ImageField(source='user.profileimage', required=False, allow_null=True)
 
     class Meta:
         model = UserProfile
@@ -22,16 +22,31 @@ class UserProfileSerializer(serializers.ModelSerializer):
             'usertype',
             'date_of_birth',
             'gender',
+            'bio',
         ]
 
-    def get_profileimage(self, obj):
-        request = self.context.get('request')
-        if obj.user.profileimage:
-            if request:
-                return request.build_absolute_uri(obj.user.profileimage.url)
-            return f"http://127.0.0.1:8000{obj.user.profileimage.url}"
-        return None
+    def update(self, instance, validated_data):
+        
+        user_data = validated_data.pop('user', {})
+        user = instance.user
+        
+        if 'name' in user_data:
+            user.name = user_data['name']
+        
+        if 'phone' in user_data:
+            user.phone = user_data['phone']
+            
+        if 'profileimage' in user_data:
+            user.profileimage = user_data['profileimage']
+            
+        user.save()
 
+    
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+            
+        instance.save()
+        return instance
 
 
 

@@ -1,4 +1,4 @@
-
+import { useState, useEffect } from 'react'; // ✅ Import hooks
 import { Scissors, User, Bell } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import NotificationBadge from '../../components/notification/NotificationBadge';
@@ -11,17 +11,42 @@ function Navbar() {
   const currentUser = user || registerUser;
 
   const { totalUnreadCount } = useNotificationContext();
-  const rawImage = currentUser?.profile_image || currentUser?.profileimage;
 
+  // ✅ 1. Initialize state with SessionStorage (Freshest) OR Redux (Fallback)
+  const [displayImage, setDisplayImage] = useState(
+    sessionStorage.getItem('customer_profile_image') || 
+    currentUser?.profile_image || 
+    currentUser?.profileimage
+  );
 
+  // ✅ 2. Listen for updates from Profile Page
+  useEffect(() => {
+    // Sync if Redux updates (e.g., fresh login)
+    const reduxImg = currentUser?.profile_image || currentUser?.profileimage;
+    if (reduxImg && !sessionStorage.getItem('customer_profile_image')) {
+        setDisplayImage(reduxImg);
+    }
+
+    // Listener for manual updates
+    const handleProfileUpdate = () => {
+        const sessionImg = sessionStorage.getItem('customer_profile_image');
+        if (sessionImg) setDisplayImage(sessionImg);
+    };
+
+    window.addEventListener('profileImageUpdated', handleProfileUpdate);
+    return () => window.removeEventListener('profileImageUpdated', handleProfileUpdate);
+  }, [currentUser]);
+
+  // ✅ 3. Construct URL logic
   let profileImageUrl = null;
-  if (rawImage) {
-    if (rawImage.startsWith('http')) {
-      profileImageUrl = rawImage;
+  if (displayImage) {
+    if (displayImage.startsWith('http') || displayImage.startsWith('blob:')) {
+      profileImageUrl = displayImage;
     } else {
-      
       const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000";
-      profileImageUrl = `${BASE_URL}${rawImage}`;
+      // Prevent double slash if raw string starts with /
+      const cleanPath = displayImage.startsWith('/') ? displayImage : `/${displayImage}`;
+      profileImageUrl = `${BASE_URL}${cleanPath}`;
     }
   }
 
@@ -45,7 +70,7 @@ function Navbar() {
           </div>
 
           <div className="flex items-center space-x-4">
-            <Link to="/booking-history" className="relative p-4 rounded-2xl bg-white/50 border border-white/30 shadow-lg">
+            <Link to="/booking-history" className="relative p-4 rounded-2xl bg-white/50 border border-white/30 shadow-lg hover:shadow-xl transition-all">
               <Bell className="w-6 h-6 text-gray-700" />
               <NotificationBadge count={totalUnreadCount} />
             </Link>
@@ -53,20 +78,23 @@ function Navbar() {
             <Link to="/customer-profile" className="relative group">
               {profileImageUrl ? (
                 <div className="relative">
-                  <div className="absolute inset-0 bg-gradient-to-br from-purple-600 to-pink-600 rounded-2xl blur-lg opacity-75"></div>
+                  <div className="absolute inset-0 bg-gradient-to-br from-purple-600 to-pink-600 rounded-2xl blur-lg opacity-75 group-hover:opacity-100 transition-opacity"></div>
                   <img
                     src={profileImageUrl}
                     alt="Profile"
                     className="relative w-14 h-14 rounded-2xl object-cover border-3 border-white shadow-2xl"
                     onError={(e) => {
-                      
                       e.target.style.display = 'none';
-                      e.target.parentNode.classList.add('hidden');
+                      // Fallback to Icon if image fails
+                      e.target.parentNode.innerHTML = `
+                        <div class="relative w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center border-3 border-white shadow-2xl">
+                           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-7 h-7 text-purple-600"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        </div>`;
                     }}
                   />
                 </div>
               ) : (
-                <div className="relative w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center border-3 border-white shadow-2xl">
+                <div className="relative w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center border-3 border-white shadow-2xl group-hover:shadow-3xl transition-all">
                   <User className="w-7 h-7 text-purple-600" />
                 </div>
               )}
