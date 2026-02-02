@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Plus, Edit2, Eye, EyeOff, Trash2, Search, Folder, AlertTriangle, X } from 'lucide-react'
+import { Plus, Search, Folder } from 'lucide-react'
 import apiClient from '../../slices/api/apiIntercepters'
 import AdminSidebar from '../../components/admincompo/AdminSidebar'
 import EmptyState from '../../components/admincompo/EmptyState'
@@ -9,7 +9,6 @@ import { SearchBar } from '../../components/admincompo/categoryCom/SearchBar'
 import { Modal } from '../../components/admincompo/categoryCom/Modal'
 import LoadingSpinner from '../../components/admincompo/LoadingSpinner'
 import { ConfirmationModal } from '../../components/admincompo/serviceCom/ConfirmationModal'
-
 
 export function Categoryslist() {
     const [data, setData] = useState([])
@@ -30,12 +29,10 @@ export function Categoryslist() {
         try {
             setLoading(true)
             setError(null)
-
             const response = await apiClient.get('/adminsite/categories/')
             setData(Array.isArray(response.data) ? response.data : [])
         } catch (error) {
             console.error('Error fetching categories:', error)
-            
             if (error.response?.status === 404) {
                 setData([])
                 setError(null)
@@ -49,54 +46,47 @@ export function Categoryslist() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setError(null);
 
         const trimmedName = formData.name.trim();
-        if (!editingCategory) {
-            if (!trimmedName || !formData.image) {
-                setError('Both name and image are required to create a new category');
-                return;
-            }
+
+        if (!trimmedName) {
+            setError('Category name is required');
+            return;
         }
 
-        if (editingCategory && !trimmedName && !formData.image) {
-            setError('Please update either the name or image');
+        if (!editingCategory && !formData.image) {
+            setError('Category image is required');
             return;
         }
 
         try {
             const formDataToSend = new FormData();
-            if (trimmedName) {
-                formDataToSend.append('name', trimmedName);
-            }
-            if (formData.image) {
+            formDataToSend.append('name', trimmedName);
+
+            if (formData.image instanceof File) {
                 formDataToSend.append('image', formData.image);
             }
 
             if (editingCategory) {
                 await apiClient.patch(`/adminsite/categories/${editingCategory.id}/`, formDataToSend);
-
             } else {
                 await apiClient.post('/adminsite/categories/', formDataToSend);
             }
 
             await fetchCategories();
             closeModal();
-            setError(null);
         } catch (error) {
             console.error('Error saving category:', error);
-
-            if (error.response && error.response.status === 400) {
-                if (error.response.data.name) {
-                    setError(error.response.data.name[0]); 
-                } else {
-                    setError('Invalid input. Please check your data.');
-                }
+            if (error.response?.data?.name) {
+                setError(error.response.data.name[0]); 
+            } else if (error.response?.data?.image) {
+                setError(error.response.data.image[0]);
             } else {
                 setError('Failed to save category. Please try again.');
             }
         }
     };
-
 
     const toggleBlock = async (category) => {
         try {
@@ -136,7 +126,7 @@ export function Categoryslist() {
 
     const openEditModal = (category) => {
         setEditingCategory(category)
-        setFormData({ name: category.name, image: null })
+        setFormData({ name: category.name, image: category.image })
         setShowModal(true)
         setError(null)
     }
@@ -187,7 +177,6 @@ export function Categoryslist() {
                     </button>
                 </div>
 
-
                 {data.length > 0 && (
                     <SearchBar 
                         searchTerm={searchTerm} 
@@ -232,7 +221,6 @@ export function Categoryslist() {
                     />
                 )}
 
-
                 {data.length > 0 && filteredCategories.length === 0 && searchTerm && (
                     <EmptyState
                         icon={<Search size={48} className="text-gray-400" />}
@@ -276,7 +264,6 @@ export function Categoryslist() {
                     cancelText="Cancel"
                     confirmColor="bg-red-600 hover:bg-red-700"
                 />
-
             </div>
         </div>
     )

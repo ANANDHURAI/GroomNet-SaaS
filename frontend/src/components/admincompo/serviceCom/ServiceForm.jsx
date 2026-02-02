@@ -1,9 +1,6 @@
 import React from 'react';
 import { ImageCropper } from '../../common/ImageCropper';
 
-
-
-
 export const ServiceForm = ({ formData, onFormChange, onSubmit, onCancel, isEditing, categories, errors }) => {
 
     const handleDurationChange = (e) => {
@@ -68,6 +65,7 @@ export const ServiceForm = ({ formData, onFormChange, onSubmit, onCancel, isEdit
                 />
             </div>
 
+           
             <div className="grid grid-cols-2 gap-4">
                 <div>
                     <label className="block mb-1 font-medium text-sm text-gray-700">
@@ -101,7 +99,6 @@ export const ServiceForm = ({ formData, onFormChange, onSubmit, onCancel, isEdit
                 </div>
             </div>
 
-            
             <div>
                 <ImageCropper 
                     currentImage={formData.image} 

@@ -58915,3 +58915,12 @@ Unauthorized: /adminsite/admin-wallet/transactions/
 Unauthorized: /auth/token/refresh/
 Unauthorized: /auth/logout/
 Unauthorized: /auth/token/refresh/
+Bad Request: /adminsite/categories/1/
+Bad Request: /adminsite/services/2/
+Unauthorized: /adminsite/categories/
+Unauthorized: /adminsite/categories/
+Unauthorized: /customersite/home/
+Unauthorized: /customersite/home/
+Unauthorized: /auth/token/refresh/
+Bad Request: /auth/logout/
+Bad Request: /adminsite/categories/2/

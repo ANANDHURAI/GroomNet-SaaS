@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { ImageCropper } from '../../common/ImageCropper';
+import React from 'react';
+import { ImageCropper } from '../../common/ImageCropper'; 
 
 export const CategoryForm = ({
     formData,
@@ -9,7 +9,7 @@ export const CategoryForm = ({
     isEditing,
     error,
 }) => {
-   
+    
     const handleImageCropped = (file) => {
         onFormChange({ ...formData, image: file });
     };
@@ -37,12 +37,11 @@ export const CategoryForm = ({
                 />
             </div>
 
-            {/* Replaced old file input with ImageCropper */}
             <ImageCropper 
                 currentImage={formData.image} 
                 onImageCropped={handleImageCropped}
                 label="Category Image"
-                aspect={1} // 1:1 Aspect ratio for categories (Square)
+                aspect={1} 
             />
 
             <div className="flex justify-end gap-3 pt-4">

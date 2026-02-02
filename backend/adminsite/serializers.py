@@ -35,15 +35,26 @@ class BarbersListSerializer(serializers.ModelSerializer):
         return None
     
 
+
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = CategoryModel
         fields = '__all__'
+       
+        extra_kwargs = {'image': {'required': False}}
 
     def validate_name(self, value):
-        if CategoryModel.objects.filter(name__iexact=value).exists():
+     
+        qs = CategoryModel.objects.filter(name__iexact=value)
+        if self.instance:
+            qs = qs.exclude(pk=self.instance.pk)
+        
+        if qs.exists():
             raise serializers.ValidationError("Category with this name already exists.")
         return value
+
+
+
 
 
 class ServiceSerializer(serializers.ModelSerializer):
@@ -53,9 +64,16 @@ class ServiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = ServiceModel
         fields = '__all__'
+      
+        extra_kwargs = {'image': {'required': False}}
 
     def validate_name(self, value):
-        if ServiceModel.objects.filter(name__iexact=value).exists():
+       
+        qs = ServiceModel.objects.filter(name__iexact=value)
+        if self.instance:
+            qs = qs.exclude(pk=self.instance.pk)
+            
+        if qs.exists():
             raise serializers.ValidationError("Service with this name already exists.")
         return value
 
@@ -69,7 +87,9 @@ class ServiceSerializer(serializers.ModelSerializer):
                 'is_blocked': instance.category.is_blocked
             }
         return representation
-
+    
+    
+    
 
 
 class AdminWalletSerializer(serializers.ModelSerializer):

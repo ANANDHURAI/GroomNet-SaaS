@@ -9,6 +9,9 @@ import { ServiceCard } from '../../components/admincompo/serviceCom/ServiceCard'
 import { ServiceForm } from '../../components/admincompo/serviceCom/ServiceForm'
 import { ConfirmationModal } from '../../components/admincompo/serviceCom/ConfirmationModal'
 
+
+
+
 export function Servicelist() {
     const [data, setData] = useState([])
     const [categories, setCategories] = useState([])
@@ -67,22 +70,11 @@ export function Servicelist() {
     const validateForm = () => {
         const errors = {}
         
-        if (!formData.name.trim()) {
-            errors.name = 'Service name is required'
-        }
-        
-        if (!formData.category) {
-            errors.category = 'Category is required'
-        }
-        
-        if (!formData.price || parseFloat(formData.price) <= 0) {
-            errors.price = 'Valid price is required'
-        }
-        
-        if (!formData.duration_minutes || parseInt(formData.duration_minutes) <= 0) {
-            errors.duration_minutes = 'Valid duration is required'
-        }
-        
+        if (!formData.name.trim()) errors.name = 'Service name is required'
+        if (!formData.category) errors.category = 'Category is required'
+        if (!formData.price || parseFloat(formData.price) <= 0) errors.price = 'Valid price is required'
+        if (!formData.duration_minutes || parseInt(formData.duration_minutes) <= 0) errors.duration_minutes = 'Valid duration is required'
+      
         if (!editingService && !formData.image) {
             errors.image = 'Image must be uploaded'
         }
@@ -94,19 +86,20 @@ export function Servicelist() {
     const handleSubmit = async (e) => {
         e.preventDefault()
         
-        if (!validateForm()) {
-            return
-        }
+        if (!validateForm()) return
 
         try {
             const formDataToSend = new FormData()
-            Object.keys(formData).forEach(key => {
-                if (key === 'image' && formData[key]) {
-                    formDataToSend.append(key, formData[key])
-                } else if (key !== 'image' && formData[key] !== '') {
-                    formDataToSend.append(key, formData[key])
-                }
-            })
+            
+            formDataToSend.append('name', formData.name);
+            formDataToSend.append('category', formData.category);
+            formDataToSend.append('description', formData.description);
+            formDataToSend.append('price', formData.price);
+            formDataToSend.append('duration_minutes', formData.duration_minutes);
+
+            if (formData.image instanceof File) {
+                formDataToSend.append('image', formData.image)
+            }
 
             if (editingService) {
                 await apiClient.put(`/adminsite/services/${editingService.id}/`, formDataToSend)
@@ -123,12 +116,13 @@ export function Servicelist() {
 
             if (error.response && error.response.status === 400) {
                 if (error.response.data.name) {
-                    setError(error.response.data.name[0]); 
+                
+                    setFormErrors({ ...formErrors, global: error.response.data.name[0] }); 
                 } else {
-                    setError('Invalid input. Please check your data.');
+                    setFormErrors({ ...formErrors, global: 'Invalid input. Please check your data.' });
                 }
             } else {
-                setError('Failed to save service. Please try again.');
+                setFormErrors({ ...formErrors, global: 'Failed to save service. Please try again.' });
             }
         }
     }
@@ -172,7 +166,7 @@ export function Servicelist() {
             description: service.description || '',
             price: service.price,
             duration_minutes: service.duration_minutes,
-            image: null
+            image: service.image 
         })
         setFormErrors({})
         setShowModal(true)
@@ -216,7 +210,9 @@ export function Servicelist() {
         return (
             <div className="flex">
                 <AdminSidebar />
-                <LoadingSpinner/>
+                <div className="flex-1 p-6">
+                    <LoadingSpinner/>
+                </div>
             </div>
         )
     }
