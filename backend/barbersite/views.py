@@ -310,6 +310,8 @@ class BarberAppointments(APIView):
         return Response(data)
 
 
+
+
 class CompletedAppointments(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -320,40 +322,34 @@ class CompletedAppointments(APIView):
         appointments = Booking.objects.filter(
             barber=request.user,
             status='COMPLETED'
-        )
+        ).order_by('-completed_at')
 
         data = []
         for booking in appointments:
-            if booking.booking_type == "INSTANT_BOOKING":
-                if booking.completed_at:
-                    completed_time = localtime(booking.completed_at)
-                    date_str = completed_time.strftime('%Y-%m-%d')
-                    time_str = completed_time.strftime('%I:%M %p')
-                else:
-                    date_str = "N/A"
-                    time_str = "N/A"
+            if booking.completed_at:
+                completed_time = localtime(booking.completed_at)
+                date_str = completed_time.strftime('%Y-%m-%d')
+                time_str = completed_time.strftime('%I:%M %p')
             else:
-                if booking.slot:
-                    date_str = booking.slot.date.strftime('%Y-%m-%d')
-                    time_str = f"{booking.slot.start_time} - {booking.slot.end_time}"
-                else:
-                    date_str = "N/A"
-                    time_str = "N/A"
+                date_str = "N/A"
+                time_str = "N/A"
 
             data.append({
                 'id': booking.id,
                 'customer_name': booking.customer.name,
-                'time': time_str,
                 'date': date_str,
+                'time': time_str,
                 'address': f"{booking.address.street}, {booking.address.city}, {booking.address.pincode}",
                 'price': float(booking.total_amount),
-                'status': booking.status,
                 'phone': booking.customer.phone,
                 'service': booking.service.name,
                 'bookingType': booking.booking_type,
             })
 
         return Response(data)
+
+
+
 
 
 class BarberWalletView(APIView):
