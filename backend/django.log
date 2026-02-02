@@ -58666,3 +58666,69 @@ Bad Request: /auth/logout/
 Unauthorized: /barbersite/barber/wallet/
 Unauthorized: /barbersite/barber/wallet/
 Unauthorized: /auth/token/refresh/
+Notification sent to barber 2
+Notification sent to barber 4
+Notification sent to barber 6
+Notification sent to barber 2
+Notification sent to barber 4
+Notification sent to barber 6
+Not Found: /chat-service/chat/72/mark-as-read/
+Not Found: /chat-service/chat/72/mark-as-read/
+Not Found: /chat-service/chat/72/mark-as-read/
+Not Found: /chat-service/chat/72/mark-as-read/
+Not Found: /chat-service/chat/72/mark-as-read/
+Not Found: /chat-service/chat/72/mark-as-read/
+Notification sent to barber 2
+Notification sent to barber 4
+Notification sent to barber 6
+Notification sent to barber 2
+Notification sent to barber 4
+Notification sent to barber 6
+Notification sent to barber 2
+Notification sent to barber 4
+Notification sent to barber 6
+Notification sent to barber 2
+Notification sent to barber 4
+Notification sent to barber 6
+Unauthorized: /customersite/booking-history/
+Unauthorized: /customersite/booking-history/
+Unauthorized: /barbersite/barber/wallet/
+Unauthorized: /barbersite/barber/wallet/
+Notification sent to barber 2
+Notification sent to barber 4
+Notification sent to barber 6
+Notification sent to barber 2
+Notification sent to barber 4
+Notification sent to barber 6
+Notification sent to barber 2
+Notification sent to barber 4
+Notification sent to barber 6
+Notification sent to barber 2
+Notification sent to barber 4
+Notification sent to barber 6
+Notification sent to barber 2
+Notification sent to barber 4
+Notification sent to barber 6
+Notification sent to barber 2
+Notification sent to barber 4
+Notification sent to barber 6
+Notification sent to barber 2
+Notification sent to barber 4
+Notification sent to barber 6
+Notification sent to barber 2
+Notification sent to barber 4
+Notification sent to barber 6
+Not Found: /instant-booking/bookings/78/find-barber/
+Not Found: /instant-booking/bookings/78/find-barber/
+Notification sent to barber 2
+Notification sent to barber 4
+Notification sent to barber 6
+Notification sent to barber 2
+Notification sent to barber 4
+Notification sent to barber 6
+Notification sent to barber 2
+Notification sent to barber 4
+Notification sent to barber 6
+Notification sent to barber 2
+Notification sent to barber 4
+Notification sent to barber 6

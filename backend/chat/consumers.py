@@ -431,7 +431,7 @@ class NotificationConsumer(AsyncWebsocketConsumer):
                     await self.channel_layer.group_add(self.booking_group_name, self.channel_name)
                     
                     await self.accept()
-                    print(f"✅ Notification Socket: User {user_id} ({self.user.user_type}) joined {self.group_name} & {self.booking_group_name}")
+                    print(f"Notification Socket: User {user_id} ({self.user.user_type}) joined {self.group_name} & {self.booking_group_name}")
                     return
                         
             except Exception as e:
@@ -491,6 +491,7 @@ class NotificationConsumer(AsyncWebsocketConsumer):
     async def booking_cancelled(self, event):
         await self.send(text_data=json.dumps({
             "type": "booking_cancelled",
+            "booking_id": event["booking_id"],
             "message": event["message"]
         }))
     
