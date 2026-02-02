@@ -1,8 +1,6 @@
-from django.urls import path
-from .views import UserProfileView,BarberProfileView
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import AddressViewSet
+from .views import AddressViewSet , UserProfileView
 
 router = DefaultRouter()
 router.register(r'addresses', AddressViewSet, basename='address')

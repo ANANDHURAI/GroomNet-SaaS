@@ -39,6 +39,7 @@ from .models import Booking, CustomerWallet, Complaints, CustomerWalletTransacti
 logger = logging.getLogger(__name__)
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
+from .models import PaymentModel
 
 
 
@@ -136,11 +137,14 @@ class BarberListView(generics.ListAPIView):
                 id__in=barber_ids,
                 user_type='barber',
                 is_active=True,
-                is_blocked=False
+                is_blocked=False,
+                is_verified=True 
             )
         except Exception as e:
             print(f"Error in BarberListView: {e}")
             return User.objects.none()
+
+
 
 
 @api_view(['GET'])
@@ -346,7 +350,7 @@ def booking_summary(request):
 
 
 
-from .models import PaymentModel
+
 
 class BookingCreateView(APIView):
     permission_classes = [IsAuthenticated]
@@ -359,7 +363,7 @@ class BookingCreateView(APIView):
         user = request.user
 
         with transaction.atomic():
-           
+            
             coupon = data.pop("coupon", None)
             
             booking = Booking.objects.create(
@@ -391,12 +395,21 @@ class BookingCreateView(APIView):
                 final_amount=data["total_amount"],
             )
 
-           
+         
             if booking.booking_type == "SCHEDULE_BOOKING":
                 booking.status = "CONFIRMED"
                 booking.is_payment_done = True
                 payment.payment_status = "SUCCESS"
-                booking.service_started_at = booking.slot.start_time
+               
+                if booking.slot:
+                    naive_datetime = datetime.combine(booking.slot.date, booking.slot.start_time)
+                    aware_datetime = timezone.make_aware(naive_datetime)
+                    booking.service_started_at = aware_datetime
+
+                    slot_instance = booking.slot
+                    slot_instance.is_booked = True
+                    slot_instance.save()
+
                 booking.save()
                 payment.save()
 
@@ -405,8 +418,9 @@ class BookingCreateView(APIView):
             "booking_type": booking.booking_type,
             "status": booking.status
         }, status=201)
-
         
+        
+            
     
 
 class BookingSuccessView(APIView):
