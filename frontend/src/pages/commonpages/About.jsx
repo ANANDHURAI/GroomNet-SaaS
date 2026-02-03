@@ -24,12 +24,6 @@ export default function About() {
             </Link>
 
             <div className="flex items-center space-x-6">
-            <Link
-                to={isAuthenticated ? "/home" : "/landing-page"}
-                className="text-gray-300 hover:text-white font-medium transition-colors duration-300"
-            >
-                Home
-            </Link>
 
             {!isAuthenticated && (
                 <Link
@@ -352,7 +346,6 @@ export default function About() {
             Transforming the beauty industry, one connection at a time.
           </p>
           <div className="flex flex-wrap justify-center items-center gap-8 text-gray-500">
-            <Link to="/" className="hover:text-white transition-colors duration-300">Home</Link>
             <a href="#" className="hover:text-white transition-colors duration-300">Privacy Policy</a>
             <a href="#" className="hover:text-white transition-colors duration-300">Terms of Service</a>
             <a href="#" className="hover:text-white transition-colors duration-300">Contact</a>

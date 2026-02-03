@@ -10,6 +10,94 @@ import { ErrorMessage } from '../../components/admincompo/categoryCom/ErrorMessa
 import ShowType from '../../components/customercompo/ShowType';
 import LocationModal from '../../components/basics/LocationModal';
 import { getCurrentLocation } from '../../utils/getCurrentLocation';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+
+import groom1 from '../../assets/groom 1.jpg';
+import groom2 from '../../assets/groom 2.webp';
+import groom3 from '../../assets/groom 3.webp';
+import groom4 from '../../assets/groom 4.jpg';
+import groom5 from '../../assets/groom 5.jpg';
+import groom6 from '../../assets/groom 6.jpg';
+
+
+const heroImages = [
+  { src: groom1, title: "Premium Grooming", subtitle: "Experience the best in class service" },
+  { src: groom2, title: "Modern Styles", subtitle: "Trending cuts tailored for you" },
+  { src: groom3, title: "Expert Barbers", subtitle: "Professionals you can trust" },
+  { src: groom4, title: "Luxury Experience", subtitle: "Relax and rejuvenate" },
+  { src: groom5, title: "Timeless Looks", subtitle: "Classic styles for the modern man" },
+  { src: groom6, title: "Your Style, Your Way", subtitle: "Personalized grooming solutions" },
+];
+
+const HeroSection = () => {
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % heroImages.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const nextSlide = () => setCurrentIndex((prev) => (prev + 1) % heroImages.length);
+  const prevSlide = () => setCurrentIndex((prev) => (prev - 1 + heroImages.length) % heroImages.length);
+
+  return (
+    <div className="relative w-full h-[500px] md:h-[600px] overflow-hidden rounded-b-[3rem] shadow-2xl mb-12 group">
+      {heroImages.map((img, index) => (
+        <div
+          key={index}
+          className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
+            index === currentIndex ? 'opacity-100' : 'opacity-0'
+          }`}
+        >
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-10" />
+          <img
+            src={img.src}
+            alt={img.title}
+            className="w-full h-full object-cover object-center transform scale-105 transition-transform duration-[10s] ease-linear"
+            style={{ transform: index === currentIndex ? 'scale(1.1)' : 'scale(1)' }}
+          />
+          <div className="absolute bottom-0 left-0 right-0 p-8 md:p-16 z-20 text-white transform transition-all duration-700 translate-y-0 opacity-100">
+            <h2 className="text-4xl md:text-6xl font-black mb-4 drop-shadow-lg tracking-tight">
+              {img.title}
+            </h2>
+            <p className="text-xl md:text-2xl font-light opacity-90 drop-shadow-md max-w-2xl">
+              {img.subtitle}
+            </p>
+          </div>
+        </div>
+      ))}
+
+      {/* Navigation Buttons */}
+      <button 
+        onClick={prevSlide}
+        className="absolute left-4 top-1/2 -translate-y-1/2 z-30 p-3 rounded-full bg-white/10 backdrop-blur-md text-white hover:bg-white/30 transition-all opacity-0 group-hover:opacity-100"
+      >
+        <ChevronLeft size={32} />
+      </button>
+      <button 
+        onClick={nextSlide}
+        className="absolute right-4 top-1/2 -translate-y-1/2 z-30 p-3 rounded-full bg-white/10 backdrop-blur-md text-white hover:bg-white/30 transition-all opacity-0 group-hover:opacity-100"
+      >
+        <ChevronRight size={32} />
+      </button>
+
+      {/* Indicators */}
+      <div className="absolute bottom-6 right-8 z-30 flex space-x-2">
+        {heroImages.map((_, index) => (
+          <button
+            key={index}
+            onClick={() => setCurrentIndex(index)}
+            className={`w-3 h-3 rounded-full transition-all duration-300 ${
+              index === currentIndex ? 'bg-white w-8' : 'bg-white/50 hover:bg-white/80'
+            }`}
+          />
+        ))}
+      </div>
+    </div>
+  );
+};
 
 function HomePage() {
   const [data, setData] = useState(null);
@@ -71,15 +159,12 @@ function HomePage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50/30 to-pink-50/30">
-      {/* Animated background elements */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-purple-400/20 to-pink-400/20 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
-      </div>
-
+    <div className="min-h-screen bg-slate-50 font-sans">
       <Navbar />
       
+      {/* Hero Section at the very top */}
+      <HeroSection />
+
       <LocationModal 
         isOpen={showLocationModal}
         onEnableLocation={handleEnableLocation}
@@ -87,96 +172,57 @@ function HomePage() {
       />
 
       {locationError && (
-        <div className="mx-4 mt-6">
-          <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-6 shadow-lg backdrop-blur-sm">
-            <div className="flex items-start space-x-4">
-              <div className="flex-shrink-0">
-                <div className="w-10 h-10 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center">
-                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                  </svg>
-                </div>
-              </div>
-              <div className="flex-1">
-                <h3 className="text-lg font-semibold text-amber-800 mb-1">Location Error</h3>
-                <p className="text-amber-700 mb-3">{locationError}</p>
-                <button
-                  onClick={handleEnableLocation}
-                  className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl hover:from-amber-600 hover:to-orange-600 transition-all duration-300 transform hover:scale-105 shadow-lg"
-                >
-                  Try Again
-                </button>
-              </div>
+        <div className="container mx-auto px-4 mt-6">
+          <div className="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-lg shadow-sm flex justify-between items-center">
+            <div>
+              <p className="font-bold text-amber-800">Location Access Required</p>
+              <p className="text-sm text-amber-700">{locationError}</p>
             </div>
+            <button
+              onClick={handleEnableLocation}
+              className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors text-sm font-medium"
+            >
+              Retry
+            </button>
           </div>
         </div>
       )}
 
-      <div className="container mx-auto px-4 py-8 relative z-10">
-        {/* Hero Welcome Section */}
-        <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl shadow-purple-500/10 p-8 mb-12 border border-white/20">
-          <div className="flex flex-col lg:flex-row items-center justify-between space-y-6 lg:space-y-0">
-            <div className="flex-1 text-center lg:text-left">
-              <div className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-purple-100 to-pink-100 rounded-full text-sm font-semibold text-purple-700 mb-4">
-                <span className="w-2 h-2 bg-purple-500 rounded-full mr-2 animate-pulse"></span>
-                Welcome to the future of grooming
-              </div>
-              
-              <h1 className="text-4xl lg:text-6xl font-black mb-4">
-                <span className="bg-gradient-to-r from-purple-600 via-purple-700 to-pink-600 bg-clip-text text-transparent">
-                  GroomNet
-                </span>
+      <div className="container mx-auto px-4 pb-16 relative z-10 -mt-16">
+       
+        <div className="bg-white/90 backdrop-blur-md rounded-2xl shadow-xl p-6 md:p-8 mb-12 border border-white/50 mx-4 md:mx-auto max-w-5xl transform hover:-translate-y-1 transition-transform duration-300">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="flex-1 text-center md:text-left">
+              <h1 className="text-3xl md:text-4xl font-bold mb-2 text-gray-900">
+                Welcome back, <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600">{currentUser?.name || 'Guest'}</span>
               </h1>
-              
               {data?.greeting_message && (
-                <p className="text-xl text-gray-600 mb-4 leading-relaxed max-w-2xl">
-                  {data.greeting_message}
-                </p>
+                <p className="text-gray-600 text-lg">{data.greeting_message}</p>
               )}
               
               {location && (
-                <div className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-green-100 to-emerald-100 rounded-full text-sm font-medium text-green-700">
-                  <div className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></div>
-                  Location enabled - 
-                  {currentUser?.user_type === 'customer'
-                    ? ' Showing nearby services'
-                    : ' Ready to receive bookings'
-                  }
+                <div className="flex items-center justify-center md:justify-start mt-3 text-green-600 text-sm font-medium">
+                  <span className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></span>
+                  Location active • Showing nearby services
                 </div>
               )}
             </div>
             
-            {currentUser && (
-              <div className="flex items-center space-x-6 bg-white/50 backdrop-blur-sm rounded-2xl p-6 border border-white/30">
-                <div className="relative">
-                  <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center shadow-xl">
-                    <span className="text-white font-bold text-xl">
-                      {currentUser.name?.charAt(0).toUpperCase() || 'U'}
-                    </span>
-                  </div>
-                  <div className="absolute -top-1 -right-1 w-6 h-6 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full border-2 border-white flex items-center justify-center">
-                    <div className="w-2 h-2 bg-white rounded-full"></div>
-                  </div>
-                </div>
-                <div>
-                  <p className="font-bold text-gray-800 text-lg">
-                    {currentUser.name || 'User'}
-                  </p>
-                  <p className="text-gray-600">{currentUser.email}</p>
-                  <div className="inline-flex items-center px-3 py-1 bg-gradient-to-r from-blue-100 to-purple-100 rounded-full text-xs font-semibold text-blue-700 mt-1 capitalize">
-                    {currentUser.user_type}
-                  </div>
+            <div className="flex-shrink-0">
+              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-purple-100 to-pink-100 p-1">
+                <div className="w-full h-full rounded-full bg-white flex items-center justify-center text-2xl font-bold text-purple-600 shadow-inner">
+                  {currentUser?.name?.charAt(0).toUpperCase() || 'U'}
                 </div>
               </div>
-            )}
+            </div>
           </div>
         </div>
 
         <ShowType />
 
         {loading && (
-          <div className="flex justify-center py-12">
-            <LoadingSpinner size="large" text="Loading your dashboard..." />
+          <div className="flex justify-center py-20">
+            <LoadingSpinner size="large" text="Curating your experience..." />
           </div>
         )}
 
@@ -187,8 +233,12 @@ function HomePage() {
         )}
 
         {data?.categories?.length > 0 && (
-          <div className="mb-12">
-            <Carousel title="Explore Categories">
+          <div className="mb-16">
+            <div className="flex items-center justify-between mb-6 px-2">
+              <h2 className="text-2xl font-bold text-gray-800">Categories</h2>
+              
+            </div>
+            <Carousel>
               {data.categories.map((cat) => (
                 <CCard key={cat.id} category={cat} />
               ))}
@@ -197,8 +247,12 @@ function HomePage() {
         )}
 
         {data?.services?.length > 0 && (
-          <div className="mb-12">
-            <Carousel title="Featured Services">
+          <div className="mb-16">
+            <div className="flex items-center justify-between mb-6 px-2">
+              <h2 className="text-2xl font-bold text-gray-800">Trending Services</h2>
+              
+            </div>
+            <Carousel>
               {data.services.map((srv) => (
                 <SCard key={srv.id} service={srv} />
               ))}
@@ -207,16 +261,14 @@ function HomePage() {
         )}
 
         {data && !data.categories?.length && !data.services?.length && (
-          <div className="text-center py-20">
-            <div className="w-24 h-24 bg-gradient-to-br from-gray-100 to-gray-200 rounded-3xl flex items-center justify-center mx-auto mb-6">
-              <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2 2v-5m16 0h-2M4 13h2m13-8V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v1M7 8h10M7 12h4m1 8l-1-1h1v1z" />
+          <div className="text-center py-24 bg-white rounded-3xl shadow-sm border border-gray-100">
+            <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-10 h-10 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
               </svg>
             </div>
-            <h3 className="text-2xl font-bold text-gray-800 mb-2">Coming Soon!</h3>
-            <p className="text-gray-600 text-lg max-w-md mx-auto">
-              We're preparing amazing categories and services for you. Stay tuned!
-            </p>
+            <h3 className="text-xl font-bold text-gray-800 mb-2">Coming Soon</h3>
+            <p className="text-gray-500">We are adding new services for you.</p>
           </div>
         )}
       </div>

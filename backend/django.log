@@ -59584,3 +59584,10 @@ Bad Request: /auth/logout/
 Bad Request: /auth/logout/
 Not Found: /instant-booking/bookings/98/find-barber/
 Not Found: /instant-booking/bookings/98/find-barber/
+Unauthorized: /barbersite/dashboard/barber/
+Unauthorized: /customersite/user-location/check/
+Unauthorized: /barbersite/dashboard/barber/
+Unauthorized: /customersite/user-location/check/
+Bad Request: /auth/logout/
+Unauthorized: /barbersite/barber/wallet/
+Unauthorized: /barbersite/barber/wallet/
