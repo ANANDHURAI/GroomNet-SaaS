@@ -42,7 +42,12 @@ function AdminWallet() {
     const fetchPaymentHistory = async () => {
         try {
             const res = await apiClient.get('/adminsite/admin-wallet/transactions/');
-            setPaymentHistory(res.data.history || []);
+            const rawHistory = res.data.history || [];
+            const uniqueHistory = Array.from(
+                new Map(rawHistory.map(item => [item.id, item])).values()
+            );
+            
+            setPaymentHistory(uniqueHistory);
         } catch (err) {
             console.error("Error fetching payment history", err);
         }
@@ -86,10 +91,9 @@ function AdminWallet() {
             }
         }
 
-        // Calculate period statistics
         const stats = filtered.reduce((acc, txn) => {
             const isExpense = txn.note?.toLowerCase().includes('payout') ||
-                             txn.note?.toLowerCase().includes('refund');
+                              txn.note?.toLowerCase().includes('refund');
             const amount = Math.abs(txn.amount);
             
             if (isExpense) {
@@ -184,7 +188,6 @@ function AdminWallet() {
                             <div className="w-20 h-1 bg-gradient-to-r from-blue-500 to-indigo-500 rounded"></div>
                         </div>
 
-                        {/* Overall Wallet Summary */}
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                             <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white p-6 rounded-xl shadow-sm">
                                 <div className="flex items-center gap-3 mb-3">
@@ -236,7 +239,6 @@ function AdminWallet() {
                             </div>
                         </div>
 
-                        {/* Period Filter and Statistics */}
                         <div className="bg-white border border-gray-200 rounded-xl p-6 mb-6 shadow-sm">
                             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                                 <div className="flex items-center gap-3">
@@ -261,7 +263,6 @@ function AdminWallet() {
                                 </div>
                             </div>
 
-                            {/* Period Statistics */}
                             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                                 <div className="bg-green-50 border border-green-200 p-4 rounded-lg">
                                     <div className="flex items-center gap-2 mb-2">
@@ -324,7 +325,6 @@ function AdminWallet() {
                             </div>
                         </div>
 
-                        {/* Transaction History */}
                         <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
                             <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
                                 <div className="flex items-center justify-between">
@@ -360,7 +360,7 @@ function AdminWallet() {
                                     <div className="space-y-4">
                                         {filteredHistory.map((txn) => {
                                             const isExpense = txn.note?.toLowerCase().includes('payout') ||
-                                                              txn.note?.toLowerCase().includes('refund');
+                                                            txn.note?.toLowerCase().includes('refund');
                                             const amountClass = isExpense ? 'text-red-600' : 'text-green-600';
                                             const sign = isExpense ? '-' : '+';
                                             const bgClass = isExpense ? 'bg-red-50 border-red-200' : 'bg-green-50 border-green-200';

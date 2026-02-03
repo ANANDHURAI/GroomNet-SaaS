@@ -11,7 +11,7 @@ from django.utils import timezone
 from datetime import timedelta
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
-from customersite.models import Booking, CustomerWallet, CustomerWalletTransaction
+from customersite.models import Booking, CustomerWallet, CustomerWalletTransaction,PaymentModel
 from .serializers import (
     BarberActionSerializer,
 )
@@ -617,104 +617,79 @@ class CompletedServiceView(APIView):
         booking = get_object_or_404(Booking, id=booking_id)
         action = request.data.get('action')
         channel_layer = get_channel_layer()
-
-        if action == 'request_start':
-            async_to_sync(channel_layer.group_send)(
-                f"customer_{booking.customer.id}",
-                {"type": "service_request", "subtype": "start_request", "booking_id": booking.id}
-            )
-            return Response({"status": "Request sent"}, status=200)
-
-        if action == 'respond_start':
-            response = request.data.get('response') 
-            async_to_sync(channel_layer.group_send)(
-                f"barber_{booking.barber.id}",
-                {"type": "service_response", "subtype": "start_response", "response": response}
-            )
-            return Response({"status": "Response sent"}, status=200)
-
-        if action == 'force_start':
-            if not booking.service_started_at:
-                booking.service_started_at = timezone.now()
-                booking.save()
-            return Response({"status": "Service started"}, status=200)
-
-        if action == 'request_complete':
-            async_to_sync(channel_layer.group_send)(
-                f"customer_{booking.customer.id}",
-                {"type": "service_request", "subtype": "complete_request", "booking_id": booking.id}
-            )
-            return Response({"status": "Verification sent"}, status=200)
-
-        if action == 'respond_complete':
-            response = request.data.get('response') 
-            async_to_sync(channel_layer.group_send)(
-                f"barber_{booking.barber.id}",
-                {"type": "service_response", "subtype": "complete_response", "response": response}
-            )
-            return Response({"status": "Response sent"}, status=200)
         
         
-        if action == 'collect_cod':
-            payment = booking.payment
-            if payment.payment_method == 'COD':
-                payment.payment_status = "SUCCESS"
-                payment.save()
-                return Response({"status": "Cash collected successfully"}, status=200)
-            else:
-                return Response({"error": "This is not a COD booking"}, status=400)
-
         if action == 'complete_service':
-            payment = booking.payment
-            booking.status = "COMPLETED"
-            booking.completed_at = timezone.now()
-            booking.save()
+            with transaction.atomic():
+             
+                booking = Booking.objects.select_for_update().get(id=booking_id)
+                payment = PaymentModel.objects.select_for_update().get(booking=booking)
 
-            if payment.payment_method == "COD":
-                payment.payment_status = "SUCCESS"
-            
-            payment.save()
+                if booking.status == "COMPLETED" and payment.is_released_to_barber:
+                     return Response({"message": "Service already completed and paid."}, status=200)
 
-            earnings_added = 0.0
+                booking.status = "COMPLETED"
+                booking.completed_at = timezone.now()
+                booking.save()
 
-            if not payment.is_released_to_barber and payment.payment_status == "SUCCESS":
-                with transaction.atomic():
-                    admin_wallet, _ = AdminWallet.objects.get_or_create(id=1)
-                    barber_wallet, _ = BarberWallet.objects.get_or_create(barber=booking.barber)
+                if payment.payment_method == "COD":
+                    payment.payment_status = "SUCCESS"
+                payment.save()
+
+                earnings_added = 0.0
+
+                if not payment.is_released_to_barber and payment.payment_status == "SUCCESS":
+                    admin_wallet, _ = AdminWallet.objects.select_for_update().get_or_create(id=1)
+                    barber_wallet, _ = BarberWallet.objects.select_for_update().get_or_create(barber=booking.barber)
                     
                     final_amount = payment.final_amount
                     platform_fee = payment.platform_fee
                     barber_share = final_amount - platform_fee
                     
                     if payment.payment_method == "COD":
-    
+                       
                         barber_wallet.balance -= platform_fee
-                        WalletTransaction.objects.create(wallet=barber_wallet, amount=-platform_fee, note=f"Platform Fee for COD Booking #{booking.id}")
+                        WalletTransaction.objects.create(
+                            wallet=barber_wallet, 
+                            amount=-platform_fee, 
+                            note=f"Platform Fee for COD Booking #{booking.id}"
+                        )
                         
                         admin_wallet.total_earnings += platform_fee
-                        AdminWalletTransaction.objects.create(wallet=admin_wallet, amount=platform_fee, note=f"Fee collected from Barber #{booking.barber.id}")
-                        
+                        AdminWalletTransaction.objects.create(
+                            wallet=admin_wallet, 
+                            amount=platform_fee, 
+                            note=f"Fee collected from Barber #{booking.barber.id}"
+                        )
                         earnings_added = float(barber_share) 
                         
                     else:
-                       
+                    
                         if admin_wallet.total_earnings >= barber_share:
                             admin_wallet.total_earnings -= barber_share
                             barber_wallet.balance += barber_share
                             
-                            WalletTransaction.objects.create(wallet=barber_wallet, amount=barber_share, note=f"Earnings for Booking #{booking.id}")
-                            AdminWalletTransaction.objects.create(wallet=admin_wallet, amount=-barber_share, note=f"Payout to Barber #{booking.barber.id}")
-                            
+                            WalletTransaction.objects.create(
+                                wallet=barber_wallet, 
+                                amount=barber_share, 
+                                note=f"Earnings for Booking #{booking.id}"
+                            )
+                            AdminWalletTransaction.objects.create(
+                                wallet=admin_wallet, 
+                                amount=-barber_share, 
+                                note=f"Payout to Barber #{booking.barber.id}"
+                            )
                             earnings_added = float(barber_share)
                         else:
-                           
                             logger.error(f"Insufficient Admin Funds to pay Barber {booking.barber.id}")
 
                     admin_wallet.save()
                     barber_wallet.save()
+                   
                     payment.is_released_to_barber = True
                     payment.released_at = timezone.now()
                     payment.save()
+                    
                     booking.is_payment_done = True
                     booking.save()
 
@@ -730,5 +705,62 @@ class CompletedServiceView(APIView):
                 "message": "Service has been completed.",
                 "earnings": earnings_added
             }, status=200)
+
+
+
+
+        if action == 'request_start':
+            async_to_sync(channel_layer.group_send)(
+                f"customer_{booking.customer.id}",
+                {"type": "service_request", "subtype": "start_request", "booking_id": booking.id}
+            )
+            return Response({"status": "Request sent"}, status=200)
+
+
+
+        if action == 'respond_start':
+            response = request.data.get('response') 
+            async_to_sync(channel_layer.group_send)(
+                f"barber_{booking.barber.id}",
+                {"type": "service_response", "subtype": "start_response", "response": response}
+            )
+            return Response({"status": "Response sent"}, status=200)
+
+
+
+        if action == 'force_start':
+            if not booking.service_started_at:
+                booking.service_started_at = timezone.now()
+                booking.save()
+            return Response({"status": "Service started"}, status=200)
+
+
+        if action == 'request_complete':
+            async_to_sync(channel_layer.group_send)(
+                f"customer_{booking.customer.id}",
+                {"type": "service_request", "subtype": "complete_request", "booking_id": booking.id}
+            )
+            return Response({"status": "Verification sent"}, status=200)
+
+
+        if action == 'respond_complete':
+            response = request.data.get('response') 
+            async_to_sync(channel_layer.group_send)(
+                f"barber_{booking.barber.id}",
+                {"type": "service_response", "subtype": "complete_response", "response": response}
+            )
+            return Response({"status": "Response sent"}, status=200)
+        
+        
+        
+        if action == 'collect_cod':
+            payment = booking.payment
+            if payment.payment_method == 'COD':
+                payment.payment_status = "SUCCESS"
+                payment.save()
+                return Response({"status": "Cash collected successfully"}, status=200)
+            else:
+                return Response({"error": "This is not a COD booking"}, status=400)
+
 
         return Response({"error": "Invalid action"}, status=400)

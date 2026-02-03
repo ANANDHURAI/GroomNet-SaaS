@@ -59580,3 +59580,7 @@ Unauthorized: /adminsite/barbers-list/
 Unauthorized: /adminsite/barbers-list/
 Bad Request: /barbersite/barber-slots/create-slot/
 Bad Request: /barbersite/barber-slots/create-slot/
+Bad Request: /auth/logout/
+Bad Request: /auth/logout/
+Not Found: /instant-booking/bookings/98/find-barber/
+Not Found: /instant-booking/bookings/98/find-barber/
