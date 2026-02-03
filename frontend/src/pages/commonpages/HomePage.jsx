@@ -69,7 +69,6 @@ const HeroSection = () => {
         </div>
       ))}
 
-      {/* Navigation Buttons */}
       <button 
         onClick={prevSlide}
         className="absolute left-4 top-1/2 -translate-y-1/2 z-30 p-3 rounded-full bg-white/10 backdrop-blur-md text-white hover:bg-white/30 transition-all opacity-0 group-hover:opacity-100"
@@ -83,7 +82,6 @@ const HeroSection = () => {
         <ChevronRight size={32} />
       </button>
 
-      {/* Indicators */}
       <div className="absolute bottom-6 right-8 z-30 flex space-x-2">
         {heroImages.map((_, index) => (
           <button
@@ -162,7 +160,6 @@ function HomePage() {
     <div className="min-h-screen bg-slate-50 font-sans">
       <Navbar />
       
-      {/* Hero Section at the very top */}
       <HeroSection />
 
       <LocationModal 

@@ -59591,3 +59591,17 @@ Unauthorized: /customersite/user-location/check/
 Bad Request: /auth/logout/
 Unauthorized: /barbersite/barber/wallet/
 Unauthorized: /barbersite/barber/wallet/
+Unauthorized: /profile-service/user-profile/
+Unauthorized: /profile-service/user-profile/
+Unauthorized: /instant-booking/active-booking/7/
+Unauthorized: /instant-booking/working/status/7/
+Unauthorized: /instant-booking/working/status/7/
+Unauthorized: /instant-booking/active-booking/7/
+Unauthorized: /instant-booking/working/status/7/
+Unauthorized: /instant-booking/active-booking/7/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /barbersite/barber-appointments/
+Unauthorized: /barbersite/barber-appointments/
+Unauthorized: /auth/token/refresh/
+Unauthorized: /instant-booking/working/status/7/
+Unauthorized: /auth/token/refresh/
