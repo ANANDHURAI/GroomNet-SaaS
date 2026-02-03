@@ -30,12 +30,10 @@ export const NotificationProvider = ({ children }) => {
     if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) return;
 
     const wsUrl = `${import.meta.env.VITE_WEBSOCKET_URL || 'ws://127.0.0.1:8000'}/ws/notifications/?token=${token}`;
-
-    console.log("🔌 Connecting Global Notification Socket...", wsUrl);
     const ws = new WebSocket(wsUrl);
     socketRef.current = ws;
 
-    ws.onopen = () => console.log('Global Notification Socket Connected');
+    ws.onopen = () => console.log('Notification Socket Connected');
     
     ws.onmessage = (event) => {
       try {
@@ -44,33 +42,35 @@ export const NotificationProvider = ({ children }) => {
         if (data.type) {
             window.dispatchEvent(new CustomEvent(data.type, { detail: data }));
         }
-        const eventMap = [
-            'new_booking_request',
-            'booking_accepted',
-            'booking_cancelled',
-            'service_request',
-            'service_response',
-            'travel_update',
-            'booking_completed'
-        ];
 
-        if (eventMap.includes(data.type)) {
-            window.dispatchEvent(new CustomEvent(data.type, { detail: data }));
+        if (data.type === 'notification_update' && data.update_type === 'total_unread_update') {
+            let newTotal = data.total_count;
+            let newBookingCounts = data.booking_counts;
+
+            const currentPath = window.location.pathname;
+            const match = currentPath.match(/chat\/(\d+)/); 
+            
+            if (match) {
+                const currentOpenBookingId = match[1];
+                
+                if (newBookingCounts[currentOpenBookingId]) {
+                    newTotal = Math.max(0, newTotal - newBookingCounts[currentOpenBookingId]);
+                  
+                }
+            }
+
+            setTotalUnreadCount(newTotal);
+            setBookingUnreadCounts(newBookingCounts);
         }
 
-        if (data.type === 'unread_counts') {
-            setTotalUnreadCount(data.total);
-            setBookingUnreadCounts(data.booking_counts);
-        }
       } catch (e) {
-        console.error("Socket Error", e);
+        console.error("Socket Message Error", e);
       }
     };
 
     ws.onclose = () => {
-        console.log('Global Socket Disconnected.');
+        console.log('Notification Socket Disconnected');
         socketRef.current = null;
-        
     };
 
     return () => {

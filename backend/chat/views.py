@@ -8,6 +8,10 @@ from .models import ChatMessage
 from .serializers import ChatMessageSerializer
 from rest_framework.views import APIView
 from django.db.models import Q
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
+
+
 
 class ChatMessagesView(APIView):
     permission_classes = [IsAuthenticated]
@@ -24,6 +28,8 @@ class ChatMessagesView(APIView):
         messages = ChatMessage.objects.filter(
             booking=booking
         ).select_related('sender').order_by('timestamp')
+        
+        
 
         ChatMessage.objects.filter(
             booking=booking,
@@ -92,8 +98,7 @@ class ChatMessagesView(APIView):
             message=message_text
         )
 
-        from channels.layers import get_channel_layer
-        from asgiref.sync import async_to_sync
+        
 
         channel_layer = get_channel_layer()
         other_user = booking.barber if request.user == booking.customer else booking.customer
@@ -197,3 +202,18 @@ def get_booking_info(request, booking_id):
     }
 
     return Response(booking_info)
+
+
+
+class MarkAsReadView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, booking_id):
+        booking = get_object_or_404(Booking, id=booking_id)
+       
+        ChatMessage.objects.filter(
+            booking=booking,
+            is_read=False
+        ).exclude(sender=request.user).update(is_read=True)
+        
+        return Response({'status': 'marked as read'}, status=status.HTTP_200_OK)

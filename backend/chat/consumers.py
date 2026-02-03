@@ -16,6 +16,7 @@ User = get_user_model()
 
 ONLINE_USERS = {}
 
+
 class ChatConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async
@@ -218,22 +219,21 @@ class ChatConsumer(AsyncWebsocketConsumer):
             
 
     @database_sync_to_async
-    def create_chat_message(self, booking, user, message_text):
+    def create_chat_message(self, booking, user, message_text, is_read=False):
         return ChatMessage.objects.create(
             booking=booking,
             sender=user,
-            message=message_text
+            message=message_text,
+            is_read=is_read 
         )
 
     async def receive(self, text_data):
         print(f"WebSocket: Received data - {text_data}")
         try:
             data = json.loads(text_data)
-            
+
             if data.get('type') == 'typing':
                 is_typing = data.get('is_typing', False)
-                print(f"WebSocket: Processing typing indicator - User {self.user.id} is_typing: {is_typing}")
-                
                 await self.channel_layer.group_send(
                     self.room_group_name,
                     {
@@ -242,31 +242,36 @@ class ChatConsumer(AsyncWebsocketConsumer):
                         'is_typing': is_typing
                     }
                 )
-                print(f"WebSocket: Typing indicator broadcasted to group")
                 return
 
             message_text = data.get('message', '').strip()
 
             if not message_text:
-                print("WebSocket: Empty message, ignoring")
                 return
 
             if self.booking.status in ['COMPLETED', 'CANCELLED']:
-                print("WebSocket: Booking is not active")
                 await self.send(text_data=json.dumps({
                     'type': 'error',
                     'message': 'Cannot send messages to completed or cancelled bookings'
                 }))
                 return
 
+            other_user_id = await database_sync_to_async(self.get_other_user_id)(
+                self.booking, self.user.id
+            )
+
+            is_other_user_online = await database_sync_to_async(self.get_user_online_status)(
+                self.booking_id, other_user_id
+            )
+
             message = await self.create_chat_message(
                 booking=self.booking,
                 user=self.user,
-                message_text=message_text
+                message_text=message_text,
+                is_read=is_other_user_online 
             )
-            print(f"WebSocket: Message saved - ID: {message.id}")
+            print(f"WebSocket: Message saved - ID: {message.id} | Read: {is_other_user_online}")
 
-            # After creating the message, replace the broadcast section:
             message_data = {
                 'id': message.id,
                 'message': message.message,
@@ -286,15 +291,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     'message_data': message_data
                 }
             )
-            print("WebSocket: Message broadcast to group")
 
-         
-            other_user_id = await database_sync_to_async(self.get_other_user_id)(
-                self.booking, self.user.id
-            )
-
-         
-            await self.send_total_unread_update(other_user_id)
+            if not is_other_user_online:
+                await self.send_total_unread_update(other_user_id)
 
         except Exception as e:
             print(f"WebSocket: Error in receive - {str(e)}")

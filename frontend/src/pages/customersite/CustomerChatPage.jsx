@@ -315,7 +315,7 @@ function CustomerChatPage() {
 
   return (
     <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-lg overflow-hidden flex flex-col h-[600px]">
-      {/* Header */}
+    
       <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4">
         <button
           onClick={() => navigate(-1)}

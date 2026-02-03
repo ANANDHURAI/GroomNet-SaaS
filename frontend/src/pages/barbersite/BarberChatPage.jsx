@@ -4,11 +4,13 @@ import { Send, ArrowLeft, User } from 'lucide-react';
 import apiClient from '../../slices/api/apiIntercepters';
 import BarberLayout from '../../components/chatcomponents/BarberLayout';
 import BarberSidebar from '../../components/barbercompo/BarberSidebar';
-
+import { useNotificationContext } from '../../contexts/NotificationContext'; 
 function BarberChatPage() {
   const { bookingId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
+  const { clearBookingUnreadCount } = useNotificationContext(); 
+
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [bookingInfo, setBookingInfo] = useState(null);
@@ -20,7 +22,6 @@ function BarberChatPage() {
   const websocketRef = useRef(null);
   const typingTimeoutRef = useRef(null);
 
-  const appointmentData = location.state?.appointmentData;
   const customerName = location.state?.customerName;
 
   const scrollToBottom = () => {
@@ -32,9 +33,15 @@ function BarberChatPage() {
   }, [messages]);
 
   useEffect(() => {
+  
+    if (bookingId) {
+        clearBookingUnreadCount(bookingId);
+    }
+    
     initializeChat();
     return cleanup;
   }, [bookingId]);
+
 
   const initializeChat = async () => {
     try {
@@ -66,7 +73,6 @@ function BarberChatPage() {
   };
 
   const connectWebSocket = () => {
-
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const token = sessionStorage.getItem('access_token');
     const baseUrl = import.meta.env.VITE_API_BASE_URL?.replace(/^https?:\/\//, '') || window.location.host;
@@ -125,7 +131,6 @@ function BarberChatPage() {
 
   const handleNewMessage = (messageData) => {
     setMessages(prev => {
-     
       const filteredPrev = prev.filter(msg => 
         !(msg.id && msg.id.toString().startsWith('temp_') && msg.message === messageData.message)
       );
@@ -157,11 +162,10 @@ function BarberChatPage() {
   const markAsRead = async () => {
     try {
       await apiClient.post(`/chat-service/chat/${bookingId}/mark-as-read/`);
-      window.dispatchEvent(new CustomEvent('unreadCountUpdate', {
-        detail: { bookingId, count: 0 }
-      }));
+     
+      clearBookingUnreadCount(bookingId); 
     } catch (error) {
-      console.error('Failed to mark as read:', error);
+    
     }
   };
 
@@ -198,7 +202,6 @@ function BarberChatPage() {
           message: messageText 
         }));
       } else {
-        
         const response = await apiClient.post(`/chat-service/chat/${bookingId}/messages/`, {
           message: messageText
         });
@@ -209,7 +212,6 @@ function BarberChatPage() {
       }
     } catch (error) {
       console.error('Send error:', error);
-      
       setMessages(prev => prev.filter(msg => msg.id !== tempMessage.id));
       setNewMessage(messageText);
       alert('Failed to send message. Please try again.');
@@ -344,7 +346,6 @@ function BarberChatPage() {
 
         <div className="flex-1 flex flex-col h-full">
           <div className="flex flex-col flex-1 bg-white rounded-lg shadow-lg m-4 overflow-hidden">
-            {/* Header */}
             <div className="bg-gradient-to-r from-green-600 to-green-700 text-white p-4">
               <button
                 onClick={() => navigate('/barber/appointments')}
@@ -383,7 +384,6 @@ function BarberChatPage() {
               )}
             </div>
 
-            {/* Messages */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
               {messages.length === 0 ? (
                 <div className="text-center text-gray-500 py-8">
@@ -396,7 +396,7 @@ function BarberChatPage() {
               <div ref={messagesEndRef} />
             </div>
 
-            {/* Input Box */}
+        
             <form onSubmit={handleSendMessage} className="p-4 border-t bg-white">
               <div className="flex space-x-2">
                 <input
@@ -420,9 +420,7 @@ function BarberChatPage() {
           </div>
         </div>
     </div>
-
   );
-
 }
 
 export default BarberChatPage;

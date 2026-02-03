@@ -46,7 +46,7 @@ export const BookingRequestCard = ({ booking, onAccept, onReject, loading }) => 
           <div className="text-right">
             <div className="flex items-center space-x-2 mb-2">
               <span className="px-4 py-2 rounded-2xl text-sm font-bold bg-gradient-to-r from-orange-100 to-red-100 text-orange-700 border-2 border-orange-200 shadow-sm">
-                ⏳ Pending
+                Pending
               </span>
             </div>
             <div className="bg-gradient-to-r from-red-50 to-orange-50 px-3 py-2 rounded-xl border border-red-200">
