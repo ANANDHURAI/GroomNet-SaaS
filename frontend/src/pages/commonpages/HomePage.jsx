@@ -12,12 +12,14 @@ import LocationModal from '../../components/basics/LocationModal';
 import { getCurrentLocation } from '../../utils/getCurrentLocation';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
+
 import groom1 from '../../assets/groom 1.jpg';
 import groom2 from '../../assets/groom 2.webp';
 import groom3 from '../../assets/groom 3.webp';
 import groom4 from '../../assets/groom 4.jpg';
 import groom5 from '../../assets/groom 5.jpg';
 import groom6 from '../../assets/groom 6.jpg';
+import AAK from '../../assets/AAK.png';
 
 
 const heroImages = [
@@ -27,6 +29,7 @@ const heroImages = [
   { src: groom4, title: "Luxury Experience", subtitle: "Relax and rejuvenate" },
   { src: groom5, title: "Timeless Looks", subtitle: "Classic styles for the modern man" },
   { src: groom6, title: "Your Style, Your Way", subtitle: "Personalized grooming solutions" },
+  { src: AAK, title: "Signature Look", subtitle: " The name is Anbuganapathi Anandhurai" },
 ];
 
 const HeroSection = () => {
@@ -157,7 +160,8 @@ function HomePage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans">
+
+    <div className="min-h-screen bg-slate-50 font-sans pt-20">
       <Navbar />
       
       <HeroSection />
@@ -186,7 +190,7 @@ function HomePage() {
       )}
 
       <div className="container mx-auto px-4 pb-16 relative z-10 -mt-16">
-       
+      
         <div className="bg-white/90 backdrop-blur-md rounded-2xl shadow-xl p-6 md:p-8 mb-12 border border-white/50 mx-4 md:mx-auto max-w-5xl transform hover:-translate-y-1 transition-transform duration-300">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex-1 text-center md:text-left">
@@ -233,7 +237,7 @@ function HomePage() {
           <div className="mb-16">
             <div className="flex items-center justify-between mb-6 px-2">
               <h2 className="text-2xl font-bold text-gray-800">Categories</h2>
-              
+              <button className="text-purple-600 hover:text-purple-700 text-sm font-medium">View All</button>
             </div>
             <Carousel>
               {data.categories.map((cat) => (
@@ -247,7 +251,7 @@ function HomePage() {
           <div className="mb-16">
             <div className="flex items-center justify-between mb-6 px-2">
               <h2 className="text-2xl font-bold text-gray-800">Trending Services</h2>
-              
+              <button className="text-purple-600 hover:text-purple-700 text-sm font-medium">View All</button>
             </div>
             <Carousel>
               {data.services.map((srv) => (

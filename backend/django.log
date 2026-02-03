@@ -59605,3 +59605,5 @@ Unauthorized: /barbersite/barber-appointments/
 Unauthorized: /auth/token/refresh/
 Unauthorized: /instant-booking/working/status/7/
 Unauthorized: /auth/token/refresh/
+Unauthorized: /instant-booking/working/status/7/
+Unauthorized: /auth/token/refresh/
