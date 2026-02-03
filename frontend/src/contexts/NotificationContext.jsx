@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
+import message from '../assets/message.mpeg'
 
 const NotificationContext = createContext();
 
@@ -11,6 +12,17 @@ export const NotificationProvider = ({ children }) => {
 
   const [token, setToken] = useState(sessionStorage.getItem('access_token'));
   const [barberId, setBarberId] = useState(sessionStorage.getItem('barber_id'));
+
+  const playNotificationSound = () => {
+    try {
+      const audio = new Audio(message);
+      audio.play().catch(error => {
+        console.log('Audio playback prevented:', error);
+      });
+    } catch (error) {
+      console.error('Error playing notification sound:', error);
+    }
+  };
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -38,7 +50,21 @@ export const NotificationProvider = ({ children }) => {
     ws.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
-        
+       
+        const eventMap = [
+            'new_booking_request',
+            'booking_accepted',
+            'booking_cancelled',
+            'service_request',
+            'service_response',
+            'travel_update',
+            'booking_completed'
+        ];
+
+        if (data.type === 'notification_update' || eventMap.includes(data.type)) {
+            playNotificationSound();
+        }
+
         if (data.type) {
             window.dispatchEvent(new CustomEvent(data.type, { detail: data }));
         }
@@ -48,11 +74,12 @@ export const NotificationProvider = ({ children }) => {
             let newBookingCounts = data.booking_counts;
 
             const currentPath = window.location.pathname;
-            const match = currentPath.match(/chat\/(\d+)/); 
+           
+            const match = currentPath.match(/\/chat\/(\d+)/); 
             
             if (match) {
                 const currentOpenBookingId = match[1];
-                
+              
                 if (newBookingCounts[currentOpenBookingId]) {
                     newTotal = Math.max(0, newTotal - newBookingCounts[currentOpenBookingId]);
                   
