@@ -18,7 +18,6 @@ function CustomerChatPage() {
   const websocketRef = useRef(null);
   const typingTimeoutRef = useRef(null);
 
-
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
@@ -206,7 +205,6 @@ function CustomerChatPage() {
           message: messageText
         }));
       } else {
-
         const response = await apiClient.post(`/chat-service/chat/${bookingId}/messages/`, {
           message: messageText
         });
@@ -307,97 +305,100 @@ function CustomerChatPage() {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-64">
+      <div className="flex justify-center items-center h-screen bg-gray-50 pt-20">
         <div className="text-gray-600">Loading chat...</div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-lg overflow-hidden flex flex-col h-[600px]">
+   
+    <div className="min-h-screen bg-gray-50 pt-28 pb-10 px-4">
+      <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-lg overflow-hidden flex flex-col h-[600px]">
     
-      <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4">
-        <button
-          onClick={() => navigate(-1)}
-          className="flex items-center text-white hover:text-blue-200 mb-2 transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4 mr-1" />
-          Back to Booking
-        </button>
-
-        {bookingInfo && (
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-              {bookingInfo.other_user.profile_image ? (
-                <img
-                  src={bookingInfo.other_user.profile_image}
-                  alt={bookingInfo.other_user.name}
-                  className="w-10 h-10 rounded-full object-cover"
-                />
-              ) : (
-                <User className="w-6 h-6 text-white" />
-              )}
-            </div>
-            <div className="flex-1">
-              <h2 className="text-lg font-semibold">{bookingInfo.other_user.name}</h2>
-              <p className="text-sm text-blue-100">
-                {bookingInfo.service_name} • {bookingInfo.booking_date} at {bookingInfo.booking_time}
-              </p>
-              <div className="flex items-center text-xs text-blue-100 mt-1">
-                <div className={`w-2 h-2 rounded-full mr-2 transition-colors ${isOnline ? 'bg-green-400' : 'bg-gray-400'
-                  }`} />
-                {isOnline ? 'Online' : 'Offline'}
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
-        {messages.length === 0 ? (
-          <div className="text-center text-gray-500 py-8">
-            <p>No messages yet. Start the conversation!</p>
-          </div>
-        ) : (
-          messages.map(renderMessage)
-        )}
-
-        {isTyping && (
-          <div className="flex justify-start">
-            <div className="bg-white text-gray-800 border px-4 py-2 rounded-lg max-w-xs">
-              <div className="flex space-x-1 items-center">
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-              </div>
-              <p className="text-xs text-gray-500 mt-1">{bookingInfo?.other_user.name} is typing...</p>
-            </div>
-          </div>
-        )}
-
-        <div ref={messagesEndRef} />
-      </div>
-
-      <form onSubmit={handleSendMessage} className="p-4 border-t bg-white">
-        <div className="flex space-x-2">
-          <input
-            type="text"
-            value={newMessage}
-            onChange={(e) => handleInputChange(e.target.value)}
-            placeholder="Type your message..."
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            disabled={sending}
-          />
+        <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4">
           <button
-            type="submit"
-            disabled={!newMessage.trim() || sending}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center gap-2 transition-colors"
+            onClick={() => navigate(-1)}
+            className="flex items-center text-white hover:text-blue-200 mb-2 transition-colors"
           >
-            <Send className="w-4 h-4" />
-            {sending ? 'Sending...' : 'Send'}
+            <ArrowLeft className="w-4 h-4 mr-1" />
+            Back to Booking
           </button>
+
+          {bookingInfo && (
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                {bookingInfo.other_user.profile_image ? (
+                  <img
+                    src={bookingInfo.other_user.profile_image}
+                    alt={bookingInfo.other_user.name}
+                    className="w-10 h-10 rounded-full object-cover"
+                  />
+                ) : (
+                  <User className="w-6 h-6 text-white" />
+                )}
+              </div>
+              <div className="flex-1">
+                <h2 className="text-lg font-semibold">{bookingInfo.other_user.name}</h2>
+                <p className="text-sm text-blue-100">
+                  {bookingInfo.service_name} • {bookingInfo.booking_date} at {bookingInfo.booking_time}
+                </p>
+                <div className="flex items-center text-xs text-blue-100 mt-1">
+                  <div className={`w-2 h-2 rounded-full mr-2 transition-colors ${isOnline ? 'bg-green-400' : 'bg-gray-400'
+                    }`} />
+                  {isOnline ? 'Online' : 'Offline'}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
-      </form>
+
+        <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
+          {messages.length === 0 ? (
+            <div className="text-center text-gray-500 py-8">
+              <p>No messages yet. Start the conversation!</p>
+            </div>
+          ) : (
+            messages.map(renderMessage)
+          )}
+
+          {isTyping && (
+            <div className="flex justify-start">
+              <div className="bg-white text-gray-800 border px-4 py-2 rounded-lg max-w-xs">
+                <div className="flex space-x-1 items-center">
+                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                </div>
+                <p className="text-xs text-gray-500 mt-1">{bookingInfo?.other_user.name} is typing...</p>
+              </div>
+            </div>
+          )}
+
+          <div ref={messagesEndRef} />
+        </div>
+
+        <form onSubmit={handleSendMessage} className="p-4 border-t bg-white">
+          <div className="flex space-x-2">
+            <input
+              type="text"
+              value={newMessage}
+              onChange={(e) => handleInputChange(e.target.value)}
+              placeholder="Type your message..."
+              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              disabled={sending}
+            />
+            <button
+              type="submit"
+              disabled={!newMessage.trim() || sending}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center gap-2 transition-colors"
+            >
+              <Send className="w-4 h-4" />
+              {sending ? 'Sending...' : 'Send'}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }

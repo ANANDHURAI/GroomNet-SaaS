@@ -20,6 +20,7 @@ import groom4 from '../../assets/groom 4.jpg';
 import groom5 from '../../assets/groom 5.jpg';
 import groom6 from '../../assets/groom 6.jpg';
 import AAK from '../../assets/AAK.png';
+import Footer from '../../components/basics/Footer';
 
 
 const heroImages = [
@@ -237,7 +238,7 @@ function HomePage() {
           <div className="mb-16">
             <div className="flex items-center justify-between mb-6 px-2">
               <h2 className="text-2xl font-bold text-gray-800">Categories</h2>
-              <button className="text-purple-600 hover:text-purple-700 text-sm font-medium">View All</button>
+              
             </div>
             <Carousel>
               {data.categories.map((cat) => (
@@ -251,7 +252,7 @@ function HomePage() {
           <div className="mb-16">
             <div className="flex items-center justify-between mb-6 px-2">
               <h2 className="text-2xl font-bold text-gray-800">Trending Services</h2>
-              <button className="text-purple-600 hover:text-purple-700 text-sm font-medium">View All</button>
+              
             </div>
             <Carousel>
               {data.services.map((srv) => (
@@ -273,6 +274,7 @@ function HomePage() {
           </div>
         )}
       </div>
+      <Footer/>
     </div>
   );
 }

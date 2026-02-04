@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import apiClient from "../../slices/api/apiIntercepters";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { UserCircle, Frown } from "lucide-react";
+import Navbar from "../../components/basics/Navbar";
 
 function FindBarbers() {
   const [status, setStatus] = useState("Broadcasting to nearby barbers...");
@@ -89,6 +90,7 @@ function FindBarbers() {
 
   return (
     <div className="min-h-screen bg-blue-50 flex items-center justify-center">
+      <Navbar/>
       <div className="max-w-2xl w-full mx-auto p-6">
         <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
           

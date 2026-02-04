@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'; 
 import { Scissors, User, Bell } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import NotificationBadge from '../../components/notification/NotificationBadge'; // Ensure path is correct
+import NotificationBadge from '../../components/notification/NotificationBadge'; 
 import { useNotificationContext } from '../../contexts/NotificationContext';
 import { useSelector } from "react-redux";
 
@@ -67,7 +67,7 @@ function Navbar() {
               className="relative p-2.5 rounded-full bg-gray-50 hover:bg-purple-50 text-gray-600 hover:text-purple-600 transition-all duration-300 border border-transparent hover:border-purple-100"
             >
               <Bell className="w-5 h-5" />
-              {/* ✅ Animated Badge */}
+              
               <NotificationBadge count={totalUnreadCount} />
             </Link>
 
