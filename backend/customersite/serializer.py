@@ -174,6 +174,8 @@ class HomeSerializer(serializers.Serializer):
         if hasattr(user, 'profileimage') and user.profileimage:
             return request.build_absolute_uri(user.profileimage.url)
         return None
+    
+    
 
 class PaymentSerializer(serializers.ModelSerializer):
     booking_id = serializers.IntegerField(source='booking.id', read_only=True)

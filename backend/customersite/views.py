@@ -49,8 +49,10 @@ class Home(APIView):
 
     def get(self, request):
         categories = CategoryModel.objects.filter(is_blocked=False).order_by('-id')
-        services = ServiceModel.objects.filter(
-            is_blocked=False, category__is_blocked=False).order_by('-id')
+        services = ServiceModel.objects.select_related('category').filter(
+            is_blocked=False,
+            category__is_blocked=False
+        )
 
         data = {
             'greeting_message': f'Hello, welcome {request.user.name}!',
@@ -61,6 +63,8 @@ class Home(APIView):
       
         serializer = HomeSerializer(data, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
 
 
 class UserLocationUpdateView(generics.CreateAPIView):
