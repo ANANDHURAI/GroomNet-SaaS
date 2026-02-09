@@ -1,11 +1,7 @@
 
-# Exit on error
-set -o errexit
+.\venv\Scripts\activate
 
-pip install -r requirements.txt
+rm requirements.txt  
 
-# Convert static files
-python manage.py collectstatic --no-input
 
-# Apply migrations
-python manage.py migrate
+pip freeze > requirements.txt
