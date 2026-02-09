@@ -127,20 +127,32 @@ USE_I18N = True
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 REDIS_URL = os.environ.get("REDIS_URL", "redis://127.0.0.1:6379")
 
+
+
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
+    "http://localhost:3000",
     "http://127.0.0.1:5173",
-    "http://localhost:3000", 
     "http://127.0.0.1:3000",
     "http://localhost:8000",
     "https://accounts.google.com",
     "https://oauth2.googleapis.com",
-
-    # Production domains
-    "https://groomnet.shop",       
-    "https://www.groomnet.shop",   
-    "https://api.groomnet.shop",  
+    "https://groomnet.shop",
+    "https://www.groomnet.shop",
+    "https://api.groomnet.shop",
 ]
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://groomnet.shop",
+    "https://www.groomnet.shop",
+    "https://api.groomnet.shop",
+]
+
+
+FRONTEND_URL = os.environ.get("FRONTEND_URL")
+if FRONTEND_URL:
+    CORS_ALLOWED_ORIGINS.append(FRONTEND_URL)
+    CSRF_TRUSTED_ORIGINS.append(FRONTEND_URL) 
 
 CORS_ALLOWED_HEADERS = [
     'accept',
@@ -155,10 +167,7 @@ CORS_ALLOWED_HEADERS = [
 ]
 CORS_ALLOW_CREDENTIALS = True
 
-FRONTEND_URL = os.environ.get("FRONTEND_URL")
-if FRONTEND_URL:
-    CORS_ALLOWED_ORIGINS.append(FRONTEND_URL)
-    CSRF_TRUSTED_ORIGINS.append(FRONTEND_URL)
+
 
 CSRF_TRUSTED_ORIGINS = [
     "https://groomnet.shop",
@@ -268,8 +277,13 @@ GOOGLE_OAUTH2_CLIENT_ID = os.getenv("GOOGLE_OAUTH2_CLIENT_ID")
 GOOGLE_OAUTH2_CLIENT_SECRET = os.getenv("GOOGLE_OAUTH2_CLIENT_SECRET")
 
 
-BASE_APP_URL = 'http://localhost:5173' 
-BASE_API_URL = 'http://localhost:8000'
+BASE_APP_URL = os.environ.get("FRONTEND_URL", 'http://localhost:5173')
+
+RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+if RENDER_EXTERNAL_HOSTNAME:
+    BASE_API_URL = f'https://{RENDER_EXTERNAL_HOSTNAME}'
+else:
+    BASE_API_URL = 'http://localhost:8000'
 
 
 SENDGRID_API_KEY = os.environ.get("SENDGRID_API_KEY")
