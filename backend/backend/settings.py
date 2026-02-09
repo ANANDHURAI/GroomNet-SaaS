@@ -128,11 +128,11 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 REDIS_URL = os.environ.get("REDIS_URL", "redis://127.0.0.1:6379")
 
 
-
+# 1. Define the lists FIRST
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
-    "http://localhost:3000",
     "http://127.0.0.1:5173",
+    "http://localhost:3000", 
     "http://127.0.0.1:3000",
     "http://localhost:8000",
     "https://accounts.google.com",
@@ -148,11 +148,11 @@ CSRF_TRUSTED_ORIGINS = [
     "https://api.groomnet.shop",
 ]
 
-
+# 2. THEN add the dynamic URL (This logic must come AFTER the lists are defined)
 FRONTEND_URL = os.environ.get("FRONTEND_URL")
 if FRONTEND_URL:
     CORS_ALLOWED_ORIGINS.append(FRONTEND_URL)
-    CSRF_TRUSTED_ORIGINS.append(FRONTEND_URL) 
+    CSRF_TRUSTED_ORIGINS.append(FRONTEND_URL)
 
 CORS_ALLOWED_HEADERS = [
     'accept',
@@ -166,7 +166,6 @@ CORS_ALLOWED_HEADERS = [
     'x-requested-with',
 ]
 CORS_ALLOW_CREDENTIALS = True
-
 
 
 CSRF_TRUSTED_ORIGINS = [
