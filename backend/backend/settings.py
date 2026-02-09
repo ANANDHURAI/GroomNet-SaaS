@@ -1,19 +1,18 @@
-
-
 from pathlib import Path
 from datetime import timedelta
 import os
 import dj_database_url
 from dotenv import load_dotenv
+
 load_dotenv()
-
-
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = os.getenv("SECRET_KEY")
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = os.getenv("SECRET_KEY", "django-insecure-default-key-change-this")
 
-DEBUG = True
+
+DEBUG = os.getenv("DEBUG", "True") == "True"
 
 ALLOWED_HOSTS = [
     "groomnet.shop",
@@ -24,12 +23,13 @@ ALLOWED_HOSTS = [
     "127.0.0.1",
 ]
 
-# Adding Render hostname automatically
 RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
 if RENDER_EXTERNAL_HOSTNAME:
     ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
 
+
 INSTALLED_APPS = [
+    'daphne', 
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -38,31 +38,33 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.sites',
 
+    # Third Party
     'rest_framework',
     'corsheaders',
     'rest_framework_simplejwt.token_blacklist',
     'rest_framework.authtoken',
     'dj_rest_auth',
     'dj_rest_auth.registration',
+    'channels',       # Websockets
+    'channels_redis', # Redis
+
+    # Local Apps
     'authservice',
     'adminsite',
     'profileservice',
     'barber_reg',
     'barbersite',
     'customersite',
-    'channels',
-    'channels_redis',
     'chat',
     'paymentservice',
     'instantbooking',
     'reports',
 ]
 
-
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware', # Static files
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -70,7 +72,6 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
-
 
 ROOT_URLCONF = 'backend.urls'
 
@@ -90,8 +91,10 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'backend.wsgi.application'
+ASGI_APPLICATION = 'backend.asgi.application'
 
-
+# Database Configuration
+# This automatically switches between Local Postgres and Render Database
 DATABASES = {
     'default': dj_database_url.config(
         default='postgres://postgres:anand@localhost:5432/GroomNetWebsite',
@@ -99,36 +102,33 @@ DATABASES = {
     )
 }
 
+# Channel Layers (Redis for Chat)
+# This automatically switches between Local Redis and Render Redis
+REDIS_URL = os.environ.get("REDIS_URL", "redis://127.0.0.1:6379")
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [REDIS_URL],
+        },
+    },
+}
+
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    { 'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator', },
+    { 'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator', },
+    { 'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator', },
+    { 'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator', },
 ]
 
-
-
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'Asia/Kolkata'
 USE_TZ = True
 USE_I18N = True
 
-
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-REDIS_URL = os.environ.get("REDIS_URL", "redis://127.0.0.1:6379")
 
-
-# 1. Define the lists FIRST
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
@@ -148,7 +148,6 @@ CSRF_TRUSTED_ORIGINS = [
     "https://api.groomnet.shop",
 ]
 
-# 2. THEN add the dynamic URL (This logic must come AFTER the lists are defined)
 FRONTEND_URL = os.environ.get("FRONTEND_URL")
 if FRONTEND_URL:
     CORS_ALLOWED_ORIGINS.append(FRONTEND_URL)
@@ -166,14 +165,6 @@ CORS_ALLOWED_HEADERS = [
     'x-requested-with',
 ]
 CORS_ALLOW_CREDENTIALS = True
-
-
-CSRF_TRUSTED_ORIGINS = [
-    "https://groomnet.shop",
-    "https://www.groomnet.shop",
-    "https://api.groomnet.shop",
-]
-
 
 CORS_ALLOW_METHODS = [
     'DELETE',
@@ -196,7 +187,6 @@ REST_FRAMEWORK = {
     ],
 }
 
-
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
@@ -207,39 +197,15 @@ SIMPLE_JWT = {
     'SIGNING_KEY': SECRET_KEY,
     'VERIFYING_KEY': None,
     'AUTH_HEADER_TYPES': ('Bearer',),
-    'AUTH_HEADER_NAME': 'HTTP_AUTHORIZATION',
     'USER_ID_FIELD': 'id',
     'USER_ID_CLAIM': 'user_id',
     'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
     'TOKEN_TYPE_CLAIM': 'token_type',
 }
 
-
 AUTH_USER_MODEL = 'authservice.User'
 
 
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'handlers': {
-        'file': {
-            'level': 'INFO',
-            'class': 'logging.FileHandler',
-            'filename': 'django.log',
-        },
-        'console': {
-            'level': 'INFO',
-            'class': 'logging.StreamHandler',
-        },
-    },
-    'loggers': {
-        'django': {
-            'handlers': ['file', 'console'],
-            'level': 'INFO',
-            'propagate': True,
-        },
-    },
-}
 
 STATIC_URL = '/static/' 
 STATICFILES_DIRS = [
@@ -251,43 +217,36 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
+# --- Third Party Keys ---
 
 STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
 STRIPE_PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY")
 
-
-ASGI_APPLICATION = 'backend.asgi.application'
-
-
-CHANNEL_LAYERS = {
-    "default": {
-        "BACKEND": "channels_redis.core.RedisChannelLayer",
-        "CONFIG": {
-            "hosts": [REDIS_URL],
-        },
-    },
-}
-
-
-
 GOOGLE_MAPS_API_KEY = os.getenv("GOOGLE_MAPS_API_KEY")
-
 GOOGLE_OAUTH2_CLIENT_ID = os.getenv("GOOGLE_OAUTH2_CLIENT_ID")
 GOOGLE_OAUTH2_CLIENT_SECRET = os.getenv("GOOGLE_OAUTH2_CLIENT_SECRET")
-
-
-BASE_APP_URL = os.environ.get("FRONTEND_URL", 'http://localhost:5173')
-
-RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
-if RENDER_EXTERNAL_HOSTNAME:
-    BASE_API_URL = f'https://{RENDER_EXTERNAL_HOSTNAME}'
-else:
-    BASE_API_URL = 'http://localhost:8000'
-
-
 SENDGRID_API_KEY = os.environ.get("SENDGRID_API_KEY")
 DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL")
 
-
 EMAIL_BACKEND = "sendgrid_backend.SendgridBackend"
 SENDGRID_SANDBOX_MODE_IN_DEBUG = False
+
+
+
+BASE_APP_URL = os.environ.get("FRONTEND_URL", 'http://localhost:5173') 
+BASE_API_URL = f'https://{RENDER_EXTERNAL_HOSTNAME}' if RENDER_EXTERNAL_HOSTNAME else 'http://localhost:8000'
+
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    },
+}
