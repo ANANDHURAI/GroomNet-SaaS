@@ -117,7 +117,7 @@ class CustomerBarberLoginSerializer(LoginSerializer):
             })
         
         return attrs
-
+    
 class ForgotPasswordSerializer(serializers.Serializer):
     email = serializers.EmailField()
 

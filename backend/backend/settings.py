@@ -3,6 +3,7 @@
 from pathlib import Path
 from datetime import timedelta
 import os
+import dj_database_url
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -22,6 +23,11 @@ ALLOWED_HOSTS = [
     "localhost",
     "127.0.0.1",
 ]
+
+# Adding Render hostname automatically
+RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -87,14 +93,10 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'GroomNetWebsite',
-        'USER': 'postgres',
-        'PASSWORD': 'anand',
-        'HOST': 'localhost',
-        'PORT': '5432',
-    }
+    'default': dj_database_url.config(
+        default='postgres://postgres:anand@localhost:5432/GroomNetWebsite',
+        conn_max_age=600
+    )
 }
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -123,7 +125,7 @@ USE_I18N = True
 
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
+REDIS_URL = os.environ.get("REDIS_URL", "redis://127.0.0.1:6379")
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
@@ -153,6 +155,10 @@ CORS_ALLOWED_HEADERS = [
 ]
 CORS_ALLOW_CREDENTIALS = True
 
+FRONTEND_URL = os.environ.get("FRONTEND_URL")
+if FRONTEND_URL:
+    CORS_ALLOWED_ORIGINS.append(FRONTEND_URL)
+    CSRF_TRUSTED_ORIGINS.append(FRONTEND_URL)
 
 CSRF_TRUSTED_ORIGINS = [
     "https://groomnet.shop",
@@ -244,13 +250,12 @@ STRIPE_PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY")
 
 ASGI_APPLICATION = 'backend.asgi.application'
 
+
 CHANNEL_LAYERS = {
-    'default': {
-        'BACKEND': 'channels_redis.core.RedisChannelLayer',
-        'CONFIG': {
-            "hosts": [('127.0.0.1', 6379)],
-            "capacity": 1500,
-            "expiry": 10,
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [REDIS_URL],
         },
     },
 }
