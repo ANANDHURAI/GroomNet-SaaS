@@ -1,6 +1,6 @@
 # 💇‍♀️ GroomNet - SaaS Booking Platform for Beauty Services
 
-> A comprehensive 3-portal ecosystem (Admin, Vendor, Customer) solving scheduling conflicts with real-time booking orchestration.
+> A comprehensive 3-portal ecosystem (Admin, Beauticion, Customer) solving scheduling conflicts with real-time booking orchestration.
 
 ![App Screenshot](Add_Your_Screenshot_Here)
 
@@ -10,23 +10,23 @@
 ![Stripe](https://img.shields.io/badge/Payments-Stripe-purple.svg)
 
 ## 📌 Project Overview
-GroomNet is a **B2B2C SaaS platform** that connects beauty professionals with clients. Unlike standard booking apps, it handles **dual-booking types** (Instant vs. Scheduled) and manages complex financial flows including vendor payouts and commission logic.
+GroomNet is a **B2B2C SaaS platform** that connects beauty professionals with clients. Unlike standard booking apps, it handles **dual-booking types** (Instant vs. Scheduled) and manages complex financial flows including Beauticion payouts and commission logic.
 
 ## 🌟 Technical Highlights
 
 ### 🏗️ Architecture
 * **Decoupled Monolith:** React.js Frontend consumes a robust Django REST Framework (DRF) Backend.
 * **Concurrency Handling:** Database transactions ensure no two users can book the same slot simultaneously.
-* **Real-Time Sync:** **WebSockets (Django Channels)** push instant notifications to vendors when a booking is made.
+* **Real-Time Sync:** **WebSockets (Django Channels)** push instant notifications to Beauticion when a booking is made.
 
 ### 💳 Financial Infrastructure
-* **Payment Orchestration:** Integration with **Stripe** and **Razorpay**.
+* **Payment Orchestration:** Integration with **Stripe**
 * **Digital Wallet:** Internal ledger system for handling cashback, refunds, and top-ups without external gateway calls.
 
 ## 🔐 Security & Auth
 * **Google OAuth2:** Seamless social login.
 * **JWT Authentication:** Stateless authentication with HttpOnly cookie storage for XSS protection.
-* **RBAC:** Custom permission classes to segregate Vendor and Customer APIs.
+* **RBAC:** Custom permission classes to segregate Beauticion and Customer APIs.
 
 ## 🛠️ Tech Stack
 
