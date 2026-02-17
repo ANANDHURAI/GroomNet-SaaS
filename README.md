@@ -1,86 +1,76 @@
-# 🚀 GroomNet – Connect Customers with Beauticians
+# 💇‍♀️ GroomNet - SaaS Booking Platform for Beauty Services
 
-Hi 👋, I’m **Anandhurai**.  
-This is my **second Indusrial project**, designed to **connect customers and beauticians** seamlessly.  
+> A comprehensive 3-portal ecosystem (Admin, Vendor, Customer) solving scheduling conflicts with real-time booking orchestration.
 
-The platform has **three dedicated portals**:  
-- 👩‍💼 **Customer** – Browse services, book appointments, manage payments.  
-- 💇 **Beautician** – Showcase portfolio, manage bookings, interact with customers.  
-- 🛠️ **Admin** – Full control over users, bookings, services, and payments.  
+![App Screenshot](Add_Your_Screenshot_Here)
 
----
+![React](https://img.shields.io/badge/react-18-blue.svg)
+![Django Rest Framework](https://img.shields.io/badge/DRF-API-red.svg)
+![Docker](https://img.shields.io/badge/Docker-Container-blue.svg)
+![Stripe](https://img.shields.io/badge/Payments-Stripe-purple.svg)
 
-## 🛠 Tech Stack
-| Layer         | Technology/Tools |
-|---------------|-----------------|
-| Backend       | Python, Django, Django REST Framework (DRF), SQL, ORM |
-| Frontend      | React.js |
-| Authentication| Google OAuth2, JWT Tokens |
-| Real-time     | WebSockets (Django Channels) |
-| Payments      | Stripe Integration, Wallet System |
-| Deployment    | AWS, Docker |
-| Version Control | Git, GitHub |
+## 📌 Project Overview
+GroomNet is a **B2B2C SaaS platform** that connects beauty professionals with clients. Unlike standard booking apps, it handles **dual-booking types** (Instant vs. Scheduled) and manages complex financial flows including vendor payouts and commission logic.
 
----
+## 🌟 Technical Highlights
 
-## 📅 Booking Types
-1. **Instant Booking** – Book services immediately.  
-2. **Scheduled Booking** – Book services for future dates & times.  
+### 🏗️ Architecture
+* **Decoupled Monolith:** React.js Frontend consumes a robust Django REST Framework (DRF) Backend.
+* **Concurrency Handling:** Database transactions ensure no two users can book the same slot simultaneously.
+* **Real-Time Sync:** **WebSockets (Django Channels)** push instant notifications to vendors when a booking is made.
 
----
+### 💳 Financial Infrastructure
+* **Payment Orchestration:** Integration with **Stripe** and **Razorpay**.
+* **Digital Wallet:** Internal ledger system for handling cashback, refunds, and top-ups without external gateway calls.
 
-## 🌟 Key Features
+## 🔐 Security & Auth
+* **Google OAuth2:** Seamless social login.
+* **JWT Authentication:** Stateless authentication with HttpOnly cookie storage for XSS protection.
+* **RBAC:** Custom permission classes to segregate Vendor and Customer APIs.
 
-### 🔐 Authentication & Security
-- Google Login & Signup  
-- JWT Authentication  
-- Multi-step beautician registration with admin approval  
+## 🛠️ Tech Stack
 
-### 💬 Real-time Features
-- Live chat (Customer ↔ Beautician)  
-- Instant notifications for bookings & updates  
-- Complaint management system  
+| Layer | Technology/Tools |
+| :--- | :--- |
+| **Backend** | Python, Django, DRF |
+| **Frontend** | React.js, Redux Toolkit |
+| **Real-time** | WebSockets (Django Channels) |
+| **DevOps** | AWS, Docker, Nginx |
 
-### 👩‍💼 Beautician Features
-- Portfolio showcase with photos & descriptions  
-- Ratings & reviews  
-- Booking & payment management dashboard  
+## 🔧 Installation & Setup
 
-### 👨‍💼 Customer Features
-- Browse beauticians & services  
-- Apply coupon codes for discounts  
-- Wallet system for fast payments  
-- Booking history & reviews  
+1.  **Clone the Repo**
+    ```bash
+    git clone [https://github.com/ANANDHURAI/GroomNet-SaaS.git](https://github.com/ANANDHURAI/GroomNet-SaaS.git)
+    cd GroomNet-SaaS
+    ```
 
-### 🛠️ Admin Features
-- Manage users (customers & beauticians)  
-- Approve/reject beautician registration  
-- Track payments, complaints, and coupons  
-- View analytics & system overview  
+2.  **Manual Setup (.env)**
+    *Create a `.env` file in the backend directory:*
+    ```env
+    # Django Settings
+    SECRET_KEY=your_secret_key
+    DEBUG=True
+    ALLOWED_HOSTS=127.0.0.1,localhost
 
-### 💳 Payment System
-- Stripe integration for secure payments  
-- Wallet system for refunds, top-ups, and cashback  
+    # Database
+    POSTGRES_DB=groomnet_db
+    POSTGRES_USER=postgres
+    POSTGRES_PASSWORD=password
 
----
+    # Payments
+    STRIPE_SECRET_KEY=sk_test_...
+    RAZORPAY_KEY_ID=rzp_test_...
 
-## 📈 Skills Demonstrated
-- Full-stack development (React + Django + DRF)  
-- Secure authentication & JWT handling  
-- Database design & ORM  
-- Real-time communication via WebSockets  
-- Payment gateway integration (Stripe + Wallet)  
-- Scalable system design suitable for production  
+    # Social Auth
+    GOOGLE_OAUTH2_KEY=...
+    GOOGLE_OAUTH2_SECRET=...
+    ```
 
----
+3.  **Run with Docker (Recommended)**
+    ```bash
+    docker-compose up --build
+    ```
 
-## 🎯 Project Highlights
-- End-to-end service marketplace  
-- Instant & scheduled booking options  
-- Live chat & notifications  
-- Multi-role system: Customer, Beautician, Admin  
-- Admin approval workflow for beauticians  
-- Stripe & Wallet integrated payment system  
-
----
-
+## 👤 Author
+**Anand Kumar** - *Independent Full Stack Developer*
