@@ -2,7 +2,8 @@
 
 > A comprehensive 3-portal ecosystem (Admin, Beauticion, Customer) solving scheduling conflicts with real-time booking orchestration.
 
-![App Screenshot](Add_Your_Screenshot_Here)
+<img width="1884" height="909" alt="Screenshot 2026-02-17 125446" src="https://github.com/user-attachments/assets/f308cd92-ef52-4097-971c-2e5070b2873b" />
+
 
 ![React](https://img.shields.io/badge/react-18-blue.svg)
 ![Django Rest Framework](https://img.shields.io/badge/DRF-API-red.svg)
