@@ -108,10 +108,12 @@ class ComplaintSerializer(serializers.ModelSerializer):
         model = Complaints
         fields = '__all__'
 
+
 class AdminWalletTransactionSerializer(serializers.ModelSerializer):
     class Meta:
         model = AdminWalletTransaction
-        fields = ['id', 'amount', 'note', 'created_at']
+        fields = ("id", "amount", "note", "created_at")
+        read_only_fields = fields
 
     
 class ServiceRequestSerializer(serializers.ModelSerializer):

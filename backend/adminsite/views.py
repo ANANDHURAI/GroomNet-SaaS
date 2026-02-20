@@ -2,7 +2,7 @@ from customersite.models import Booking, Rating
 from django.db.models import Q
 from django.utils import timezone
 from rest_framework.decorators import api_view, permission_classes
-from django.db.models import Count, Avg, Sum
+from django.db.models import Sum, Case, When, Value, DecimalField, Q , Count ,Avg
 from .serializers import ComplaintSerializer
 from customersite.models import Complaints
 from rest_framework import generics
@@ -373,85 +373,98 @@ class AdminWalletView(APIView):
             )
 
 
+
+
+def get_period_range(period: str):
+    now = timezone.now()
+
+    if period == "today":
+        start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+        end = start + timedelta(days=1)
+
+    elif period == "week":
+        start = (now - timedelta(days=now.weekday())).replace(
+            hour=0, minute=0, second=0, microsecond=0
+        )
+        end = start + timedelta(days=7)
+
+    elif period == "month":
+        start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+
+        if now.month == 12:
+            end = start.replace(year=now.year + 1, month=1)
+        else:
+            end = start.replace(month=now.month + 1)
+
+    else:
+        return None, None
+
+    return start, end
+
+
+
+
+
+
 class AdminWalletTransactionHistoryView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        try:
-            period = request.query_params.get('period', 'all')
-            transactions = AdminWalletTransaction.objects.all()
-            if period != 'all':
-                now = timezone.now()
+        period = request.query_params.get("period", "all")
 
-                if period == 'today':
-                    start_date = now.replace(
-                        hour=0, minute=0, second=0, microsecond=0)
-                    end_date = start_date + timedelta(days=1)
+        queryset = AdminWalletTransaction.objects.all()
 
-                elif period == 'week':
-                    days_since_monday = now.weekday()
-                    start_date = (now - timedelta(days=days_since_monday)).replace(
-                        hour=0, minute=0, second=0, microsecond=0
-                    )
-                    end_date = start_date + timedelta(days=7)
+        # filter by period
+        if period != "all":
+            start, end = get_period_range(period)
+            if start and end:
+                queryset = queryset.filter(created_at__gte=start, created_at__lt=end)
 
-                elif period == 'month':
-                    start_date = now.replace(
-                        day=1, hour=0, minute=0, second=0, microsecond=0)
+        queryset = queryset.order_by("-created_at")
 
-                    if now.month == 12:
-                        end_date = now.replace(year=now.year + 1, month=1, day=1,
-                                               hour=0, minute=0, second=0, microsecond=0)
-                    else:
-                        end_date = now.replace(month=now.month + 1, day=1,
-                                               hour=0, minute=0, second=0, microsecond=0)
+        # statistics using database aggregation
+        stats = queryset.aggregate(
+            total_income=Sum(
+                Case(
+                    When(~Q(note__icontains="payout") & ~Q(note__icontains="refund"),
+                         then="amount"),
+                    default=Value(0),
+                    output_field=DecimalField(),
+                )
+            ),
+            total_expense=Sum(
+                Case(
+                    When(Q(note__icontains="payout") | Q(note__icontains="refund"),
+                         then="amount"),
+                    default=Value(0),
+                    output_field=DecimalField(),
+                )
+            ),
+            transaction_count=Sum(Value(1), output_field=DecimalField()),
+        )
 
-                else:
-                    start_date = None
-                    end_date = None
+        total_income = abs(stats["total_income"] or 0)
+        total_expense = abs(stats["total_expense"] or 0)
 
-                if start_date and end_date:
-                    transactions = transactions.filter(
-                        created_at__gte=start_date,
-                        created_at__lt=end_date
-                    )
+        serializer = AdminWalletTransactionSerializer(queryset, many=True)
 
-            transactions = transactions.order_by('-created_at')
-            serializer = AdminWalletTransactionSerializer(
-                transactions, many=True)
-            total_income = 0
-            total_expense = 0
-
-            for txn in transactions:
-                is_expense = ('payout' in txn.note.lower() or
-                              'refund' in txn.note.lower())
-                amount = abs(txn.amount)
-
-                if is_expense:
-                    total_expense += amount
-                else:
-                    total_income += amount
-
-            response_data = {
-                'history': serializer.data,
-                'statistics': {
-                    'total_income': total_income,
-                    'total_expense': total_expense,
-                    'net_amount': total_income - total_expense,
-                    'transaction_count': len(serializer.data),
-                    'period': period
-                }
-            }
-
-            return Response(response_data, status=status.HTTP_200_OK)
-
-        except Exception as e:
-            return Response(
-                {"error": "Failed to fetch transaction history",
-                    "details": str(e)},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
-
+        return Response(
+            {
+                "history": serializer.data,
+                "statistics": {
+                    "total_income": total_income,
+                    "total_expense": total_expense,
+                    "net_amount": total_income - total_expense,
+                    "transaction_count": queryset.count(),
+                    "period": period,
+                },
+            },
+            status=status.HTTP_200_OK,
+        )
+        
+        
+        
+        
 
 class CouponViewSet(ModelViewSet):
     permission_classes = [IsAuthenticated]
