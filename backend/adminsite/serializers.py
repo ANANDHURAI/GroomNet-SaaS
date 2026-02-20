@@ -58,37 +58,24 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 class ServiceSerializer(serializers.ModelSerializer):
-    category_name = serializers.CharField(source='category.name', read_only=True)
-    category_details = CategorySerializer(source='category', read_only=True)
+    category = CategorySerializer(read_only=True)
 
     class Meta:
         model = ServiceModel
         fields = '__all__'
-      
         extra_kwargs = {'image': {'required': False}}
 
     def validate_name(self, value):
-       
         qs = ServiceModel.objects.filter(name__iexact=value)
+
         if self.instance:
             qs = qs.exclude(pk=self.instance.pk)
-            
-        if qs.exists():
-            raise serializers.ValidationError("Service with this name already exists.")
-        return value
 
-    def to_representation(self, instance):
-        representation = super().to_representation(instance)
-        if instance.category:
-            representation['category'] = {
-                'id': instance.category.id,
-                'name': instance.category.name,
-                'image': instance.category.image.url if instance.category.image else None,
-                'is_blocked': instance.category.is_blocked
-            }
-        return representation
-    
-    
+        if qs.exists():
+            raise serializers.ValidationError(
+                "Service with this name already exists."
+            )
+        return value 
     
 
 

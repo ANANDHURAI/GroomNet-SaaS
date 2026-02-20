@@ -343,8 +343,12 @@ class ServiceViewSet(ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return ServiceModel.objects.filter(category__is_blocked=False).order_by('-id')
-
+        return (
+            ServiceModel.objects
+            .select_related('category')  
+            .filter(category__is_blocked=False)
+            .order_by('-id')
+        )
 
 class AdminWalletView(APIView):
     permission_classes = [IsAuthenticated]
