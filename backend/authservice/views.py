@@ -389,4 +389,3 @@ class ResetPasswordView(APIView):
             return Response({"message": "Password reset successfully."})
         except User.DoesNotExist:
             return Response({"error": "User not found."}, status=status.HTTP_404_NOT_FOUND)
-

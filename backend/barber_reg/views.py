@@ -25,111 +25,70 @@ from django.conf import settings
 
 User = get_user_model()
 logger = logging.getLogger(__name__)
+from utils import generate_otp, store_otp ,verify_otp ,clear_otp , can_resend_otp
+
+
 
 
 class BarberPersonalDetailsView(APIView):
-    def generate_otp(self):
-        return ''.join(random.choices(string.digits, k=6))
 
     def send_otp_email(self, email, name, otp):
         subject = 'Barber Registration - Email Verification'
         message = f"""
-        Hi {name},
+            Hi {name},
 
-        Thank you for registering as a barber with us!
-        Your OTP for email verification is: {otp}
-        This OTP is valid for 10 minutes
-        """
-        try:
-            mail = Mail(
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                to_emails=email,
-                subject=subject,
-                plain_text_content=message
-            )
-            sg = SendGridAPIClient(settings.SENDGRID_API_KEY)
-            sg.send(mail)
-        except Exception as e:
-            print(f"Failed to send OTP email via SendGrid: {str(e)}")
+            Your OTP for verification is: {otp}
+            Valid for 10 minutes.
+            """
+        mail = Mail(
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            to_emails=email,
+            subject=subject,
+            plain_text_content=message
+        )
+        SendGridAPIClient(settings.SENDGRID_API_KEY).send(mail)
 
     def post(self, request):
         serializer = BarberPersonalDetailsSerializer(data=request.data)
-        if not serializer.is_valid():
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer.is_valid(raise_exception=True)
 
-        try:
+        user = User.objects.create_user(
+            name=serializer.validated_data['name'],
+            email=serializer.validated_data['email'],
+            phone=serializer.validated_data['phone'],
+            gender=serializer.validated_data['gender'],
+            password=serializer.validated_data['password'],
+            user_type='barber',
+            is_active=False
+        )
 
-            user = User.objects.create_user(
-                name=serializer.validated_data['name'],
-                email=serializer.validated_data['email'],
-                phone=serializer.validated_data['phone'],
-                gender=serializer.validated_data['gender'],
-                password=serializer.validated_data['password'],
-                user_type='barber',
-                is_active=False
-            )
+        BarberRequest.objects.create(user=user)
 
-            barber_request = BarberRequest.objects.create(
-                user=user,
-                registration_step='personal_details',
-                status='pending'
-            )
+        otp = generate_otp()
+        store_otp(user.email, otp)
 
-            otp = self.generate_otp()
-            OTPVerification.objects.filter(user=user).delete()
-            OTPVerification.objects.create(user=user, otp=otp)
-            self.send_otp_email(user.email, user.name, otp)
+        self.send_otp_email(user.email, user.name, otp)
 
-            return Response({
-                "message": "Personal details submitted successfully. Please check your email for OTP verification.",
-                "user_id": user.id,
-                "email": user.email,
-                "next_step": "otp_verification"
-            }, status=status.HTTP_201_CREATED)
+        return Response({
+            "message": "OTP sent to email",
+            "next_step": "otp_verification"
+        }, status=201)
 
-        except Exception as e:
-            return Response({
-                "error": "Failed to create barber account",
-                "detail": str(e)
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
 
 
 class OTPVerificationView(APIView):
-    def post(self, request):
-        logger.info(f"OTP verification request data: {request.data}")
-        logger.info(f"Request content type: {request.content_type}")
 
+    def post(self, request):
         email = request.data.get('email')
         otp = request.data.get('otp')
 
-        logger.info(f"Extracted - Email: {email}, OTP: {otp}")
+        if not verify_otp(email, otp):
+            return Response({"error": "Invalid or expired OTP"}, status=400)
 
-        if not email or not otp:
-            logger.warning(f"Missing data - Email: {email}, OTP: {otp}")
-            return Response({
-                'error': 'Email and OTP are required'
-            }, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            user = User.objects.get(email=email, user_type='barber')
-        except User.DoesNotExist:
-            return Response({
-                'error': 'User not found'
-            }, status=status.HTTP_404_NOT_FOUND)
-
-        try:
-            otp_record = OTPVerification.objects.get(user=user, otp=otp)
-        except OTPVerification.DoesNotExist:
-            return Response({
-                'error': 'Invalid OTP'
-            }, status=status.HTTP_400_BAD_REQUEST)
-
-        if otp_record.created_at < timezone.now() - timedelta(minutes=10):
-            otp_record.delete()
-            return Response({
-                'error': 'OTP has expired. Please request a new one.'
-            }, status=status.HTTP_400_BAD_REQUEST)
-
+        user = User.objects.get(email=email, user_type='barber')
         user.is_active = True
         user.save()
 
@@ -137,85 +96,87 @@ class OTPVerificationView(APIView):
         barber_request.registration_step = 'otp_verified'
         barber_request.save()
 
-        otp_record.delete()
+        clear_otp(email)
 
         refresh = RefreshToken.for_user(user)
-        access_token = str(refresh.access_token)
 
         return Response({
-            "message": "Email verified successfully! You can now upload your documents.",
-            "user_id": user.id,
-            "user_type": user.user_type,
-            "access": access_token,
+            "message": "Email verified",
+            "access": str(refresh.access_token),
             "refresh": str(refresh),
-            "next_step": "upload_documents",
-            "user_data": {
-                "name": user.name,
-                "email": user.email,
-                "phone": user.phone,
-                "gender": user.gender
-            }
-        }, status=status.HTTP_200_OK)
+            "next_step": "upload_documents"
+        })
+        
+        
+
 
 
 class ResendOTPView(APIView):
+
+
     def post(self, request):
-        email = request.data.get('email')
+        email = request.data.get("email")
 
         if not email:
-            return Response({
-                'error': 'Email is required'
-            }, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "Email is required"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
         try:
-            user = User.objects.get(email=email, user_type='barber')
+            user = User.objects.get(email=email, user_type="barber")
         except User.DoesNotExist:
-            return Response({
-                'error': 'User not found or already verified'
-            }, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"error": "User not found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
 
-        last_otp = OTPVerification.objects.filter(
-            user=user).order_by('-created_at').first()
-        if last_otp and last_otp.created_at > timezone.now() - timedelta(minutes=1):
-            return Response({
-                'error': 'Please wait at least 1 minute before requesting a new OTP'
-            }, status=status.HTTP_429_TOO_MANY_REQUESTS)
+        if user.is_active:
+            return Response(
+                {"error": "User already verified"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
-        otp = self._generate_otp()
 
-        OTPVerification.objects.filter(user=user).delete()
+        if not can_resend_otp(email):
+            return Response(
+                {"error": "Please wait before requesting another OTP"},
+                status=status.HTTP_429_TOO_MANY_REQUESTS
+            )
 
-        OTPVerification.objects.create(user=user, otp=otp)
+        otp = generate_otp()
+        store_otp(email, otp)
 
-        self._send_otp_email(user.email, user.name, otp)
+        self.send_otp_email(user.email, user.name, otp)
 
-        return Response({
-            "message": "New OTP sent to your email address.",
-        }, status=status.HTTP_200_OK)
+        return Response(
+            {"message": "A new OTP has been sent to your email."},
+            status=status.HTTP_200_OK
+        )
 
-    def _generate_otp(self):
-        return ''.join(random.choices(string.digits, k=6))
-
-    def _send_otp_email(self, email, name, otp):
-        subject = 'Barber Registration - New Email Verification Code'
+    def send_otp_email(self, email, name, otp):
+        subject = "Barber Registration - New Verification Code"
         message = f"""
-        Hi {name},
+            Hi {name},
 
-        Your new OTP for email verification is: {otp}
-        This OTP is valid for 10 minutes.
-        """
+            Your new OTP is: {otp}
+
+            This code will expire in 5 minutes.
+
+            If you didn't request this, please ignore.
+            """
+
         try:
             mail = Mail(
                 from_email=settings.DEFAULT_FROM_EMAIL,
                 to_emails=email,
                 subject=subject,
-                plain_text_content=message
+                plain_text_content=message,
             )
-            sg = SendGridAPIClient(settings.SENDGRID_API_KEY)
-            sg.send(mail)
-        except Exception as e:
-            print(f"Failed to send OTP email via SendGrid: {str(e)}")
+            SendGridAPIClient(settings.SENDGRID_API_KEY).send(mail)
 
+        except Exception as e:
+            print(f"Email sending failed: {e}")
 
 
 

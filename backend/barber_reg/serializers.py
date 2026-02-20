@@ -84,13 +84,3 @@ class BarberRegistrationStatusSerializer(serializers.ModelSerializer):
         model = User
         fields = ['id', 'name', 'email', 'registration_step',
                   'status', 'admin_comment', 'documents_complete']
-
-
-class OTPVerificationSerializer(serializers.Serializer):
-    email = serializers.EmailField()
-    otp = serializers.CharField(max_length=6, min_length=6)
-
-    def validate_otp(self, value):
-        if not value.isdigit():
-            raise serializers.ValidationError("OTP must contain only digits.")
-        return value
