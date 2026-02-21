@@ -13,6 +13,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework import status, generics
+from rest_framework import serializers
 from .serializer import (
     HomeSerializer,
     CategorySerializer,
@@ -405,16 +406,19 @@ class BookingCreateView(APIView):
                 payment.payment_status = "SUCCESS"
                 
                 if booking.slot:
-                 
+                
                     local_tz = pytz.timezone(settings.TIME_ZONE)
                     naive_datetime = datetime.combine(booking.slot.date, booking.slot.start_time)
-                   
                     local_datetime = local_tz.localize(naive_datetime)
                     booking.service_started_at = local_datetime
 
-                    slot_instance = booking.slot
+                    slot_instance = BarberSlot.objects.select_for_update().get(id=booking.slot.id)
+
+                    if slot_instance.is_booked:
+                        raise serializers.ValidationError({"slot": "This slot is already booked"})
+
                     slot_instance.is_booked = True
-                    slot_instance.save()
+                    slot_instance.save(update_fields=["is_booked"])
 
                 booking.save()
                 payment.save()

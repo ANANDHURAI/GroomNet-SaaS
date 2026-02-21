@@ -72,6 +72,8 @@ class BarberPortfolioView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+
+
 class BarberServiceViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     serializer_class = BarberServiceSerializer
@@ -155,6 +157,7 @@ class BarberServiceViewSet(viewsets.ModelViewSet):
             'total_duration': total_duration,
             'count': services.count()
         })
+
 
 
 class BarberSlotViewSet(viewsets.ViewSet):
